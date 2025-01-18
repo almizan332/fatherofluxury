@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, ShoppingCart, ExternalLink } from "lucide-react";
+import { MessageCircle, ShoppingCart, ExternalLink, Search } from "lucide-react";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -26,7 +26,7 @@ const ProductDetail = () => {
         '1487058792275-0ad4aaf24ca7',
       ][index % 10]}?auto=format&fit=crop&w=800&q=80`,
     })),
-    description: "🚚 Presys is Free Shipping 🚚 🚚\n\n💫 How to Order 💫\nChoose a Code from the Photo and send "Pictures + Code + Size(if Needed)" with a Message to the Seller.",
+    description: '🚚 Presys is Free Shipping 🚚 🚚\n\n💫 How to Order 💫\nChoose a Code from the Photo and send "Pictures + Code + Size(if Needed)" with a Message to the Seller.',
     deliveryTime: "Order Processing: 3-5 working days. Delivery: 15-20 working days.",
     trackingInfo: "Track your parcel with the provided logistics tracking number at www.17track.net",
     telegramChannel: "https://t.me/alistore/GOAQ16FQMJZ",
