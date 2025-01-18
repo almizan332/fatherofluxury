@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Link } from "react-router-dom";
 
 // Sample product data - in a real app this would come from an API
 const products = Array.from({ length: 120 }).map((_, index) => ({
@@ -66,36 +67,37 @@ const Index = () => {
           {/* Product Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {products.map((product, index) => (
-              <motion.div
-                key={product.id}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: Math.min(index * 0.1, 2) }}
-                whileHover={{ scale: 1.02 }}
-                className="transform transition-all duration-300"
-              >
-                <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer bg-gray-900/50 border-gray-800">
-                  <CardContent className="p-0">
-                    <div className="aspect-square relative">
-                      <img
-                        src={product.image}
-                        alt={product.title}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                      />
-                    </div>
-                    <div className="p-4">
-                      <h3 className="text-sm font-medium text-gray-200">{product.title}</h3>
-                      <div className="flex justify-between items-center mt-2">
-                        <p className="text-xs text-gray-400">{product.category}</p>
-                        <Button variant="ghost" size="sm" className="text-xs">
-                          View Details
-                        </Button>
+              <Link to={`/product/${product.id}`} key={product.id}>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, delay: Math.min(index * 0.1, 2) }}
+                  whileHover={{ scale: 1.02 }}
+                  className="transform transition-all duration-300"
+                >
+                  <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer bg-gray-900/50 border-gray-800">
+                    <CardContent className="p-0">
+                      <div className="aspect-square relative">
+                        <img
+                          src={product.image}
+                          alt={product.title}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
+                      <div className="p-4">
+                        <h3 className="text-sm font-medium text-gray-200">{product.title}</h3>
+                        <div className="flex justify-between items-center mt-2">
+                          <p className="text-xs text-gray-400">{product.category}</p>
+                          <Button variant="ghost" size="sm" className="text-xs">
+                            View Details
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </Link>
             ))}
           </div>
         </main>
