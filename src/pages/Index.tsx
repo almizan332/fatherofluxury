@@ -2,23 +2,32 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
-// Sample product data
-const products = [
-  {
-    id: 1,
-    title: "YY381",
-    image: "/lovable-uploads/4aeceda8-d735-4126-ba71-14d10308f69e.png",
-    category: "Bags",
-  },
-  // Add more items as needed
-];
+// Sample product data - in a real app this would come from an API
+const products = Array.from({ length: 120 }).map((_, index) => ({
+  id: index + 1,
+  title: `YY${381 + index}`,
+  image: `https://images.unsplash.com/photo-${[
+    '1649972904349-6e44c42644a7',
+    '1488590528505-98d2b5aba04b',
+    '1518770660439-4636190af475',
+    '1461749280684-dccba630e2f6',
+    '1486312338219-ce68d2c6f44d',
+    '1581091226825-a6a2a5aee158',
+    '1485827404703-89b55fcc595e',
+    '1526374965328-7f61d4dc18c5',
+    '1531297484001-80022131f5a1',
+    '1487058792275-0ad4aaf24ca7',
+  ][index % 10]}?auto=format&fit=crop&w=400&q=80`,
+  category: `Category ${Math.floor(index / 10) + 1}`,
+}));
 
 const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-gray-800 px-4 py-3">
+      <header className="sticky top-0 z-50 border-b border-gray-800 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 py-3">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -41,7 +50,7 @@ const Index = () => {
               <input
                 type="search"
                 placeholder="Search..."
-                className="bg-gray-900 border border-gray-700 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-gray-600"
+                className="bg-gray-900 border border-gray-700 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-gray-600 w-[200px]"
               />
               <Button size="sm" variant="ghost" className="absolute right-0 top-0 h-full px-2">
                 <Search className="h-4 w-4" />
@@ -52,40 +61,45 @@ const Index = () => {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        {/* Product Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {Array.from({ length: 12 }).map((_, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3, delay: index * 0.1 }}
-            >
-              <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer">
-                <CardContent className="p-0">
-                  <div className="aspect-square relative">
-                    <img
-                      src={`https://picsum.photos/400/400?random=${index}`}
-                      alt={`Product ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="p-4">
-                    <h3 className="text-sm font-medium text-gray-200">Product YY{381 + index}</h3>
-                    <div className="flex justify-between items-center mt-2">
-                      <p className="text-xs text-gray-400">Category</p>
-                      <Button variant="ghost" size="sm" className="text-xs">
-                        View Details
-                      </Button>
+      <ScrollArea className="h-[calc(100vh-4rem)]">
+        <main className="max-w-7xl mx-auto px-4 py-8">
+          {/* Product Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {products.map((product, index) => (
+              <motion.div
+                key={product.id}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3, delay: Math.min(index * 0.1, 2) }}
+                whileHover={{ scale: 1.02 }}
+                className="transform transition-all duration-300"
+              >
+                <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer bg-gray-900/50 border-gray-800">
+                  <CardContent className="p-0">
+                    <div className="aspect-square relative">
+                      <img
+                        src={product.image}
+                        alt={product.title}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-      </main>
+                    <div className="p-4">
+                      <h3 className="text-sm font-medium text-gray-200">{product.title}</h3>
+                      <div className="flex justify-between items-center mt-2">
+                        <p className="text-xs text-gray-400">{product.category}</p>
+                        <Button variant="ghost" size="sm" className="text-xs">
+                          View Details
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </main>
+      </ScrollArea>
 
       {/* Footer */}
       <footer className="border-t border-gray-800 mt-12 py-6 text-center text-sm text-gray-400">
