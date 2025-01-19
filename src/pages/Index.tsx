@@ -16,7 +16,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 
-// Sample product data - in a real app this would come from an API
+// Generate 120 products for page 1
 const products = Array.from({ length: 120 }).map((_, index) => ({
   id: index + 1,
   title: `YY${381 + index}`,
@@ -35,7 +35,7 @@ const products = Array.from({ length: 120 }).map((_, index) => ({
   category: `Category ${Math.floor(index / 10) + 1}`,
 }));
 
-const ITEMS_PER_PAGE = 12;
+const ITEMS_PER_PAGE = 20; // Increased from 12 to 20 for better display
 
 const Index = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -88,8 +88,7 @@ const Index = () => {
 
       <ScrollArea className="h-[calc(100vh-4rem)]">
         <main className="max-w-7xl mx-auto px-4 py-8">
-          {/* Product Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {paginatedProducts.map((product, index) => (
               <Link to={`/product/${product.id}`} key={product.id}>
                 <motion.div
@@ -125,7 +124,6 @@ const Index = () => {
             ))}
           </div>
 
-          {/* Pagination */}
           <div className="mt-8 mb-12">
             <Pagination>
               <PaginationContent>
@@ -171,10 +169,6 @@ const Index = () => {
           </div>
         </main>
       </ScrollArea>
-
-      <footer className="border-t border-gray-800 mt-12 py-6 text-center text-sm text-gray-400">
-        <p>Copyright © AliHidden.com | Developed by My Dear Younger Brother. May God Bless Him.</p>
-      </footer>
     </div>
   );
 };

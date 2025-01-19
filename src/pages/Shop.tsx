@@ -20,7 +20,7 @@ const categories = [
   {
     id: 1,
     name: "Smartphones",
-    products: Array.from({ length: 8 }).map((_, idx) => ({
+    products: Array.from({ length: 40 }).map((_, idx) => ({
       id: idx + 1,
       title: `Phone YY${381 + idx}`,
       image: `https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=400&q=80`,
@@ -29,24 +29,24 @@ const categories = [
   {
     id: 2,
     name: "Laptops",
-    products: Array.from({ length: 8 }).map((_, idx) => ({
-      id: idx + 9,
-      title: `Laptop YY${389 + idx}`,
+    products: Array.from({ length: 40 }).map((_, idx) => ({
+      id: idx + 41,
+      title: `Laptop YY${421 + idx}`,
       image: `https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=400&q=80`,
     }))
   },
   {
     id: 3,
     name: "Tablets",
-    products: Array.from({ length: 8 }).map((_, idx) => ({
-      id: idx + 17,
-      title: `Tablet YY${397 + idx}`,
+    products: Array.from({ length: 40 }).map((_, idx) => ({
+      id: idx + 81,
+      title: `Tablet YY${461 + idx}`,
       image: `https://images.unsplash.com/photo-1544244015-0df4b3fcc595?auto=format&fit=crop&w=400&q=80`,
     }))
   }
 ];
 
-const ITEMS_PER_PAGE = 2;
+const ITEMS_PER_PAGE = 1; // Show one category per page, each with 40 products
 
 const Shop = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -114,7 +114,7 @@ const Shop = () => {
                 </Link>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                 {category.products.map((product, index) => (
                   <Link to={`/product/${product.id}`} key={product.id}>
                     <motion.div
@@ -152,7 +152,6 @@ const Shop = () => {
             </motion.section>
           ))}
 
-          {/* Pagination */}
           <div className="mt-8 mb-12">
             <Pagination>
               <PaginationContent>
