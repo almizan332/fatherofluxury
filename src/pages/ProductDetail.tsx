@@ -3,6 +3,8 @@ import { motion } from "framer-motion";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, ShoppingCart, ExternalLink, Search } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -11,6 +13,7 @@ const ProductDetail = () => {
   const product = {
     id,
     title: `YY${id}`,
+    category: "Category 1", // Added category
     images: Array.from({ length: 10 }).map((_, index) => ({
       id: index + 1,
       url: `https://images.unsplash.com/photo-${[
@@ -35,9 +38,22 @@ const ProductDetail = () => {
     reviews: "@tmstore_reviews"
   };
 
+  // Mock related products data (in real app, this would be filtered by category)
+  const relatedProducts = Array.from({ length: 8 }).map((_, index) => ({
+    id: Number(id) + index + 1,
+    title: `YY${Number(id) + index + 1}`,
+    image: `https://images.unsplash.com/photo-${[
+      '1649972904349-6e44c42644a7',
+      '1488590528505-98d2b5aba04b',
+      '1518770660439-4636190af475',
+      '1461749280684-dccba630e2f6',
+    ][index % 4]}?auto=format&fit=crop&w=400&q=80`,
+    category: product.category,
+  }));
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Header stays the same as Index page */}
+      {/* Header */}
       <header className="sticky top-0 z-50 border-b border-gray-800 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 py-3">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <motion.div
@@ -73,7 +89,8 @@ const ProductDetail = () => {
 
       <ScrollArea className="h-[calc(100vh-4rem)]">
         <main className="max-w-7xl mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Main Product Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
             {/* Product Images Grid */}
             <motion.div 
               initial={{ opacity: 0 }}
@@ -141,6 +158,45 @@ const ProductDetail = () => {
               </motion.div>
             </div>
           </div>
+
+          {/* Related Products Section */}
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-16 border-t border-gray-800 pt-16"
+          >
+            <h2 className="text-2xl font-bold mb-8">Related Products</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {relatedProducts.map((relatedProduct, index) => (
+                <Link to={`/product/${relatedProduct.id}`} key={relatedProduct.id}>
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 }}
+                    whileHover={{ scale: 1.02 }}
+                    className="transform transition-all duration-300"
+                  >
+                    <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer bg-gray-900/50 border-gray-800">
+                      <CardContent className="p-0">
+                        <div className="aspect-square relative">
+                          <img
+                            src={relatedProduct.image}
+                            alt={relatedProduct.title}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
+                        </div>
+                        <div className="p-4">
+                          <h3 className="text-sm font-medium text-gray-200">{relatedProduct.title}</h3>
+                          <p className="text-xs text-gray-400 mt-1">{relatedProduct.category}</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                </Link>
+              ))}
+            </div>
+          </motion.section>
         </main>
       </ScrollArea>
     </div>
