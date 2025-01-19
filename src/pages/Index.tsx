@@ -4,6 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Link } from "react-router-dom";
+import { useState } from "react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 // Sample product data - in a real app this would come from an API
 const products = Array.from({ length: 120 }).map((_, index) => ({
@@ -24,10 +34,24 @@ const products = Array.from({ length: 120 }).map((_, index) => ({
   category: `Category ${Math.floor(index / 10) + 1}`,
 }));
 
+const ITEMS_PER_PAGE = 12;
+
 const Index = () => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
+  
+  const paginatedProducts = products.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="sticky top-0 z-50 border-b border-gray-800 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 py-3">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <motion.div
@@ -61,12 +85,11 @@ const Index = () => {
         </div>
       </header>
 
-      {/* Main Content */}
       <ScrollArea className="h-[calc(100vh-4rem)]">
         <main className="max-w-7xl mx-auto px-4 py-8">
           {/* Product Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {products.map((product, index) => (
+            {paginatedProducts.map((product, index) => (
               <Link to={`/product/${product.id}`} key={product.id}>
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
@@ -100,10 +123,54 @@ const Index = () => {
               </Link>
             ))}
           </div>
+
+          {/* Pagination */}
+          <div className="mt-8 mb-12">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+                
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter(page => {
+                    if (page === 1 || page === totalPages) return true;
+                    if (page >= currentPage - 1 && page <= currentPage + 1) return true;
+                    return false;
+                  })
+                  .map((page, index, array) => (
+                    <React.Fragment key={page}>
+                      {index > 0 && array[index - 1] !== page - 1 && (
+                        <PaginationItem>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      )}
+                      <PaginationItem>
+                        <PaginationLink
+                          isActive={currentPage === page}
+                          onClick={() => handlePageChange(page)}
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    </React.Fragment>
+                  ))}
+
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
+                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
         </main>
       </ScrollArea>
 
-      {/* Footer */}
       <footer className="border-t border-gray-800 mt-12 py-6 text-center text-sm text-gray-400">
         <p>Copyright © AliHidden.com | Developed by My Dear Younger Brother. May God Bless Him.</p>
       </footer>
