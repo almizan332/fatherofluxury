@@ -16,8 +16,8 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 
-// Generate 120 products for homepage
-const products = Array.from({ length: 120 }).map((_, index) => ({
+// Generate initial 480 products for homepage (can be expanded)
+const products = Array.from({ length: 480 }).map((_, index) => ({
   id: index + 1,
   title: `YY${381 + index}`,
   image: `https://images.unsplash.com/photo-${[
@@ -32,16 +32,20 @@ const products = Array.from({ length: 120 }).map((_, index) => ({
     '1531297484001-80022131f5a1',
     '1487058792275-0ad4aaf24ca7',
   ][index % 10]}?auto=format&fit=crop&w=400&q=80`,
-  category: `Category ${Math.floor(index / 10) + 1}`,
+  category: `Category ${Math.floor(index / 40) + 1}`,
+  dateAdded: new Date(Date.now() - Math.random() * 10000000000), // Random recent dates
 }));
 
-const ITEMS_PER_PAGE = 30; // Show 30 products per page
+// Sort products by date, newest first
+const sortedProducts = [...products].sort((a, b) => b.dateAdded.getTime() - a.dateAdded.getTime());
+
+const ITEMS_PER_PAGE = 40; // Show 40 products per page
 
 const Index = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(sortedProducts.length / ITEMS_PER_PAGE);
   
-  const paginatedProducts = products.slice(
+  const paginatedProducts = sortedProducts.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
@@ -88,6 +92,14 @@ const Index = () => {
 
       <ScrollArea className="h-[calc(100vh-4rem)]">
         <main className="max-w-7xl mx-auto px-4 py-8">
+          <motion.h1 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-2xl font-bold mb-6 gradient-text"
+          >
+            Latest Products
+          </motion.h1>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {paginatedProducts.map((product, index) => (
               <Link to={`/product/${product.id}`} key={product.id}>
