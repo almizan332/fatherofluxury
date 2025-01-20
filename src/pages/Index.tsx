@@ -16,30 +16,34 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 
-// Generate initial 480 products for homepage (can be expanded)
-const products = Array.from({ length: 480 }).map((_, index) => ({
-  id: index + 1,
-  title: `YY${381 + index}`,
-  image: `https://images.unsplash.com/photo-${[
-    '1649972904349-6e44c42644a7',
-    '1488590528505-98d2b5aba04b',
-    '1518770660439-4636190af475',
-    '1461749280684-dccba630e2f6',
-    '1486312338219-ce68d2c6f44d',
-    '1581091226825-a6a2a5aee158',
-    '1485827404703-89b55fcc595e',
-    '1526374965328-7f61d4dc18c5',
-    '1531297484001-80022131f5a1',
-    '1487058792275-0ad4aaf24ca7',
-  ][index % 10]}?auto=format&fit=crop&w=400&q=80`,
-  category: `Category ${Math.floor(index / 40) + 1}`,
-  dateAdded: new Date(Date.now() - Math.random() * 10000000000), // Random recent dates
-}));
+// Generate products array that can grow dynamically
+const generateProducts = (count: number) => {
+  return Array.from({ length: count }).map((_, index) => ({
+    id: index + 1,
+    title: `YY${381 + index}`,
+    image: `https://images.unsplash.com/photo-${[
+      '1649972904349-6e44c42644a7',
+      '1488590528505-98d2b5aba04b',
+      '1518770660439-4636190af475',
+      '1461749280684-dccba630e2f6',
+      '1486312338219-ce68d2c6f44d',
+      '1581091226825-a6a2a5aee158',
+      '1485827404703-89b55fcc595e',
+      '1526374965328-7f61d4dc18c5',
+      '1531297484001-80022131f5a1',
+      '1487058792275-0ad4aaf24ca7',
+    ][index % 10]}?auto=format&fit=crop&w=400&q=80`,
+    dateAdded: new Date(Date.now() - Math.random() * 10000000000), // Random recent dates
+  }));
+};
+
+// Initial products array with 360 products (3 pages of 120 products each)
+const initialProducts = generateProducts(360);
 
 // Sort products by date, newest first
-const sortedProducts = [...products].sort((a, b) => b.dateAdded.getTime() - a.dateAdded.getTime());
+const sortedProducts = [...initialProducts].sort((a, b) => b.dateAdded.getTime() - a.dateAdded.getTime());
 
-const ITEMS_PER_PAGE = 40; // Show 40 products per page
+const ITEMS_PER_PAGE = 120; // Show 120 products per page
 
 const Index = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -97,16 +101,16 @@ const Index = () => {
             animate={{ opacity: 1, y: 0 }}
             className="text-2xl font-bold mb-6 gradient-text"
           >
-            Latest Products
+            Latest Products ({sortedProducts.length} products)
           </motion.h1>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             {paginatedProducts.map((product, index) => (
               <Link to={`/product/${product.id}`} key={product.id}>
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3, delay: Math.min(index * 0.1, 2) }}
+                  transition={{ duration: 0.3, delay: Math.min(index * 0.05, 1) }}
                   whileHover={{ scale: 1.02 }}
                   className="transform transition-all duration-300"
                 >
@@ -123,7 +127,9 @@ const Index = () => {
                       <div className="p-4">
                         <h3 className="text-sm font-medium text-gray-200">{product.title}</h3>
                         <div className="flex justify-between items-center mt-2">
-                          <p className="text-xs text-gray-400">{product.category}</p>
+                          <p className="text-xs text-gray-400">
+                            {new Date(product.dateAdded).toLocaleDateString()}
+                          </p>
                           <Button variant="ghost" size="sm" className="text-xs">
                             View Details
                           </Button>
