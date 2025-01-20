@@ -16,7 +16,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 
-// Generate 120 products for page 1
+// Generate 120 products for homepage
 const products = Array.from({ length: 120 }).map((_, index) => ({
   id: index + 1,
   title: `YY${381 + index}`,
@@ -35,7 +35,7 @@ const products = Array.from({ length: 120 }).map((_, index) => ({
   category: `Category ${Math.floor(index / 10) + 1}`,
 }));
 
-const ITEMS_PER_PAGE = 20; // Increased from 12 to 20 for better display
+const ITEMS_PER_PAGE = 30; // Show 30 products per page
 
 const Index = () => {
   const [currentPage, setCurrentPage] = useState(1);
