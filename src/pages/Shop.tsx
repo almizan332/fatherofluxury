@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useState } from "react";
 import {
   Pagination,
@@ -22,43 +22,36 @@ const generateProducts = (count: number, categoryId: number) => {
     id: index + 1,
     title: `YY${381 + index}`,
     image: `https://images.unsplash.com/photo-${[
-      '1511707171634-5f897ff02aa9',
-      '1496181133206-80ce9b88a853',
-      '1544244015-0df4b3fcc595'
+      '1511707171634-5f897ff02aa9', // smartphones
+      '1496181133206-80ce9b88a853', // laptops
+      '1544244015-0df4b3fcc595', // tablets
+      '1572569511254-d8f925fe2cbb', // accessories
+      '1434494878577-86c23bcb06b9', // wearables
+      '1550745165-9bc0b252726f', // gaming
     ][categoryId - 1]}?auto=format&fit=crop&w=400&q=80`,
-    dateAdded: new Date(Date.now() - Math.random() * 10000000000), // Random recent dates
+    dateAdded: new Date(Date.now() - Math.random() * 10000000000),
   }));
 };
 
-const categories = [
-  {
-    id: 1,
-    name: "Smartphones",
-    products: generateProducts(360, 1) // 3 pages of 120 products each
-  },
-  {
-    id: 2,
-    name: "Laptops",
-    products: generateProducts(360, 2)
-  },
-  {
-    id: 3,
-    name: "Tablets",
-    products: generateProducts(360, 3)
-  }
+const categoryNames = [
+  "Smartphones",
+  "Laptops",
+  "Tablets",
+  "Accessories",
+  "Wearables",
+  "Gaming"
 ];
 
-const ITEMS_PER_PAGE = 120; // Show 120 products per page
+const ITEMS_PER_PAGE = 120;
 
 const Shop = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const categoryId = parseInt(window.location.pathname.split('/')[2]);
-  const category = categories.find(c => c.id === categoryId);
+  const { id } = useParams();
+  const categoryId = parseInt(id || "1");
   
-  if (!category) return <div>Category not found</div>;
-
-  // Sort products by date, newest first
-  const sortedProducts = [...category.products].sort((a, b) => b.dateAdded.getTime() - a.dateAdded.getTime());
+  // Generate 360 products initially (3 pages worth)
+  const products = generateProducts(360, categoryId);
+  const sortedProducts = [...products].sort((a, b) => b.dateAdded.getTime() - a.dateAdded.getTime());
   
   const totalPages = Math.ceil(sortedProducts.length / ITEMS_PER_PAGE);
   
@@ -85,9 +78,9 @@ const Shop = () => {
           </motion.div>
           
           <nav className="hidden md:flex space-x-6 text-sm text-gray-400">
-            <a href="/" className="hover:text-white transition-colors">Home</a>
-            <a href="/categories" className="hover:text-white transition-colors">Categories</a>
-            <a href="/shop" className="hover:text-white transition-colors">Shop</a>
+            <Link to="/" className="hover:text-white transition-colors">Home</Link>
+            <Link to="/categories" className="hover:text-white transition-colors">Categories</Link>
+            <Link to="/shop" className="hover:text-white transition-colors">Shop</Link>
             <a href="/telegram" className="hover:text-white transition-colors">Telegram</a>
             <a href="/contact" className="hover:text-white transition-colors">Contact</a>
           </nav>
@@ -114,7 +107,7 @@ const Shop = () => {
             animate={{ opacity: 1, y: 0 }}
             className="text-2xl font-bold mb-6 gradient-text"
           >
-            {category.name} ({sortedProducts.length} products)
+            {categoryNames[categoryId - 1]} ({sortedProducts.length} products)
           </motion.h1>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
