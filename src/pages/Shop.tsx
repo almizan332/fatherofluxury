@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useState } from "react";
 import {
   Pagination,
@@ -17,36 +17,42 @@ import {
 } from "@/components/ui/pagination";
 
 // Generate products array that can grow dynamically
-const generateProducts = (count: number) => {
+const generateProducts = (count: number, categoryId: number) => {
   return Array.from({ length: count }).map((_, index) => ({
     id: index + 1,
     title: `YY${381 + index}`,
     image: `https://images.unsplash.com/photo-${[
-      '1649972904349-6e44c42644a7',
-      '1488590528505-98d2b5aba04b',
-      '1518770660439-4636190af475',
-      '1461749280684-dccba630e2f6',
-      '1486312338219-ce68d2c6f44d',
-      '1581091226825-a6a2a5aee158',
-      '1485827404703-89b55fcc595e',
-      '1526374965328-7f61d4dc18c5',
-      '1531297484001-80022131f5a1',
-      '1487058792275-0ad4aaf24ca7',
-    ][index % 10]}?auto=format&fit=crop&w=400&q=80`,
-    dateAdded: new Date(Date.now() - Math.random() * 10000000000), // Random recent dates
+      '1511707171634-5f897ff02aa9', // smartphones
+      '1496181133206-80ce9b88a853', // laptops
+      '1544244015-0df4b3fcc595', // tablets
+      '1572569511254-d8f925fe2cbb', // accessories
+      '1434494878577-86c23bcb06b9', // wearables
+      '1550745165-9bc0b252726f', // gaming
+    ][categoryId - 1]}?auto=format&fit=crop&w=400&q=80`,
+    dateAdded: new Date(Date.now() - Math.random() * 10000000000),
   }));
 };
 
-// Initial products array with 360 products (3 pages of 120 products each)
-const initialProducts = generateProducts(360);
+const categoryNames = [
+  "Smartphones",
+  "Laptops",
+  "Tablets",
+  "Accessories",
+  "Wearables",
+  "Gaming"
+];
 
-// Sort products by date, newest first
-const sortedProducts = [...initialProducts].sort((a, b) => b.dateAdded.getTime() - a.dateAdded.getTime());
+const ITEMS_PER_PAGE = 120;
 
-const ITEMS_PER_PAGE = 120; // Show 120 products per page
-
-const Index = () => {
+const Shop = () => {
   const [currentPage, setCurrentPage] = useState(1);
+  const { id } = useParams();
+  const categoryId = parseInt(id || "1");
+  
+  // Generate 360 products initially (3 pages worth)
+  const products = generateProducts(360, categoryId);
+  const sortedProducts = [...products].sort((a, b) => b.dateAdded.getTime() - a.dateAdded.getTime());
+  
   const totalPages = Math.ceil(sortedProducts.length / ITEMS_PER_PAGE);
   
   const paginatedProducts = sortedProducts.slice(
@@ -72,9 +78,9 @@ const Index = () => {
           </motion.div>
           
           <nav className="hidden md:flex space-x-6 text-sm text-gray-400">
-            <a href="/" className="hover:text-white transition-colors">Home</a>
-            <a href="/categories" className="hover:text-white transition-colors">Categories</a>
-            <a href="/shop" className="hover:text-white transition-colors">Shop</a>
+            <Link to="/" className="hover:text-white transition-colors">Home</Link>
+            <Link to="/categories" className="hover:text-white transition-colors">Categories</Link>
+            <Link to="/shop" className="hover:text-white transition-colors">Shop</Link>
             <a href="/telegram" className="hover:text-white transition-colors">Telegram</a>
             <a href="/contact" className="hover:text-white transition-colors">Contact</a>
           </nav>
@@ -101,7 +107,7 @@ const Index = () => {
             animate={{ opacity: 1, y: 0 }}
             className="text-2xl font-bold mb-6 gradient-text"
           >
-            Latest Products ({sortedProducts.length} products)
+            {categoryNames[categoryId - 1]} ({sortedProducts.length} products)
           </motion.h1>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
@@ -191,4 +197,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default Shop;

@@ -4,11 +4,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
+import ProductDetail from "./pages/ProductDetail";
 import Categories from "./pages/Categories";
-import Blog from "./pages/Blog";
-import BlogPost from "./pages/BlogPost";
-import BlogCategory from "./pages/BlogCategory";
-import CreatePost from "./pages/CreatePost";
+import Shop from "./pages/Shop";
 
 const queryClient = new QueryClient();
 
@@ -20,11 +18,9 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/categories" element={<Categories />} />
-          <Route path="/blog" element={<Blog />} />
-          <Route path="/blog/post/:id" element={<BlogPost />} />
-          <Route path="/blog/category/:category" element={<BlogCategory />} />
-          <Route path="/blog/create" element={<CreatePost />} />
+          <Route path="/shop" element={<Shop />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
