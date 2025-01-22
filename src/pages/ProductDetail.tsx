@@ -14,7 +14,10 @@ import {
 const ProductDetail = () => {
   const product = {
     id: "YY381",
-    description: `🚚 Presys is Free Shipping 🚚\n\n💫 How to Order 💫\nChoose a Code from the Photo and send "Pictures + Code + Size(if Needed)" with a Message to the Seller.`,
+    description: `🚚 Presys is Free Shipping 🚚
+
+💫 How to Order 💫
+Choose a Code from the Photo and send "Pictures + Code + Size(if Needed)" with a Message to the Seller.`,
     deliveryTime: "Order Processing: 3-5 working days. Delivery: 15-20 working days.",
     trackingInfo: "Track your parcel with the provided logistics tracking number at www.17track.net",
     telegramChannel: "https://t.me/alistore/GOAQ16FQMJZ",
