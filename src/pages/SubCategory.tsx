@@ -73,9 +73,8 @@ const SubCategory = () => {
           <nav className="hidden md:flex space-x-6 text-sm text-gray-400">
             <Link to="/" className="hover:text-white transition-colors">Home</Link>
             <Link to="/categories" className="hover:text-white transition-colors">Categories</Link>
-            <Link to="/blog" className="hover:text-white transition-colors">Blog</Link>
-            <a href="/telegram" className="hover:text-white transition-colors">Telegram</a>
-            <a href="/contact" className="hover:text-white transition-colors">Contact</a>
+            <Link to="/telegram" className="hover:text-white transition-colors">Telegram</Link>
+            <Link to="/contact" className="hover:text-white transition-colors">Contact</Link>
           </nav>
 
           <div className="flex items-center space-x-2">

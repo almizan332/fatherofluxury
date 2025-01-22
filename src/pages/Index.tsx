@@ -16,7 +16,6 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 
-// Generate products array that can grow dynamically
 const generateProducts = (count: number) => {
   return Array.from({ length: count }).map((_, index) => ({
     id: index + 1,
@@ -33,17 +32,13 @@ const generateProducts = (count: number) => {
       '1531297484001-80022131f5a1',
       '1487058792275-0ad4aaf24ca7',
     ][index % 10]}?auto=format&fit=crop&w=400&q=80`,
-    dateAdded: new Date(Date.now() - Math.random() * 10000000000), // Random recent dates
+    dateAdded: new Date(Date.now() - Math.random() * 10000000000),
   }));
 };
 
-// Initial products array with 360 products (3 pages of 120 products each)
 const initialProducts = generateProducts(360);
-
-// Sort products by date, newest first
 const sortedProducts = [...initialProducts].sort((a, b) => b.dateAdded.getTime() - a.dateAdded.getTime());
-
-const ITEMS_PER_PAGE = 120; // Show 120 products per page
+const ITEMS_PER_PAGE = 120;
 
 const Index = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -72,11 +67,10 @@ const Index = () => {
           </motion.div>
           
           <nav className="hidden md:flex space-x-6 text-sm text-gray-400">
-            <a href="/" className="hover:text-white transition-colors">Home</a>
-            <a href="/categories" className="hover:text-white transition-colors">Categories</a>
-            <a href="/shop" className="hover:text-white transition-colors">Shop</a>
-            <a href="/telegram" className="hover:text-white transition-colors">Telegram</a>
-            <a href="/contact" className="hover:text-white transition-colors">Contact</a>
+            <Link to="/" className="hover:text-white transition-colors">Home</Link>
+            <Link to="/categories" className="hover:text-white transition-colors">Categories</Link>
+            <Link to="/telegram" className="hover:text-white transition-colors">Telegram</Link>
+            <Link to="/contact" className="hover:text-white transition-colors">Contact</Link>
           </nav>
 
           <div className="flex items-center space-x-2">
