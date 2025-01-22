@@ -9,7 +9,6 @@ import { Card, CardContent } from "@/components/ui/card";
 const ProductDetail = () => {
   const { id } = useParams();
 
-  // This would come from an API in a real app
   const product = {
     id,
     title: `YY${id}`,
@@ -65,11 +64,9 @@ const ProductDetail = () => {
           </motion.div>
           
           <nav className="hidden md:flex space-x-6 text-sm text-gray-400">
-            <a href="/" className="hover:text-white transition-colors">Home</a>
-            <a href="/categories" className="hover:text-white transition-colors">Categories</a>
-            <a href="/shop" className="hover:text-white transition-colors">Shop</a>
-            <a href="/telegram" className="hover:text-white transition-colors">Telegram</a>
-            <a href="/contact" className="hover:text-white transition-colors">Contact</a>
+            <Link to="/" className="hover:text-white transition-colors">Home</Link>
+            <Link to="/categories" className="hover:text-white transition-colors">Categories</Link>
+            <Link to="/category/:category" className="hover:text-white transition-colors">SubCategories</Link>
           </nav>
 
           <div className="flex items-center space-x-2">
