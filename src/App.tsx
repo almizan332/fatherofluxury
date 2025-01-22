@@ -8,6 +8,7 @@ import Categories from "./pages/Categories";
 import SubCategory from "./pages/SubCategory";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
+import ProductDetail from "./pages/ProductDetail";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/category/:category" element={<SubCategory />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:id" element={<BlogPost />} />
+          <Route path="/product/:id" element={<ProductDetail />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
