@@ -37,7 +37,7 @@ const ProductDetail = () => {
             className="w-full h-auto mb-4"
           />
           <p className="text-lg mb-4">{product.description}</p>
-          <Button variant="primary" className="mt-4">
+          <Button variant="default" className="mt-4">
             Buy Now
           </Button>
         </motion.div>
