@@ -6,6 +6,7 @@ import { Search } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import Navbar from "@/components/Navbar";
 import {
   Pagination,
   PaginationContent,
@@ -56,38 +57,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 border-b border-gray-800 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 py-3">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="text-xl font-semibold gradient-text"
-          >
-            Ali Hidden
-          </motion.div>
-          
-          <nav className="hidden md:flex space-x-6 text-sm text-gray-400">
-            <Link to="/" className="hover:text-white transition-colors">Home</Link>
-            <Link to="/categories" className="hover:text-white transition-colors">Categories</Link>
-            <Link to="/telegram" className="hover:text-white transition-colors">Telegram</Link>
-            <Link to="/contact" className="hover:text-white transition-colors">Contact</Link>
-          </nav>
-
-          <div className="flex items-center space-x-2">
-            <div className="relative">
-              <input
-                type="search"
-                placeholder="Search..."
-                className="bg-gray-900 border border-gray-700 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-gray-600 w-[200px]"
-              />
-              <Button size="sm" variant="ghost" className="absolute right-0 top-0 h-full px-2">
-                <Search className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
+      <Navbar />
       <ScrollArea className="h-[calc(100vh-4rem)]">
         <main className="max-w-7xl mx-auto px-4 py-8">
           <motion.h1 
