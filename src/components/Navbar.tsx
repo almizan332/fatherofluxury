@@ -11,7 +11,7 @@ const Navbar = () => {
             animate={{ opacity: 1, x: 0 }}
             className="text-xl font-semibold gradient-text"
           >
-            Ali Hidden
+            Father of Luxury
           </motion.div>
         </Link>
         <nav className="flex items-center space-x-6 text-sm">

@@ -5,6 +5,7 @@ import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 // Mock categories data - in a real app this would come from an API
 const categories = [
@@ -54,10 +55,9 @@ const categories = [
 
 const Categories = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-
-      <ScrollArea className="h-[calc(100vh-4rem)]">
+      <ScrollArea className="flex-grow">
         <main className="max-w-7xl mx-auto px-4 py-12">
           <div className="flex justify-between items-center mb-8">
             <motion.h1 
@@ -115,6 +115,7 @@ const Categories = () => {
           </div>
         </main>
       </ScrollArea>
+      <Footer />
     </div>
   );
 };

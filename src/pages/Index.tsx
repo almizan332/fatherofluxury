@@ -7,6 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import {
   Pagination,
   PaginationContent,
@@ -56,9 +57,9 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      <ScrollArea className="h-[calc(100vh-4rem)]">
+      <ScrollArea className="flex-grow">
         <main className="max-w-7xl mx-auto px-4 py-8">
           <motion.h1 
             initial={{ opacity: 0, y: -20 }}
@@ -151,6 +152,7 @@ const Index = () => {
           </div>
         </main>
       </ScrollArea>
+      <Footer />
     </div>
   );
 };
