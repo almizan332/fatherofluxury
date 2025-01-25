@@ -6,6 +6,8 @@ import { Search } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Link, useParams } from "react-router-dom";
 import { useState } from "react";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import {
   Pagination,
   PaginationContent,
@@ -56,26 +58,20 @@ const BlogCategory = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 border-b border-gray-800 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 py-3">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="text-xl font-semibold gradient-text"
-          >
-            Ali Hidden
-          </motion.div>
-          
-          <nav className="hidden md:flex space-x-6 text-sm text-gray-400">
-            <Link to="/" className="hover:text-white transition-colors">Home</Link>
-            <Link to="/categories" className="hover:text-white transition-colors">Categories</Link>
-            <Link to="/blog" className="hover:text-white transition-colors">Blog</Link>
-            <a href="/telegram" className="hover:text-white transition-colors">Telegram</a>
-            <a href="/contact" className="hover:text-white transition-colors">Contact</a>
-          </nav>
+    <div className="min-h-screen bg-background flex flex-col">
+      <Navbar />
 
-          <div className="flex items-center space-x-2">
+      <ScrollArea className="flex-grow">
+        <main className="max-w-7xl mx-auto px-4 py-8">
+          <div className="flex justify-between items-center mb-8">
+            <motion.h1 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-2xl font-bold gradient-text"
+            >
+              {category} Posts ({sortedPosts.length} articles)
+            </motion.h1>
+
             <div className="relative">
               <input
                 type="search"
@@ -87,18 +83,6 @@ const BlogCategory = () => {
               </Button>
             </div>
           </div>
-        </div>
-      </header>
-
-      <ScrollArea className="h-[calc(100vh-4rem)]">
-        <main className="max-w-7xl mx-auto px-4 py-8">
-          <motion.h1 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-2xl font-bold mb-6 gradient-text"
-          >
-            {category} Posts ({sortedPosts.length} articles)
-          </motion.h1>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {paginatedPosts.map((post, index) => (
@@ -184,6 +168,8 @@ const BlogCategory = () => {
           </div>
         </main>
       </ScrollArea>
+
+      <Footer />
     </div>
   );
 };
