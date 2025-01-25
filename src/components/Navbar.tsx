@@ -18,8 +18,22 @@ const Navbar = () => {
           <Link to="/" className="transition-colors hover:text-foreground/80">Home</Link>
           <Link to="/categories" className="transition-colors hover:text-foreground/80">Categories</Link>
           <Link to="/blog" className="transition-colors hover:text-foreground/80">Blog</Link>
-          <Link to="/telegram" className="transition-colors hover:text-foreground/80">Telegram</Link>
-          <Link to="/contact" className="transition-colors hover:text-foreground/80">Contact</Link>
+          <a 
+            href="https://t.me/+pcnB8fU7jwo0MmNl" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="transition-colors hover:text-foreground/80"
+          >
+            Telegram
+          </a>
+          <a 
+            href="https://wa.link/lbeu86" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="transition-colors hover:text-foreground/80"
+          >
+            Contact
+          </a>
         </nav>
       </div>
     </header>
