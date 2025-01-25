@@ -15,8 +15,9 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
-// Generate products array that can grow dynamically
 const generateProducts = (count: number) => {
   return Array.from({ length: count }).map((_, index) => ({
     id: index + 1,
@@ -59,41 +60,10 @@ const SubCategory = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 border-b border-gray-800 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 py-3">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="text-xl font-semibold gradient-text"
-          >
-            Ali Hidden
-          </motion.div>
-          
-          <nav className="hidden md:flex space-x-6 text-sm text-gray-400">
-            <Link to="/" className="hover:text-white transition-colors">Home</Link>
-            <Link to="/categories" className="hover:text-white transition-colors">Categories</Link>
-            <Link to="/telegram" className="hover:text-white transition-colors">Telegram</Link>
-            <Link to="/contact" className="hover:text-white transition-colors">Contact</Link>
-          </nav>
-
-          <div className="flex items-center space-x-2">
-            <div className="relative">
-              <input
-                type="search"
-                placeholder="Search..."
-                className="bg-gray-900 border border-gray-700 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-gray-600 w-[200px]"
-              />
-              <Button size="sm" variant="ghost" className="absolute right-0 top-0 h-full px-2">
-                <Search className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <ScrollArea className="h-[calc(100vh-4rem)]">
-        <main className="max-w-7xl mx-auto px-4 py-8">
+    <div className="min-h-screen bg-background flex flex-col">
+      <Navbar />
+      <ScrollArea className="flex-grow">
+        <main className="max-w-7xl mx-auto px-4 py-12">
           <motion.h1 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -101,6 +71,17 @@ const SubCategory = () => {
           >
             Category {category} ({sortedProducts.length} products)
           </motion.h1>
+
+          <div className="relative mb-6">
+            <input
+              type="search"
+              placeholder="Search products..."
+              className="bg-gray-900 border border-gray-700 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-gray-600 w-full md:w-[300px]"
+            />
+            <Button variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-2">
+              <Search className="h-4 w-4" />
+            </Button>
+          </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             {paginatedProducts.map((product, index) => (
@@ -185,6 +166,7 @@ const SubCategory = () => {
           </div>
         </main>
       </ScrollArea>
+      <Footer />
     </div>
   );
 };
