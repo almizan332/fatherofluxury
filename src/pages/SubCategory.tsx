@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/pagination";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { useToast } from "@/components/ui/use-toast";
 
 const generateProducts = (count: number) => {
   return Array.from({ length: count }).map((_, index) => ({
@@ -38,21 +39,42 @@ const generateProducts = (count: number) => {
   }));
 };
 
-const ITEMS_PER_PAGE = 120; // Show 120 products per page
+const ITEMS_PER_PAGE = 120;
 
 const SubCategory = () => {
   const { category } = useParams();
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
+  const { toast } = useToast();
   
   // Generate products for the subcategory
   const products = generateProducts(360);
   const sortedProducts = [...products].sort((a, b) => b.dateAdded.getTime() - a.dateAdded.getTime());
   
-  const totalPages = Math.ceil(sortedProducts.length / ITEMS_PER_PAGE);
-  const paginatedProducts = sortedProducts.slice(
+  // Filter products based on search query
+  const filteredProducts = sortedProducts.filter(product => 
+    product.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  
+  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+  const paginatedProducts = filteredProducts.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    setCurrentPage(1); // Reset to first page when searching
+    
+    if (query && filteredProducts.length === 0) {
+      toast({
+        title: "No products found",
+        description: "Try a different search term",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -69,13 +91,15 @@ const SubCategory = () => {
             animate={{ opacity: 1, y: 0 }}
             className="text-2xl font-bold mb-6 gradient-text"
           >
-            Category {category} ({sortedProducts.length} products)
+            Category {category} ({filteredProducts.length} products)
           </motion.h1>
 
           <div className="relative mb-6">
             <input
               type="search"
               placeholder="Search products..."
+              value={searchQuery}
+              onChange={handleSearch}
               className="bg-gray-900 border border-gray-700 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-gray-600 w-full md:w-[300px]"
             />
             <Button variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-2">
@@ -83,87 +107,95 @@ const SubCategory = () => {
             </Button>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            {paginatedProducts.map((product, index) => (
-              <Link to={`/product/${product.id}`} key={product.id}>
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3, delay: Math.min(index * 0.05, 1) }}
-                  whileHover={{ scale: 1.02 }}
-                  className="transform transition-all duration-300"
-                >
-                  <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer bg-gray-900/50 border-gray-800">
-                    <CardContent className="p-0">
-                      <div className="aspect-square relative">
-                        <img
-                          src={product.image}
-                          alt={product.title}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                      </div>
-                      <div className="p-4">
-                        <h3 className="text-sm font-medium text-gray-200">{product.title}</h3>
-                        <div className="flex justify-between items-center mt-2">
-                          <p className="text-xs text-gray-400">
-                            {new Date(product.dateAdded).toLocaleDateString()}
-                          </p>
-                          <Button variant="ghost" size="sm" className="text-xs">
-                            View Details
-                          </Button>
+          {filteredProducts.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-400">No products found matching your search.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+              {paginatedProducts.map((product, index) => (
+                <Link to={`/product/${product.id}`} key={product.id}>
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3, delay: Math.min(index * 0.05, 1) }}
+                    whileHover={{ scale: 1.02 }}
+                    className="transform transition-all duration-300"
+                  >
+                    <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer bg-gray-900/50 border-gray-800">
+                      <CardContent className="p-0">
+                        <div className="aspect-square relative">
+                          <img
+                            src={product.image}
+                            alt={product.title}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              </Link>
-            ))}
-          </div>
+                        <div className="p-4">
+                          <h3 className="text-sm font-medium text-gray-200">{product.title}</h3>
+                          <div className="flex justify-between items-center mt-2">
+                            <p className="text-xs text-gray-400">
+                              {new Date(product.dateAdded).toLocaleDateString()}
+                            </p>
+                            <Button variant="ghost" size="sm" className="text-xs">
+                              View Details
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                </Link>
+              ))}
+            </div>
+          )}
 
-          <div className="mt-8 mb-12">
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious 
-                    onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
-                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                  />
-                </PaginationItem>
-                
-                {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .filter(page => {
-                    if (page === 1 || page === totalPages) return true;
-                    if (page >= currentPage - 1 && page <= currentPage + 1) return true;
-                    return false;
-                  })
-                  .map((page, index, array) => (
-                    <React.Fragment key={page}>
-                      {index > 0 && array[index - 1] !== page - 1 && (
+          {filteredProducts.length > 0 && (
+            <div className="mt-8 mb-12">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+                      className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                  
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter(page => {
+                      if (page === 1 || page === totalPages) return true;
+                      if (page >= currentPage - 1 && page <= currentPage + 1) return true;
+                      return false;
+                    })
+                    .map((page, index, array) => (
+                      <React.Fragment key={page}>
+                        {index > 0 && array[index - 1] !== page - 1 && (
+                          <PaginationItem>
+                            <PaginationEllipsis />
+                          </PaginationItem>
+                        )}
                         <PaginationItem>
-                          <PaginationEllipsis />
+                          <PaginationLink
+                            isActive={currentPage === page}
+                            onClick={() => handlePageChange(page)}
+                          >
+                            {page}
+                          </PaginationLink>
                         </PaginationItem>
-                      )}
-                      <PaginationItem>
-                        <PaginationLink
-                          isActive={currentPage === page}
-                          onClick={() => handlePageChange(page)}
-                        >
-                          {page}
-                        </PaginationLink>
-                      </PaginationItem>
-                    </React.Fragment>
-                  ))}
+                      </React.Fragment>
+                    ))}
 
-                <PaginationItem>
-                  <PaginationNext
-                    onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
-                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          </div>
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
+                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </main>
       </ScrollArea>
       <Footer />
