@@ -8,9 +8,9 @@ import {
   FileText, 
   LayoutDashboard, 
   MonitorDot,
-  UserList,
+  Users2, 
   ShoppingBag,
-  FileList,
+  Files, 
   Boxes,
   Search,
   MessageSquare,
@@ -66,9 +66,9 @@ const Dashboard = () => {
 
   const adminMenuItems = [
     { title: "Website Contents", icon: MonitorDot, url: "#" },
-    { title: "User List", icon: UserList, url: "#" },
+    { title: "User List", icon: Users2, url: "#" },
     { title: "Product", icon: ShoppingBag, url: "#" },
-    { title: "Blog List", icon: FileList, url: "#" },
+    { title: "Blog List", icon: Files, url: "#" },
     { title: "Dynamic Pages", icon: Boxes, url: "#" },
     { title: "SEO Pages", icon: Search, url: "#" },
     { title: "Messages", icon: MessageSquare, url: "#" },
