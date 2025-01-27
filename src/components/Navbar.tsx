@@ -38,6 +38,7 @@ const Navbar = () => {
             <Link to="/" className="transition-colors hover:text-foreground/80">Home</Link>
             <Link to="/categories" className="transition-colors hover:text-foreground/80">Categories</Link>
             <Link to="/blog" className="transition-colors hover:text-foreground/80">Blog</Link>
+            <Link to="/login" className="transition-colors hover:text-foreground/80">Login</Link>
             <a 
               href="https://t.me/+pcnB8fU7jwo0MmNl" 
               target="_blank" 

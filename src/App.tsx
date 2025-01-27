@@ -9,6 +9,7 @@ import SubCategory from "./pages/SubCategory";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import ProductDetail from "./pages/ProductDetail";
+import Login from "./pages/Login";
 import React from "react";
 
 function App() {
@@ -27,6 +28,7 @@ function App() {
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:id" element={<BlogPost />} />
             <Route path="/product/:id" element={<ProductDetail />} />
+            <Route path="/login" element={<Login />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
