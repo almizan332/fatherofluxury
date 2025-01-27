@@ -18,8 +18,7 @@ const Login = () => {
     // Check if credentials match the default values
     if (formData.email === "homeincome08@gmail.com" && formData.password === "almizankhan") {
       toast.success("Login successful!");
-      // You can add more login logic here
-      navigate("/categories"); // Redirect to categories page after successful login
+      navigate("/dashboard"); // Redirect to dashboard instead of categories
     } else {
       toast.error("Invalid credentials!");
     }
