@@ -11,6 +11,8 @@ import BlogPost from "./pages/BlogPost";
 import ProductDetail from "./pages/ProductDetail";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import ProductCategories from "./pages/ProductCategories";
+import ProductList from "./pages/ProductList";
 import React from "react";
 
 function App() {
@@ -31,6 +33,8 @@ function App() {
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/login" element={<Login />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard/categories" element={<ProductCategories />} />
+            <Route path="/dashboard/products" element={<ProductList />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>

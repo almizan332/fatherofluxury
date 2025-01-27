@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { 
   Globe, 
   Users, 
@@ -15,7 +15,9 @@ import {
   Search,
   MessageSquare,
   Mail,
-  UserCog
+  UserCog,
+  ListPlus,
+  Upload
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -30,6 +32,7 @@ import {
   SidebarMenuItem, 
   SidebarProvider 
 } from "@/components/ui/sidebar";
+import { Link } from "react-router-dom";
 
 const Dashboard = () => {
   const [timeRange, setTimeRange] = useState<'1d' | '1w' | '1m' | '1y'>('1w');
@@ -67,7 +70,15 @@ const Dashboard = () => {
   const adminMenuItems = [
     { title: "Website Contents", icon: MonitorDot, url: "#" },
     { title: "User List", icon: Users2, url: "#" },
-    { title: "Product", icon: ShoppingBag, url: "#" },
+    { 
+      title: "Product", 
+      icon: ShoppingBag, 
+      url: "#",
+      submenu: [
+        { title: "Category List", icon: ListPlus, url: "/dashboard/categories" },
+        { title: "Product List", icon: Upload, url: "/dashboard/products" }
+      ]
+    },
     { title: "Blog List", icon: Files, url: "#" },
     { title: "Dynamic Pages", icon: Boxes, url: "#" },
     { title: "SEO Pages", icon: Search, url: "#" },
@@ -94,10 +105,10 @@ const Dashboard = () => {
                   {mainMenuItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton asChild>
-                        <a href={item.url} className="flex items-center gap-2">
+                        <Link to={item.url} className="flex items-center gap-2">
                           <item.icon className="h-4 w-4" />
                           <span>{item.title}</span>
-                        </a>
+                        </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   ))}
@@ -111,10 +122,31 @@ const Dashboard = () => {
                   {adminMenuItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton asChild>
-                        <a href={item.url} className="flex items-center gap-2">
-                          <item.icon className="h-4 w-4" />
-                          <span>{item.title}</span>
-                        </a>
+                        {item.submenu ? (
+                          <div className="flex flex-col w-full">
+                            <div className="flex items-center gap-2 px-2 py-1">
+                              <item.icon className="h-4 w-4" />
+                              <span>{item.title}</span>
+                            </div>
+                            <div className="pl-6 space-y-1">
+                              {item.submenu.map((subItem) => (
+                                <Link
+                                  key={subItem.title}
+                                  to={subItem.url}
+                                  className="flex items-center gap-2 px-2 py-1 text-sm text-muted-foreground hover:text-primary transition-colors"
+                                >
+                                  <subItem.icon className="h-4 w-4" />
+                                  <span>{subItem.title}</span>
+                                </Link>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <Link to={item.url} className="flex items-center gap-2">
+                            <item.icon className="h-4 w-4" />
+                            <span>{item.title}</span>
+                          </Link>
+                        )}
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   ))}
