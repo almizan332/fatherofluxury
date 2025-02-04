@@ -11,7 +11,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Plus, FileSpreadsheet } from "lucide-react";
+import { Upload, Plus, FileSpreadsheet, Download } from "lucide-react";
+import { productExcelHeaders, sampleExcelData } from "@/utils/excelTemplate";
 
 const ProductList = () => {
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -20,7 +21,6 @@ const ProductList = () => {
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Here you would implement the Excel/CSV parsing logic
       toast({
         title: "File uploaded",
         description: "Processing " + file.name,
@@ -28,11 +28,41 @@ const ProductList = () => {
     }
   };
 
+  const downloadExcelTemplate = () => {
+    // Create CSV content
+    const csvContent = [
+      productExcelHeaders.join(','),
+      ...sampleExcelData.map(row => 
+        productExcelHeaders.map(header => row[header as keyof typeof row]).join(',')
+      )
+    ].join('\n');
+
+    // Create blob and download
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'product_template.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+
+    toast({
+      title: "Template downloaded",
+      description: "You can now fill in the template and import it back",
+    });
+  };
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Product Management</h1>
         <div className="flex gap-2">
+          <Button onClick={() => downloadExcelTemplate()}>
+            <Download className="h-4 w-4 mr-2" />
+            Download Template
+          </Button>
           <Button>
             <Plus className="h-4 w-4 mr-2" />
             Add Product
