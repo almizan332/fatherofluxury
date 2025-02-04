@@ -17,7 +17,8 @@ import {
   Mail,
   UserCog,
   ListPlus,
-  Upload
+  Upload,
+  ChevronDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -36,8 +37,8 @@ import { Link } from "react-router-dom";
 
 const Dashboard = () => {
   const [timeRange, setTimeRange] = useState<'1d' | '1w' | '1m' | '1y'>('1w');
+  const [isProductOpen, setIsProductOpen] = useState(false);
 
-  // Sample data - replace with real data in production
   const trafficData = [
     { name: 'Jan', visits: 4000 },
     { name: 'Feb', visits: 3000 },
@@ -72,7 +73,7 @@ const Dashboard = () => {
     { title: "User List", icon: Users2, url: "#" },
     { 
       title: "Product", 
-      icon: ShoppingBag, 
+      icon: ShoppingBag,
       url: "#",
       submenu: [
         { title: "Category List", icon: ListPlus, url: "/dashboard/categories" },
@@ -121,33 +122,45 @@ const Dashboard = () => {
                 <SidebarMenu>
                   {adminMenuItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton asChild>
-                        {item.submenu ? (
-                          <div className="flex flex-col w-full">
-                            <div className="flex items-center gap-2 px-2 py-1">
+                      {item.submenu ? (
+                        <div className="w-full">
+                          <button
+                            onClick={() => item.title === "Product" && setIsProductOpen(!isProductOpen)}
+                            className="flex items-center justify-between w-full px-2 py-2 text-sm text-muted-foreground hover:text-primary transition-colors rounded-md hover:bg-accent"
+                          >
+                            <div className="flex items-center gap-2">
                               <item.icon className="h-4 w-4" />
                               <span>{item.title}</span>
                             </div>
-                            <div className="pl-6 space-y-1">
+                            <ChevronDown
+                              className={`h-4 w-4 transition-transform ${
+                                isProductOpen ? "rotate-180" : ""
+                              }`}
+                            />
+                          </button>
+                          {isProductOpen && item.submenu && (
+                            <div className="pl-6 space-y-1 mt-1">
                               {item.submenu.map((subItem) => (
                                 <Link
                                   key={subItem.title}
                                   to={subItem.url}
-                                  className="flex items-center gap-2 px-2 py-1 text-sm text-muted-foreground hover:text-primary transition-colors"
+                                  className="flex items-center gap-2 px-2 py-1.5 text-sm text-muted-foreground hover:text-primary transition-colors rounded-md hover:bg-accent"
                                 >
                                   <subItem.icon className="h-4 w-4" />
                                   <span>{subItem.title}</span>
                                 </Link>
                               ))}
                             </div>
-                          </div>
-                        ) : (
+                          )}
+                        </div>
+                      ) : (
+                        <SidebarMenuButton asChild>
                           <Link to={item.url} className="flex items-center gap-2">
                             <item.icon className="h-4 w-4" />
                             <span>{item.title}</span>
                           </Link>
-                        )}
-                      </SidebarMenuButton>
+                        </SidebarMenuButton>
+                      )}
                     </SidebarMenuItem>
                   ))}
                 </SidebarMenu>
