@@ -13,40 +13,86 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Upload, Plus, FileSpreadsheet, Download } from "lucide-react";
 import { productExcelHeaders, sampleExcelData } from "@/utils/excelTemplate";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
+interface Product {
+  name: string;
+  link: string;
+  category: string;
+  description: string;
+  previewImage: string;
+  galleryImages: string[];
+}
 
 const ProductList = () => {
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [products, setProducts] = useState<Product[]>([]);
   const { toast } = useToast();
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      toast({
-        title: "File uploaded",
-        description: "Processing " + file.name,
-      });
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = e.target?.result as string;
+        const rows = text.split('\n');
+        const headers = rows[0].split(',');
+        const productsData: Product[] = [];
+
+        for (let i = 1; i < rows.length; i++) {
+          const values = rows[i].split(',');
+          if (values.length === headers.length) {
+            productsData.push({
+              name: values[0],
+              link: values[1],
+              category: values[2],
+              description: values[3],
+              previewImage: values[4],
+              galleryImages: values[5].split(';')
+            });
+          }
+        }
+
+        setProducts(productsData);
+        toast({
+          title: "File processed successfully",
+          description: `Imported ${productsData.length} products`,
+        });
+      };
+      reader.readAsText(file);
     }
   };
 
   const downloadExcelTemplate = () => {
-    // Create CSV content
-    const csvContent = [
+    const csvRows = [
       productExcelHeaders.join(','),
-      ...sampleExcelData.map(row => 
-        productExcelHeaders.map(header => row[header as keyof typeof row]).join(',')
-      )
-    ].join('\n');
+      ...sampleExcelData.map(row => [
+        row['Product Name'],
+        row['Product Link'],
+        row['Category'],
+        row['Description'],
+        row['Preview Image URL'],
+        row['Gallery Image URLs (comma separated)']
+      ].join(','))
+    ];
 
-    // Create blob and download
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'product_template.csv';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'product_template.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 
     toast({
       title: "Template downloaded",
@@ -59,7 +105,7 @@ const ProductList = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Product Management</h1>
         <div className="flex gap-2">
-          <Button onClick={() => downloadExcelTemplate()}>
+          <Button onClick={downloadExcelTemplate}>
             <Download className="h-4 w-4 mr-2" />
             Download Template
           </Button>
@@ -70,103 +116,66 @@ const ProductList = () => {
           <div className="relative">
             <input
               type="file"
-              accept=".xlsx,.xls,.csv"
+              accept=".csv"
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               onChange={handleFileUpload}
             />
             <Button variant="outline">
               <FileSpreadsheet className="h-4 w-4 mr-2" />
-              Import from Excel
+              Import from CSV
             </Button>
           </div>
         </div>
       </div>
 
       <Card className="p-6">
-        <div className="grid grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Product Name
-              </label>
-              <Input placeholder="Enter product name" />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Product Link
-              </label>
-              <Input placeholder="Enter product URL" />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Category
-              </label>
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="category1">Category 1</SelectItem>
-                  <SelectItem value="category2">Category 2</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Description
-              </label>
-              <Textarea placeholder="Enter product description" />
-            </div>
+        {products.length > 0 ? (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Product Name</TableHead>
+                <TableHead>Link</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Preview Image</TableHead>
+                <TableHead>Gallery Images</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {products.map((product, index) => (
+                <TableRow key={index}>
+                  <TableCell>{product.name}</TableCell>
+                  <TableCell>{product.link}</TableCell>
+                  <TableCell>{product.category}</TableCell>
+                  <TableCell>{product.description}</TableCell>
+                  <TableCell>
+                    <img 
+                      src={product.previewImage} 
+                      alt={product.name} 
+                      className="w-16 h-16 object-cover rounded"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-2">
+                      {product.galleryImages.map((img, idx) => (
+                        <img 
+                          key={idx} 
+                          src={img} 
+                          alt={`${product.name} gallery ${idx + 1}`} 
+                          className="w-12 h-12 object-cover rounded"
+                        />
+                      ))}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        ) : (
+          <div className="text-center py-8 text-muted-foreground">
+            No products imported yet. Download the template and import your products.
           </div>
-
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Preview Image
-              </label>
-              <Card className="p-4 border-dashed">
-                <div className="flex flex-col items-center justify-center gap-2">
-                  <Upload className="h-8 w-8 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">
-                    Drop your image here or click to upload
-                  </p>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  />
-                </div>
-              </Card>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Gallery Images
-              </label>
-              <Card className="p-4 border-dashed">
-                <div className="flex flex-col items-center justify-center gap-2">
-                  <Upload className="h-8 w-8 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">
-                    Drop your images here or click to upload
-                  </p>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  />
-                </div>
-              </Card>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-6 flex justify-end">
-          <Button>Save Product</Button>
-        </div>
+        )}
       </Card>
     </div>
   );
