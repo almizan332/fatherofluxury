@@ -4,6 +4,13 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -21,6 +28,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Label } from "@/components/ui/label";
 
 interface Product {
   name: string;
@@ -34,6 +42,15 @@ interface Product {
 const ProductList = () => {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
+  const [isAddProductOpen, setIsAddProductOpen] = useState(false);
+  const [newProduct, setNewProduct] = useState<Product>({
+    name: "",
+    link: "",
+    category: "",
+    description: "",
+    previewImage: "",
+    galleryImages: [],
+  });
   const { toast } = useToast();
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -100,6 +117,32 @@ const ProductList = () => {
     });
   };
 
+  const handleAddProduct = () => {
+    if (!newProduct.name || !newProduct.category) {
+      toast({
+        title: "Error",
+        description: "Please fill in at least the product name and category",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setProducts([...products, newProduct]);
+    setNewProduct({
+      name: "",
+      link: "",
+      category: "",
+      description: "",
+      previewImage: "",
+      galleryImages: [],
+    });
+    setIsAddProductOpen(false);
+    toast({
+      title: "Product added successfully",
+      description: "The new product has been added to the list",
+    });
+  };
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
@@ -109,10 +152,87 @@ const ProductList = () => {
             <Download className="h-4 w-4 mr-2" />
             Download Template
           </Button>
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Product
-          </Button>
+          <Dialog open={isAddProductOpen} onOpenChange={setIsAddProductOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Product
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Add New Product</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="name">Product Name</Label>
+                  <Input
+                    id="name"
+                    value={newProduct.name}
+                    onChange={(e) =>
+                      setNewProduct({ ...newProduct, name: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="link">Product Link</Label>
+                  <Input
+                    id="link"
+                    value={newProduct.link}
+                    onChange={(e) =>
+                      setNewProduct({ ...newProduct, link: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="category">Category</Label>
+                  <Input
+                    id="category"
+                    value={newProduct.category}
+                    onChange={(e) =>
+                      setNewProduct({ ...newProduct, category: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={newProduct.description}
+                    onChange={(e) =>
+                      setNewProduct({ ...newProduct, description: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="previewImage">Preview Image URL</Label>
+                  <Input
+                    id="previewImage"
+                    value={newProduct.previewImage}
+                    onChange={(e) =>
+                      setNewProduct({ ...newProduct, previewImage: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="galleryImages">Gallery Image URLs (comma-separated)</Label>
+                  <Input
+                    id="galleryImages"
+                    value={newProduct.galleryImages.join(",")}
+                    onChange={(e) =>
+                      setNewProduct({
+                        ...newProduct,
+                        galleryImages: e.target.value.split(",").map((url) => url.trim()),
+                      })
+                    }
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <Button onClick={handleAddProduct}>Add Product</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
           <div className="relative">
             <input
               type="file"
