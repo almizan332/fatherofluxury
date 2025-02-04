@@ -37,7 +37,15 @@ import { Link } from "react-router-dom";
 
 const Dashboard = () => {
   const [timeRange, setTimeRange] = useState<'1d' | '1w' | '1m' | '1y'>('1w');
-  const [isProductOpen, setIsProductOpen] = useState(false);
+  const [openMenus, setOpenMenus] = useState<string[]>([]);
+
+  const toggleMenu = (menuTitle: string) => {
+    setOpenMenus(prev => 
+      prev.includes(menuTitle) 
+        ? prev.filter(title => title !== menuTitle)
+        : [...prev, menuTitle]
+    );
+  };
 
   const trafficData = [
     { name: 'Jan', visits: 4000 },
@@ -125,7 +133,7 @@ const Dashboard = () => {
                       {item.submenu ? (
                         <div className="w-full">
                           <button
-                            onClick={() => item.title === "Product" && setIsProductOpen(!isProductOpen)}
+                            onClick={() => toggleMenu(item.title)}
                             className="flex items-center justify-between w-full px-2 py-2 text-sm text-muted-foreground hover:text-primary transition-colors rounded-md hover:bg-accent"
                           >
                             <div className="flex items-center gap-2">
@@ -134,11 +142,11 @@ const Dashboard = () => {
                             </div>
                             <ChevronDown
                               className={`h-4 w-4 transition-transform ${
-                                isProductOpen ? "rotate-180" : ""
+                                openMenus.includes(item.title) ? "rotate-180" : ""
                               }`}
                             />
                           </button>
-                          {isProductOpen && item.submenu && (
+                          {openMenus.includes(item.title) && item.submenu && (
                             <div className="pl-6 space-y-1 mt-1">
                               {item.submenu.map((subItem) => (
                                 <Link
