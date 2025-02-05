@@ -10,13 +10,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, Plus, FileSpreadsheet, Download } from "lucide-react";
 import { productExcelHeaders, sampleExcelData } from "@/utils/excelTemplate";
@@ -40,7 +33,6 @@ interface Product {
 }
 
 const ProductList = () => {
-  const [selectedCategory, setSelectedCategory] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const [newProduct, setNewProduct] = useState<Product>({
@@ -58,30 +50,42 @@ const ProductList = () => {
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        const text = e.target?.result as string;
-        const rows = text.split('\n');
-        const headers = rows[0].split(',');
-        const productsData: Product[] = [];
+        try {
+          const text = e.target?.result as string;
+          const rows = text.split('\n');
+          const headers = rows[0].split(',');
+          const productsData: Product[] = [];
 
-        for (let i = 1; i < rows.length; i++) {
-          const values = rows[i].split(',');
-          if (values.length === headers.length) {
-            productsData.push({
-              name: values[0],
-              link: values[1],
-              category: values[2],
-              description: values[3],
-              previewImage: values[4],
-              galleryImages: values[5].split(';')
-            });
+          for (let i = 1; i < rows.length; i++) {
+            if (!rows[i].trim()) continue; // Skip empty rows
+            const values = rows[i].split(',');
+            if (values.length === headers.length) {
+              const galleryImagesStr = values[5].trim();
+              const galleryImages = galleryImagesStr ? galleryImagesStr.split(';').map(url => url.trim()) : [];
+              
+              productsData.push({
+                name: values[0].trim(),
+                link: values[1].trim().replace(/^(https?:\/\/)/, ''), // Remove protocol if present
+                category: values[2].trim(),
+                description: values[3].trim(),
+                previewImage: values[4].trim(),
+                galleryImages
+              });
+            }
           }
-        }
 
-        setProducts(productsData);
-        toast({
-          title: "File processed successfully",
-          description: `Imported ${productsData.length} products`,
-        });
+          setProducts(productsData);
+          toast({
+            title: "File processed successfully",
+            description: `Imported ${productsData.length} products`,
+          });
+        } catch (error) {
+          toast({
+            title: "Error processing file",
+            description: "Please make sure the file format is correct",
+            variant: "destructive",
+          });
+        }
       };
       reader.readAsText(file);
     }
@@ -102,8 +106,8 @@ const ProductList = () => {
 
     const csvContent = csvRows.join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
     link.setAttribute('href', url);
     link.setAttribute('download', 'product_template.csv');
     document.body.appendChild(link);
@@ -127,7 +131,13 @@ const ProductList = () => {
       return;
     }
 
-    setProducts([...products, newProduct]);
+    // Clean the link URL by removing protocol if present
+    const cleanedProduct = {
+      ...newProduct,
+      link: newProduct.link.replace(/^(https?:\/\/)/, ''),
+    };
+
+    setProducts([...products, cleanedProduct]);
     setNewProduct({
       name: "",
       link: "",
@@ -182,6 +192,7 @@ const ProductList = () => {
                     onChange={(e) =>
                       setNewProduct({ ...newProduct, link: e.target.value })
                     }
+                    placeholder="example.com/product"
                   />
                 </div>
                 <div className="grid gap-2">
@@ -212,19 +223,21 @@ const ProductList = () => {
                     onChange={(e) =>
                       setNewProduct({ ...newProduct, previewImage: e.target.value })
                     }
+                    placeholder="https://example.com/image.jpg"
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="galleryImages">Gallery Image URLs (comma-separated)</Label>
+                  <Label htmlFor="galleryImages">Gallery Image URLs (semicolon-separated)</Label>
                   <Input
                     id="galleryImages"
-                    value={newProduct.galleryImages.join(",")}
+                    value={newProduct.galleryImages.join(";")}
                     onChange={(e) =>
                       setNewProduct({
                         ...newProduct,
-                        galleryImages: e.target.value.split(",").map((url) => url.trim()),
+                        galleryImages: e.target.value.split(";").map((url) => url.trim()),
                       })
                     }
+                    placeholder="https://example.com/image1.jpg; https://example.com/image2.jpg"
                   />
                 </div>
               </div>
@@ -269,21 +282,25 @@ const ProductList = () => {
                   <TableCell>{product.category}</TableCell>
                   <TableCell>{product.description}</TableCell>
                   <TableCell>
-                    <img 
-                      src={product.previewImage} 
-                      alt={product.name} 
-                      className="w-16 h-16 object-cover rounded"
-                    />
+                    {product.previewImage && (
+                      <img 
+                        src={product.previewImage} 
+                        alt={product.name} 
+                        className="w-16 h-16 object-cover rounded"
+                      />
+                    )}
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
                       {product.galleryImages.map((img, idx) => (
-                        <img 
-                          key={idx} 
-                          src={img} 
-                          alt={`${product.name} gallery ${idx + 1}`} 
-                          className="w-12 h-12 object-cover rounded"
-                        />
+                        img && (
+                          <img 
+                            key={idx} 
+                            src={img} 
+                            alt={`${product.name} gallery ${idx + 1}`} 
+                            className="w-12 h-12 object-cover rounded"
+                          />
+                        )
                       ))}
                     </div>
                   </TableCell>
