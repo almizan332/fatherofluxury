@@ -11,7 +11,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Plus, FileSpreadsheet, Download } from "lucide-react";
+import { Upload, Plus, FileSpreadsheet, Download, ImagePlus } from "lucide-react";
 import { productExcelHeaders, sampleExcelData } from "@/utils/excelTemplate";
 import {
   Table,
@@ -44,6 +44,26 @@ const ProductList = () => {
     galleryImages: [],
   });
   const { toast } = useToast();
+  const [previewImageFile, setPreviewImageFile] = useState<File | null>(null);
+  const [galleryImageFiles, setGalleryImageFiles] = useState<File[]>([]);
+
+  const handlePreviewImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setPreviewImageFile(file);
+      // Create a temporary URL for preview
+      const imageUrl = URL.createObjectURL(file);
+      setNewProduct({ ...newProduct, previewImage: imageUrl });
+    }
+  };
+
+  const handleGalleryImagesUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    setGalleryImageFiles(files);
+    // Create temporary URLs for preview
+    const imageUrls = files.map(file => URL.createObjectURL(file));
+    setNewProduct({ ...newProduct, galleryImages: imageUrls });
+  };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -121,7 +141,7 @@ const ProductList = () => {
     });
   };
 
-  const handleAddProduct = () => {
+  const handleAddProduct = async () => {
     if (!newProduct.name || !newProduct.category) {
       toast({
         title: "Error",
@@ -131,26 +151,40 @@ const ProductList = () => {
       return;
     }
 
-    // Clean the link URL by removing protocol if present
-    const cleanedProduct = {
-      ...newProduct,
-      link: newProduct.link.replace(/^(https?:\/\/)/, ''),
-    };
+    try {
+      // In a real application, you would upload the images to your server/storage here
+      // For now, we'll use the temporary URLs
+      const productToAdd = {
+        ...newProduct,
+        link: newProduct.link.replace(/^(https?:\/\/)/, ''),
+      };
 
-    setProducts([...products, cleanedProduct]);
-    setNewProduct({
-      name: "",
-      link: "",
-      category: "",
-      description: "",
-      previewImage: "",
-      galleryImages: [],
-    });
-    setIsAddProductOpen(false);
-    toast({
-      title: "Product added successfully",
-      description: "The new product has been added to the list",
-    });
+      setProducts([...products, productToAdd]);
+      
+      // Reset form
+      setNewProduct({
+        name: "",
+        link: "",
+        category: "",
+        description: "",
+        previewImage: "",
+        galleryImages: [],
+      });
+      setPreviewImageFile(null);
+      setGalleryImageFiles([]);
+      setIsAddProductOpen(false);
+      
+      toast({
+        title: "Product added successfully",
+        description: "The new product has been added to the list and homepage",
+      });
+    } catch (error) {
+      toast({
+        title: "Error adding product",
+        description: "There was an error adding the product. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -216,29 +250,48 @@ const ProductList = () => {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="previewImage">Preview Image URL</Label>
-                  <Input
-                    id="previewImage"
-                    value={newProduct.previewImage}
-                    onChange={(e) =>
-                      setNewProduct({ ...newProduct, previewImage: e.target.value })
-                    }
-                    placeholder="https://example.com/image.jpg"
-                  />
+                  <Label htmlFor="previewImage">Preview Image</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="previewImage"
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePreviewImageUpload}
+                      className="flex-1"
+                    />
+                    {newProduct.previewImage && (
+                      <img
+                        src={newProduct.previewImage}
+                        alt="Preview"
+                        className="w-12 h-12 object-cover rounded"
+                      />
+                    )}
+                  </div>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="galleryImages">Gallery Image URLs (semicolon-separated)</Label>
-                  <Input
-                    id="galleryImages"
-                    value={newProduct.galleryImages.join(";")}
-                    onChange={(e) =>
-                      setNewProduct({
-                        ...newProduct,
-                        galleryImages: e.target.value.split(";").map((url) => url.trim()),
-                      })
-                    }
-                    placeholder="https://example.com/image1.jpg; https://example.com/image2.jpg"
-                  />
+                  <Label htmlFor="galleryImages">Gallery Images</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="galleryImages"
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleGalleryImagesUpload}
+                      className="flex-1"
+                    />
+                  </div>
+                  {newProduct.galleryImages.length > 0 && (
+                    <div className="flex gap-2 mt-2 overflow-x-auto">
+                      {newProduct.galleryImages.map((url, index) => (
+                        <img
+                          key={index}
+                          src={url}
+                          alt={`Gallery ${index + 1}`}
+                          className="w-12 h-12 object-cover rounded"
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="flex justify-end">
