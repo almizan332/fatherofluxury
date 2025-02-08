@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,6 +14,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import ProductCategories from "./pages/ProductCategories";
 import ProductList from "./pages/ProductList";
+import BlogManagement from "./pages/BlogManagement";
 import React from "react";
 
 function App() {
@@ -35,6 +37,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/dashboard/categories" element={<ProductCategories />} />
             <Route path="/dashboard/products" element={<ProductList />} />
+            <Route path="/dashboard/blog" element={<BlogManagement />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>

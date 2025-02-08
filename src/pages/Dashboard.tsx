@@ -88,7 +88,7 @@ const Dashboard = () => {
         { title: "Product List", icon: Upload, url: "/dashboard/products" }
       ]
     },
-    { title: "Blog List", icon: Files, url: "#" },
+    { title: "Blog List", icon: Files, url: "/dashboard/blog" },
     { title: "Dynamic Pages", icon: Boxes, url: "#" },
     { title: "SEO Pages", icon: Search, url: "#" },
     { title: "Messages", icon: MessageSquare, url: "#" },
