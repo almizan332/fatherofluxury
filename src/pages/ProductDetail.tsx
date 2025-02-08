@@ -1,8 +1,9 @@
+
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { MessageSquare, ExternalLink } from "lucide-react";
+import { MessageSquare, ExternalLink, ShoppingCart, HelpCircle } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import {
@@ -21,9 +22,13 @@ const ProductDetail = () => {
     images: [
       "https://images.unsplash.com/photo-1649972904349-6e44c42644a7",
       "https://images.unsplash.com/photo-1649972904349-6e44c42644a7",
-      // Add more images as needed
     ],
     price: "$60",
+    links: {
+      flylink: "https://flylink.com",
+      alibaba: "https://alibaba.com",
+      dhgate: "https://dhgate.com",
+    },
     relatedProducts: [
       {
         id: 2,
@@ -31,7 +36,6 @@ const ProductDetail = () => {
         image: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7",
         price: "$65"
       },
-      // Add more related products
     ]
   };
 
@@ -85,11 +89,51 @@ const ProductDetail = () => {
                 <p className="text-gray-400">{product.description}</p>
               </div>
 
-              <div className="space-y-4">
-                <Button className="w-full" size="lg">Buy on Dhgate</Button>
-                <Button variant="outline" className="w-full" size="lg">Get Payment Links</Button>
-                <Button variant="secondary" className="w-full" size="lg">Chat With Us</Button>
-                <Button variant="ghost" className="w-full" size="lg">How To Buy</Button>
+              <div className="space-y-3">
+                <Button 
+                  className="w-full bg-blue-500 hover:bg-blue-600" 
+                  size="lg"
+                  onClick={() => window.open(product.links.flylink, '_blank')}
+                >
+                  <ShoppingCart className="mr-2 h-4 w-4" />
+                  Buy on Flylink
+                </Button>
+                
+                <Button 
+                  className="w-full bg-orange-500 hover:bg-orange-600" 
+                  size="lg"
+                  onClick={() => window.open(product.links.alibaba, '_blank')}
+                >
+                  <ShoppingCart className="mr-2 h-4 w-4" />
+                  Buy on Alibaba
+                </Button>
+                
+                <Button 
+                  className="w-full bg-green-500 hover:bg-green-600" 
+                  size="lg"
+                  onClick={() => window.open(product.links.dhgate, '_blank')}
+                >
+                  <ShoppingCart className="mr-2 h-4 w-4" />
+                  Buy on DHgate
+                </Button>
+                
+                <Button 
+                  variant="secondary" 
+                  className="w-full" 
+                  size="lg"
+                >
+                  <MessageSquare className="mr-2 h-4 w-4" />
+                  Chat With Us
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  className="w-full" 
+                  size="lg"
+                >
+                  <HelpCircle className="mr-2 h-4 w-4" />
+                  How To Buy
+                </Button>
               </div>
             </div>
           </div>

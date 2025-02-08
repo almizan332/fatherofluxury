@@ -1,6 +1,9 @@
+
 export const productExcelHeaders = [
   'Product Name',
-  'Product Link',
+  'Flylink URL',
+  'Alibaba URL',
+  'DHgate URL',
   'Category',
   'Description',
   'Preview Image URL',
@@ -10,7 +13,9 @@ export const productExcelHeaders = [
 export const sampleExcelData = [
   {
     'Product Name': 'LV Bag Classic',
-    'Product Link': 'https://example.com/lv-bag',
+    'Flylink URL': 'https://flylink.com/lv-bag',
+    'Alibaba URL': 'https://alibaba.com/lv-bag',
+    'DHgate URL': 'https://dhgate.com/lv-bag',
     'Category': 'Bags',
     'Description': 'LV Bag 1:1 Good Quality Size: 26x19cm Material: Artificial leather',
     'Preview Image URL': 'https://example.com/images/lv-bag.jpg',
@@ -18,7 +23,9 @@ export const sampleExcelData = [
   },
   {
     'Product Name': 'CC Wallet',
-    'Product Link': 'https://example.com/cc-wallet',
+    'Flylink URL': 'https://flylink.com/cc-wallet',
+    'Alibaba URL': 'https://alibaba.com/cc-wallet',
+    'DHgate URL': 'https://dhgate.com/cc-wallet',
     'Category': 'Wallets',
     'Description': 'CC Wallet Premium Quality Size: 19x10cm Material: Genuine leather',
     'Preview Image URL': 'https://example.com/images/cc-wallet.jpg',
