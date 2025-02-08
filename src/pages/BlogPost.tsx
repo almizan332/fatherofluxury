@@ -1,10 +1,12 @@
+
 import { motion } from "framer-motion";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { Helmet } from "react-helmet";
 
 const blogPosts = {
   1: {
@@ -22,7 +24,10 @@ const blogPosts = {
     author: {
       name: "John Doe",
       avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=100&q=80"
-    }
+    },
+    seoTitle: "The Future of Technology in 2024 | Company Name",
+    seoDescription: "Discover the latest technology trends and their impact on daily life. Learn about AI, automation, and digital transformation.",
+    seoKeywords: "technology trends, future tech, AI, automation"
   },
   // Add more blog posts here
 };
@@ -37,9 +42,29 @@ const BlogPost = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <Helmet>
+        <title>{post.seoTitle}</title>
+        <meta name="description" content={post.seoDescription} />
+        <meta name="keywords" content={post.seoKeywords} />
+        <meta property="og:title" content={post.seoTitle} />
+        <meta property="og:description" content={post.seoDescription} />
+        <meta property="og:image" content={post.image} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={post.seoTitle} />
+        <meta name="twitter:description" content={post.seoDescription} />
+        <meta name="twitter:image" content={post.image} />
+      </Helmet>
+
       <Navbar />
       <ScrollArea className="flex-grow">
         <main className="max-w-4xl mx-auto px-4 py-12">
+          <Link to="/blog">
+            <Button variant="ghost" className="mb-6">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Blog
+            </Button>
+          </Link>
+
           <motion.article
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
