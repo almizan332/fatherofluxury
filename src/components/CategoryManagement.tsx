@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,6 +47,7 @@ const CategoryManagement = () => {
   
   const { toast } = useToast();
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -53,7 +55,11 @@ const CategoryManagement = () => {
       setSelectedImage(file);
       // Create a temporary URL for preview
       const imageUrl = URL.createObjectURL(file);
-      setNewCategory(prev => ({ ...prev, image: imageUrl }));
+      if (editingCategory) {
+        setEditingCategory({ ...editingCategory, image: imageUrl });
+      } else {
+        setNewCategory(prev => ({ ...prev, image: imageUrl }));
+      }
     }
   };
 
@@ -99,6 +105,29 @@ const CategoryManagement = () => {
     });
   };
 
+  const handleUpdateCategory = () => {
+    if (!editingCategory) return;
+
+    if (!editingCategory.name.trim()) {
+      toast({
+        title: "Error",
+        description: "Category name cannot be empty",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setCategories(categories.map(cat => 
+      cat.id === editingCategory.id ? editingCategory : cat
+    ));
+    
+    setEditingCategory(null);
+    toast({
+      title: "Success",
+      description: "Category updated successfully",
+    });
+  };
+
   const handleDeleteCategory = (id: number) => {
     setCategories(categories.filter((cat) => cat.id !== id));
     toast({
@@ -120,14 +149,22 @@ const CategoryManagement = () => {
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Add New Category</DialogTitle>
+            <DialogTitle>
+              {editingCategory ? "Edit Category" : "Add New Category"}
+            </DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Input
                 placeholder="Category name"
-                value={newCategory.name}
-                onChange={(e) => setNewCategory(prev => ({ ...prev, name: e.target.value }))}
+                value={editingCategory ? editingCategory.name : newCategory.name}
+                onChange={(e) => {
+                  if (editingCategory) {
+                    setEditingCategory({ ...editingCategory, name: e.target.value });
+                  } else {
+                    setNewCategory(prev => ({ ...prev, name: e.target.value }));
+                  }
+                }}
               />
             </div>
             <div className="grid gap-2">
@@ -148,17 +185,19 @@ const CategoryManagement = () => {
                   Upload Image
                 </label>
               </div>
-              {newCategory.image && (
+              {(editingCategory?.image || newCategory.image) && (
                 <div className="relative w-full h-32">
                   <img
-                    src={newCategory.image}
+                    src={editingCategory ? editingCategory.image : newCategory.image}
                     alt="Preview"
                     className="w-full h-full object-cover rounded-md"
                   />
                 </div>
               )}
             </div>
-            <Button onClick={handleAddCategory}>Add Category</Button>
+            <Button onClick={editingCategory ? handleUpdateCategory : handleAddCategory}>
+              {editingCategory ? "Update Category" : "Add Category"}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -175,8 +214,20 @@ const CategoryManagement = () => {
               <div className={`absolute inset-0 bg-gradient-to-br ${category.gradient} opacity-60 rounded-md`} />
             </div>
             <div className="flex items-center justify-between">
-              <span className="font-medium">{category.name}</span>
+              <div>
+                <span className="font-medium">{category.name}</span>
+                <p className="text-sm text-gray-500">
+                  {category.productCount} Products
+                </p>
+              </div>
               <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setEditingCategory(category)}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
                 <Button
                   variant="destructive"
                   size="sm"
@@ -186,9 +237,6 @@ const CategoryManagement = () => {
                 </Button>
               </div>
             </div>
-            <p className="text-sm text-gray-500 mt-1">
-              {category.productCount} Products
-            </p>
           </Card>
         ))}
       </div>
