@@ -70,7 +70,7 @@ const Index = () => {
             Latest Products ({sortedProducts.length} products)
           </motion.h1>
 
-          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
             {paginatedProducts.map((product, index) => (
               <Link to={`/product/${product.id}`} key={product.id}>
                 <motion.div
@@ -90,13 +90,13 @@ const Index = () => {
                           loading="lazy"
                         />
                       </div>
-                      <div className="p-3 sm:p-4">
+                      <div className="p-3">
                         <h3 className="text-sm font-medium text-gray-200 line-clamp-2">{product.title}</h3>
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-2 gap-2">
+                        <div className="flex justify-between items-center mt-2">
                           <p className="text-xs text-gray-400">
                             {new Date(product.dateAdded).toLocaleDateString()}
                           </p>
-                          <Button variant="ghost" size="sm" className="text-xs w-full sm:w-auto">
+                          <Button variant="ghost" size="sm" className="text-xs">
                             View Details
                           </Button>
                         </div>

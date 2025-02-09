@@ -112,7 +112,7 @@ const SubCategory = () => {
               <p className="text-gray-400">No products found matching your search.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
               {paginatedProducts.map((product, index) => (
                 <Link to={`/product/${product.id}`} key={product.id}>
                   <motion.div
@@ -132,8 +132,8 @@ const SubCategory = () => {
                             loading="lazy"
                           />
                         </div>
-                        <div className="p-4">
-                          <h3 className="text-sm font-medium text-gray-200">{product.title}</h3>
+                        <div className="p-3">
+                          <h3 className="text-sm font-medium text-gray-200 line-clamp-2">{product.title}</h3>
                           <div className="flex justify-between items-center mt-2">
                             <p className="text-xs text-gray-400">
                               {new Date(product.dateAdded).toLocaleDateString()}
