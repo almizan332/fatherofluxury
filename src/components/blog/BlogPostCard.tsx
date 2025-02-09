@@ -9,10 +9,14 @@ interface BlogPostCardProps {
     id: number;
     title: string;
     excerpt: string;
+    content: string;
     image: string;
     category: string;
     date: string;
     readTime: string;
+    seoTitle: string;
+    seoDescription: string;
+    seoKeywords: string;
   };
   onEdit: (post: BlogPostCardProps['post']) => void;
   onDelete: (id: number) => void;
