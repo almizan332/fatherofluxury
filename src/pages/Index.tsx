@@ -1,3 +1,4 @@
+
 import React from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -57,19 +58,19 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       <ScrollArea className="flex-grow">
-        <main className="max-w-7xl mx-auto px-4 py-8">
+        <main className="container mx-auto px-4 py-8 max-w-7xl">
           <motion.h1 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-2xl font-bold mb-6 gradient-text"
+            className="text-xl sm:text-2xl md:text-3xl font-bold mb-6 gradient-text"
           >
             Latest Products ({sortedProducts.length} products)
           </motion.h1>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
             {paginatedProducts.map((product, index) => (
               <Link to={`/product/${product.id}`} key={product.id}>
                 <motion.div
@@ -89,13 +90,13 @@ const Index = () => {
                           loading="lazy"
                         />
                       </div>
-                      <div className="p-4">
-                        <h3 className="text-sm font-medium text-gray-200">{product.title}</h3>
-                        <div className="flex justify-between items-center mt-2">
+                      <div className="p-3 sm:p-4">
+                        <h3 className="text-sm font-medium text-gray-200 line-clamp-2">{product.title}</h3>
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-2 gap-2">
                           <p className="text-xs text-gray-400">
                             {new Date(product.dateAdded).toLocaleDateString()}
                           </p>
-                          <Button variant="ghost" size="sm" className="text-xs">
+                          <Button variant="ghost" size="sm" className="text-xs w-full sm:w-auto">
                             View Details
                           </Button>
                         </div>
@@ -107,13 +108,13 @@ const Index = () => {
             ))}
           </div>
 
-          <div className="mt-8 mb-12">
+          <div className="mt-8 mb-12 overflow-x-auto">
             <Pagination>
-              <PaginationContent>
+              <PaginationContent className="flex-wrap justify-center gap-1">
                 <PaginationItem>
                   <PaginationPrevious 
                     onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
-                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    className={`${currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"} text-sm`}
                   />
                 </PaginationItem>
                 
@@ -132,6 +133,7 @@ const Index = () => {
                       )}
                       <PaginationItem>
                         <PaginationLink
+                          className="text-sm"
                           isActive={currentPage === page}
                           onClick={() => handlePageChange(page)}
                         >
@@ -144,7 +146,7 @@ const Index = () => {
                 <PaginationItem>
                   <PaginationNext
                     onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
-                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    className={`${currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"} text-sm`}
                   />
                 </PaginationItem>
               </PaginationContent>
