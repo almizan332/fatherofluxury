@@ -1,15 +1,14 @@
 import { motion } from "framer-motion";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Card, CardContent } from "@/components/ui/card";
-import { Search, Edit, Trash, Plus } from "lucide-react";
+import { Search, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Sidebar, SidebarContent } from "@/components/ui/sidebar";
+import BlogPostCard from "@/components/blog/BlogPostCard";
+import BlogPostForm from "@/components/blog/BlogPostForm";
 
 const initialBlogPosts = [
   {
@@ -137,194 +136,22 @@ const BlogManagement = () => {
 
           <ScrollArea className="h-[calc(100vh-12rem)]">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredPosts.map((post, index) => (
-                <motion.div
+              {filteredPosts.map((post) => (
+                <BlogPostCard
                   key={post.id}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3, delay: index * 0.1 }}
-                  className="group"
-                >
-                  <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 bg-gray-900/50 border-gray-800">
-                    <CardContent className="p-0">
-                      <div className="relative aspect-video">
-                        <img
-                          src={post.image}
-                          alt={post.title}
-                          className="absolute inset-0 w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                        <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            onClick={() => {
-                              setEditingPost(post);
-                              setIsAddDialogOpen(true);
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleDelete(post.id)}
-                          >
-                            <Trash className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="p-6">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm text-blue-400">{post.category}</span>
-                          <span className="text-xs text-gray-400">{post.readTime}</span>
-                        </div>
-                        <h2 className="text-xl font-semibold mb-2">{post.title}</h2>
-                        <p className="text-gray-400 text-sm mb-4">{post.excerpt}</p>
-                        <div className="text-xs text-gray-500">{post.date}</div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
+                  post={post}
+                  onEdit={(post) => {
+                    setEditingPost(post);
+                    setIsAddDialogOpen(true);
+                  }}
+                  onDelete={handleDelete}
+                />
               ))}
             </div>
           </ScrollArea>
         </div>
       </div>
     </div>
-  );
-};
-
-interface BlogPostFormProps {
-  initialData: any;
-  onSave: (data: any) => void;
-  onCancel: () => void;
-}
-
-const BlogPostForm = ({ initialData, onSave, onCancel }: BlogPostFormProps) => {
-  const [formData, setFormData] = useState(initialData || {
-    title: "",
-    excerpt: "",
-    content: "",
-    image: "",
-    category: "",
-    readTime: "",
-    seoTitle: "",
-    seoDescription: "",
-    seoKeywords: ""
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSave(formData);
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="title">Title</Label>
-          <Input
-            id="title"
-            value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            required
-          />
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="excerpt">Excerpt</Label>
-          <Textarea
-            id="excerpt"
-            value={formData.excerpt}
-            onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="content">Content</Label>
-          <Textarea
-            id="content"
-            value={formData.content}
-            onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="image">Image URL</Label>
-          <Input
-            id="image"
-            value={formData.image}
-            onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-            required
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="category">Category</Label>
-            <Input
-              id="category"
-              value={formData.category}
-              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="readTime">Read Time</Label>
-            <Input
-              id="readTime"
-              value={formData.readTime}
-              onChange={(e) => setFormData({ ...formData, readTime: e.target.value })}
-              required
-            />
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="seoTitle">SEO Title</Label>
-          <Input
-            id="seoTitle"
-            value={formData.seoTitle}
-            onChange={(e) => setFormData({ ...formData, seoTitle: e.target.value })}
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="seoDescription">SEO Description</Label>
-          <Textarea
-            id="seoDescription"
-            value={formData.seoDescription}
-            onChange={(e) => setFormData({ ...formData, seoDescription: e.target.value })}
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="seoKeywords">SEO Keywords</Label>
-          <Input
-            id="seoKeywords"
-            value={formData.seoKeywords}
-            onChange={(e) => setFormData({ ...formData, seoKeywords: e.target.value })}
-            placeholder="Comma-separated keywords"
-            required
-          />
-        </div>
-      </div>
-
-      <div className="flex justify-end gap-4">
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button type="submit">
-          {initialData ? 'Update' : 'Create'} Post
-        </Button>
-      </div>
-    </form>
   );
 };
 
