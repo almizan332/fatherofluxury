@@ -7,7 +7,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Sidebar, SidebarContent } from "@/components/ui/sidebar";
+import { Sidebar, SidebarContent, SidebarProvider } from "@/components/ui/sidebar";
 import BlogPostCard from "@/components/blog/BlogPostCard";
 import BlogPostForm from "@/components/blog/BlogPostForm";
 
@@ -81,78 +81,80 @@ const BlogManagement = () => {
   };
 
   return (
-    <div className="flex min-h-screen w-full">
-      <Sidebar>
-        <SidebarContent>
-          {/* Sidebar content from Dashboard */}
-        </SidebarContent>
-      </Sidebar>
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full">
+        <Sidebar>
+          <SidebarContent>
+            {/* Sidebar content from Dashboard */}
+          </SidebarContent>
+        </Sidebar>
 
-      <div className="flex-1 p-6">
-        <div className="flex flex-col">
-          <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-            <motion.h1 
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-4xl font-bold"
-            >
-              Blog Management
-            </motion.h1>
+        <div className="flex-1 p-6">
+          <div className="flex flex-col">
+            <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+              <motion.h1 
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-4xl font-bold"
+              >
+                Blog Management
+              </motion.h1>
 
-            <div className="flex items-center gap-4 w-full sm:w-auto">
-              <div className="relative flex-1 sm:flex-initial">
-                <Input
-                  type="search"
-                  placeholder="Search posts..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-              </div>
-              
-              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button onClick={() => setEditingPost(null)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Post
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[625px]">
-                  <DialogHeader>
-                    <DialogTitle>{editingPost ? 'Edit' : 'Add'} Blog Post</DialogTitle>
-                  </DialogHeader>
-                  <BlogPostForm
-                    initialData={editingPost}
-                    onSave={handleSave}
-                    onCancel={() => {
-                      setIsAddDialogOpen(false);
-                      setEditingPost(null);
-                    }}
+              <div className="flex items-center gap-4 w-full sm:w-auto">
+                <div className="relative flex-1 sm:flex-initial">
+                  <Input
+                    type="search"
+                    placeholder="Search posts..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
                   />
-                </DialogContent>
-              </Dialog>
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                </div>
+                
+                <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button onClick={() => setEditingPost(null)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Post
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[625px]">
+                    <DialogHeader>
+                      <DialogTitle>{editingPost ? 'Edit' : 'Add'} Blog Post</DialogTitle>
+                    </DialogHeader>
+                    <BlogPostForm
+                      initialData={editingPost}
+                      onSave={handleSave}
+                      onCancel={() => {
+                        setIsAddDialogOpen(false);
+                        setEditingPost(null);
+                      }}
+                    />
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
-          </div>
 
-          <ScrollArea className="h-[calc(100vh-12rem)]">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredPosts.map((post) => (
-                <BlogPostCard
-                  key={post.id}
-                  post={post}
-                  onEdit={(post) => {
-                    setEditingPost(post);
-                    setIsAddDialogOpen(true);
-                  }}
-                  onDelete={handleDelete}
-                />
-              ))}
-            </div>
-          </ScrollArea>
+            <ScrollArea className="h-[calc(100vh-12rem)]">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredPosts.map((post) => (
+                  <BlogPostCard
+                    key={post.id}
+                    post={post}
+                    onEdit={(post) => {
+                      setEditingPost(post);
+                      setIsAddDialogOpen(true);
+                    }}
+                    onDelete={handleDelete}
+                  />
+                ))}
+              </div>
+            </ScrollArea>
+          </div>
         </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 
