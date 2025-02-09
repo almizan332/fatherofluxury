@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
@@ -16,7 +17,6 @@ const Navbar = () => {
       toast.error("Please enter a search term");
       return;
     }
-    // Navigate to categories page with search query
     navigate(`/category/all?search=${encodeURIComponent(searchQuery.trim())}`);
     setSearchQuery("");
   };
@@ -29,12 +29,12 @@ const Navbar = () => {
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="text-xl font-semibold gradient-text"
+              className="text-sm xs:text-base sm:text-lg md:text-xl font-semibold gradient-text whitespace-nowrap"
             >
               Father of Luxury
             </motion.div>
           </Link>
-          <nav className="flex items-center space-x-6 text-sm">
+          <nav className="hidden sm:flex items-center space-x-6 text-sm">
             <Link to="/" className="transition-colors hover:text-foreground/80">Home</Link>
             <Link to="/categories" className="transition-colors hover:text-foreground/80">Categories</Link>
             <Link to="/blog" className="transition-colors hover:text-foreground/80">Blog</Link>
@@ -62,7 +62,7 @@ const Navbar = () => {
           <Input
             type="search"
             placeholder="Search products..."
-            className="w-[200px] md:w-[300px] pr-8"
+            className="w-[150px] xs:w-[200px] md:w-[300px] pr-8"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
