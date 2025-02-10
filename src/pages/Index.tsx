@@ -17,6 +17,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Product {
   name: string;
@@ -32,16 +33,44 @@ const ITEMS_PER_PAGE = 120;
 const Index = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [products, setProducts] = useState<Product[]>([]);
+  const { toast } = useToast();
   
   useEffect(() => {
     // Get products from localStorage
     const storedProducts = localStorage.getItem('products');
+    console.log('Stored products:', storedProducts); // Debug log
+    
     if (storedProducts) {
-      const parsedProducts = JSON.parse(storedProducts).map((product: Product) => ({
-        ...product,
-        dateAdded: new Date(product.dateAdded || Date.now())
-      }));
-      setProducts(parsedProducts);
+      try {
+        const parsedProducts = JSON.parse(storedProducts).map((product: Product) => ({
+          ...product,
+          dateAdded: new Date(product.dateAdded || Date.now())
+        }));
+        console.log('Parsed products:', parsedProducts); // Debug log
+        setProducts(parsedProducts);
+        
+        if (parsedProducts.length === 0) {
+          toast({
+            title: "No products found",
+            description: "There are currently no products to display.",
+            duration: 3000,
+          });
+        }
+      } catch (error) {
+        console.error('Error parsing products:', error);
+        toast({
+          title: "Error",
+          description: "There was an error loading the products.",
+          variant: "destructive",
+        });
+      }
+    } else {
+      console.log('No products found in localStorage'); // Debug log
+      toast({
+        title: "No products found",
+        description: "There are currently no products to display.",
+        duration: 3000,
+      });
     }
   }, []);
 
