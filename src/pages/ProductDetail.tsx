@@ -42,15 +42,15 @@ const ProductDetail = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      <main className="container py-6 flex-grow">
+      <main className="container py-4 flex-grow">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-8">
+          <div className="mb-4">
             <nav className="text-sm text-gray-400">
               <Link to="/">Home</Link> / <Link to="/categories">Categories</Link> / {product.title}
             </nav>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Carousel className="w-full">
                 <CarouselContent>
@@ -70,7 +70,7 @@ const ProductDetail = () => {
                 <CarouselNext />
               </Carousel>
 
-              <div className="grid grid-cols-4 gap-2 mt-4">
+              <div className="grid grid-cols-4 gap-2 mt-2">
                 {product.images.map((image, index) => (
                   <img
                     key={index}
@@ -82,14 +82,14 @@ const ProductDetail = () => {
               </div>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-3">
               <div>
-                <h1 className="text-3xl font-bold mb-2">{product.title}</h1>
-                <p className="text-2xl text-primary mb-4">{product.price}</p>
+                <h1 className="text-3xl font-bold mb-1">{product.title}</h1>
+                <p className="text-2xl text-primary mb-2">{product.price}</p>
                 <p className="text-gray-400">{product.description}</p>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <Button 
                   className="w-full bg-blue-500 hover:bg-blue-600" 
                   size="lg"
@@ -138,8 +138,8 @@ const ProductDetail = () => {
             </div>
           </div>
 
-          <div className="mt-16">
-            <h2 className="text-2xl font-bold mb-6">Related Products</h2>
+          <div className="mt-8">
+            <h2 className="text-2xl font-bold mb-4">Related Products</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {product.relatedProducts.map((relatedProduct) => (
                 <Link to={`/product/${relatedProduct.id}`} key={relatedProduct.id}>
@@ -170,3 +170,4 @@ const ProductDetail = () => {
 };
 
 export default ProductDetail;
+
