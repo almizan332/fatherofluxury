@@ -40,14 +40,14 @@ const Navbar = () => {
               <DrawerContent>
                 <div className="p-4 space-y-2">
                   <nav className="flex flex-col space-y-2">
-                    <Link to="/" className="text-lg hover:text-foreground/80">Home</Link>
-                    <Link to="/categories" className="text-lg hover:text-foreground/80">Categories</Link>
-                    <Link to="/blog" className="text-lg hover:text-foreground/80">Blog</Link>
+                    <Link to="/" className="text-lg hover:text-foreground/80 text-center">Home</Link>
+                    <Link to="/categories" className="text-lg hover:text-foreground/80 text-center">Categories</Link>
+                    <Link to="/blog" className="text-lg hover:text-foreground/80 text-center">Blog</Link>
                     <a 
                       href="https://t.me/+pcnB8fU7jwo0MmNl" 
                       target="_blank" 
                       rel="noopener noreferrer" 
-                      className="text-lg hover:text-foreground/80"
+                      className="text-lg hover:text-foreground/80 text-center"
                     >
                       Telegram
                     </a>
@@ -55,7 +55,7 @@ const Navbar = () => {
                       href="https://wa.link/lbeu86" 
                       target="_blank" 
                       rel="noopener noreferrer" 
-                      className="text-lg hover:text-foreground/80"
+                      className="text-lg hover:text-foreground/80 text-center"
                     >
                       Contact
                     </a>
@@ -75,15 +75,11 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* Essential navigation shown on both mobile and desktop */}
-          <nav className="hidden sm:flex items-center space-x-1 sm:space-x-3 text-sm">
+          {/* All navigation items in one section */}
+          <nav className="hidden sm:flex items-center space-x-3 text-sm">
             <Link to="/" className="transition-colors hover:text-foreground/80">Home</Link>
             <Link to="/categories" className="transition-colors hover:text-foreground/80">Categories</Link>
             <Link to="/blog" className="transition-colors hover:text-foreground/80">Blog</Link>
-          </nav>
-
-          {/* Additional navigation items only shown on desktop */}
-          <nav className="hidden sm:flex items-center space-x-3 text-sm">
             <a 
               href="https://t.me/+pcnB8fU7jwo0MmNl" 
               target="_blank" 
@@ -124,3 +120,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
