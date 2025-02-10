@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Plus, FileSpreadsheet, Download, Trash2, Edit, Check } from "lucide-react";
+import { Upload, Plus, FileSpreadsheet, Download, Trash2, Edit } from "lucide-react";
 import { productExcelHeaders, sampleExcelData } from "@/utils/excelTemplate";
 import {
   Table,
@@ -26,7 +27,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 interface Product {
   name: string;
-  link: string;
   category: string;
   description: string;
   previewImage: string;
@@ -40,7 +40,6 @@ const ProductList = () => {
   const [editingProduct, setEditingProduct] = useState<{ index: number; product: Product } | null>(null);
   const [newProduct, setNewProduct] = useState<Product>({
     name: "",
-    link: "",
     category: "",
     description: "",
     previewImage: "",
@@ -54,7 +53,6 @@ const ProductList = () => {
     const file = event.target.files?.[0];
     if (file) {
       setPreviewImageFile(file);
-      // Create a temporary URL for preview
       const imageUrl = URL.createObjectURL(file);
       setNewProduct({ ...newProduct, previewImage: imageUrl });
     }
@@ -63,7 +61,6 @@ const ProductList = () => {
   const handleGalleryImagesUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     setGalleryImageFiles(files);
-    // Create temporary URLs for preview
     const imageUrls = files.map(file => URL.createObjectURL(file));
     setNewProduct({ ...newProduct, galleryImages: imageUrls });
   };
@@ -80,18 +77,17 @@ const ProductList = () => {
           const productsData: Product[] = [];
 
           for (let i = 1; i < rows.length; i++) {
-            if (!rows[i].trim()) continue; // Skip empty rows
+            if (!rows[i].trim()) continue;
             const values = rows[i].split(',');
             if (values.length === headers.length) {
-              const galleryImagesStr = values[5].trim();
+              const galleryImagesStr = values[4].trim();
               const galleryImages = galleryImagesStr ? galleryImagesStr.split(';').map(url => url.trim()) : [];
               
               productsData.push({
                 name: values[0].trim(),
-                link: values[1].trim().replace(/^(https?:\/\/)/, ''), // Remove protocol if present
-                category: values[2].trim(),
-                description: values[3].trim(),
-                previewImage: values[4].trim(),
+                category: values[1].trim(),
+                description: values[2].trim(),
+                previewImage: values[3].trim(),
                 galleryImages
               });
             }
@@ -119,7 +115,6 @@ const ProductList = () => {
       productExcelHeaders.join(','),
       ...sampleExcelData.map(row => [
         row['Product Name'],
-        row['Product Link'],
         row['Category'],
         row['Description'],
         row['Preview Image URL'],
@@ -189,11 +184,9 @@ const ProductList = () => {
     try {
       const productToSave = {
         ...newProduct,
-        link: newProduct.link.replace(/^(https?:\/\/)/, ''),
       };
 
       if (editingProduct !== null) {
-        // Update existing product
         const updatedProducts = [...products];
         updatedProducts[editingProduct.index] = productToSave;
         setProducts(updatedProducts);
@@ -202,7 +195,6 @@ const ProductList = () => {
           description: "The product has been updated successfully",
         });
       } else {
-        // Add new product
         setProducts([...products, productToSave]);
         toast({
           title: "Product added",
@@ -210,10 +202,8 @@ const ProductList = () => {
         });
       }
       
-      // Reset form
       setNewProduct({
         name: "",
-        link: "",
         category: "",
         description: "",
         previewImage: "",
@@ -253,7 +243,6 @@ const ProductList = () => {
                 setEditingProduct(null);
                 setNewProduct({
                   name: "",
-                  link: "",
                   category: "",
                   description: "",
                   previewImage: "",
@@ -279,17 +268,6 @@ const ProductList = () => {
                     onChange={(e) =>
                       setNewProduct({ ...newProduct, name: e.target.value })
                     }
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="link">Product Link</Label>
-                  <Input
-                    id="link"
-                    value={newProduct.link}
-                    onChange={(e) =>
-                      setNewProduct({ ...newProduct, link: e.target.value })
-                    }
-                    placeholder="example.com/product"
                   />
                 </div>
                 <div className="grid gap-2">
@@ -391,7 +369,6 @@ const ProductList = () => {
                   />
                 </TableHead>
                 <TableHead>Product Name</TableHead>
-                <TableHead>Link</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Preview Image</TableHead>
@@ -409,7 +386,6 @@ const ProductList = () => {
                     />
                   </TableCell>
                   <TableCell>{product.name}</TableCell>
-                  <TableCell>{product.link}</TableCell>
                   <TableCell>{product.category}</TableCell>
                   <TableCell>{product.description}</TableCell>
                   <TableCell>
@@ -460,3 +436,4 @@ const ProductList = () => {
 };
 
 export default ProductList;
+
