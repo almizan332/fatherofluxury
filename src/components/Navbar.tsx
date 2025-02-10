@@ -28,7 +28,7 @@ const Navbar = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-gray-800 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full bg-black text-white">
       <div className="container flex h-14 items-center">
         <div className="flex flex-1 items-center justify-between gap-1 sm:gap-3">
           <div className="flex items-center gap-1">
@@ -40,14 +40,14 @@ const Navbar = () => {
               <DrawerContent>
                 <div className="p-4 space-y-2">
                   <nav className="flex flex-col space-y-2">
-                    <Link to="/" className="text-lg hover:text-foreground/80 text-center">Home</Link>
-                    <Link to="/categories" className="text-lg hover:text-foreground/80 text-center">Categories</Link>
-                    <Link to="/blog" className="text-lg hover:text-foreground/80 text-center">Blog</Link>
+                    <Link to="/" className="text-lg hover:text-gray-300 text-center">Home</Link>
+                    <Link to="/categories" className="text-lg hover:text-gray-300 text-center">Categories</Link>
+                    <Link to="/blog" className="text-lg hover:text-gray-300 text-center">Blog</Link>
                     <a 
                       href="https://t.me/+pcnB8fU7jwo0MmNl" 
                       target="_blank" 
                       rel="noopener noreferrer" 
-                      className="text-lg hover:text-foreground/80 text-center"
+                      className="text-lg hover:text-gray-300 text-center"
                     >
                       Telegram
                     </a>
@@ -55,7 +55,7 @@ const Navbar = () => {
                       href="https://wa.link/lbeu86" 
                       target="_blank" 
                       rel="noopener noreferrer" 
-                      className="text-lg hover:text-foreground/80 text-center"
+                      className="text-lg hover:text-gray-300 text-center"
                     >
                       Contact
                     </a>
@@ -68,23 +68,23 @@ const Navbar = () => {
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="text-sm xs:text-base sm:text-lg md:text-xl font-semibold gradient-text whitespace-nowrap"
+                className="text-sm xs:text-base sm:text-lg md:text-xl font-semibold text-white whitespace-nowrap"
               >
                 Father of Luxury
               </motion.div>
             </Link>
           </div>
 
-          {/* All navigation items in one section */}
-          <nav className="hidden sm:flex items-center space-x-3 text-sm">
-            <Link to="/" className="transition-colors hover:text-foreground/80">Home</Link>
-            <Link to="/categories" className="transition-colors hover:text-foreground/80">Categories</Link>
-            <Link to="/blog" className="transition-colors hover:text-foreground/80">Blog</Link>
+          {/* Navigation items */}
+          <nav className="hidden sm:flex items-center space-x-6 text-sm font-medium">
+            <Link to="/" className="transition-colors hover:text-gray-300">Home</Link>
+            <Link to="/categories" className="transition-colors hover:text-gray-300">Categories</Link>
+            <Link to="/blog" className="transition-colors hover:text-gray-300">Blog</Link>
             <a 
               href="https://t.me/+pcnB8fU7jwo0MmNl" 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="transition-colors hover:text-foreground/80"
+              className="transition-colors hover:text-gray-300"
             >
               Telegram
             </a>
@@ -92,7 +92,7 @@ const Navbar = () => {
               href="https://wa.link/lbeu86" 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="transition-colors hover:text-foreground/80"
+              className="transition-colors hover:text-gray-300"
             >
               Contact
             </a>
@@ -103,13 +103,13 @@ const Navbar = () => {
           <Input
             type="search"
             placeholder="Search..."
-            className="w-[120px] xs:w-[200px] md:w-[300px] pr-8"
+            className="w-[120px] xs:w-[200px] md:w-[300px] pr-8 bg-white text-black"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           <button 
             type="submit"
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 hover:text-black transition-colors"
           >
             <Search className="h-4 w-4" />
           </button>
@@ -120,4 +120,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-
