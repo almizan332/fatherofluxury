@@ -47,11 +47,9 @@ const SubCategory = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
   
-  // Generate products for the subcategory
   const products = generateProducts(360);
   const sortedProducts = [...products].sort((a, b) => b.dateAdded.getTime() - a.dateAdded.getTime());
   
-  // Filter products based on search query
   const filteredProducts = sortedProducts.filter(product => 
     product.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -65,7 +63,7 @@ const SubCategory = () => {
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearchQuery(query);
-    setCurrentPage(1); // Reset to first page when searching
+    setCurrentPage(1);
     
     if (query && filteredProducts.length === 0) {
       toast({
@@ -89,7 +87,7 @@ const SubCategory = () => {
           <motion.h1 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-2xl font-bold mb-6 gradient-text"
+            className="text-2xl font-bold mb-6 gradient-text text-right"
           >
             Category {category} ({filteredProducts.length} products)
           </motion.h1>
@@ -133,7 +131,7 @@ const SubCategory = () => {
                           />
                         </div>
                         <div className="p-3">
-                          <h3 className="text-sm font-medium text-gray-200 line-clamp-2">{product.title}</h3>
+                          <h3 className="text-sm font-medium text-gray-200 line-clamp-2 text-right">{product.title}</h3>
                           <div className="flex justify-between items-center mt-2">
                             <p className="text-xs text-gray-400">
                               {new Date(product.dateAdded).toLocaleDateString()}

@@ -1,3 +1,4 @@
+
 import React from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -49,7 +50,6 @@ const Shop = () => {
   const { id } = useParams();
   const categoryId = parseInt(id || "1");
   
-  // Generate 360 products initially (3 pages worth)
   const products = generateProducts(360, categoryId);
   const sortedProducts = [...products].sort((a, b) => b.dateAdded.getTime() - a.dateAdded.getTime());
   
@@ -105,7 +105,7 @@ const Shop = () => {
           <motion.h1 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-2xl font-bold mb-6 gradient-text"
+            className="text-2xl font-bold mb-6 gradient-text text-right"
           >
             {categoryNames[categoryId - 1]} ({sortedProducts.length} products)
           </motion.h1>
@@ -131,7 +131,7 @@ const Shop = () => {
                         />
                       </div>
                       <div className="p-4">
-                        <h3 className="text-sm font-medium text-gray-200">{product.title}</h3>
+                        <h3 className="text-sm font-medium text-gray-200 text-right">{product.title}</h3>
                         <div className="flex justify-between items-center mt-2">
                           <p className="text-xs text-gray-400">
                             {new Date(product.dateAdded).toLocaleDateString()}
