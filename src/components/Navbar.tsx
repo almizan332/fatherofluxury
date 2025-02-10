@@ -1,11 +1,17 @@
 
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Search } from "lucide-react";
+import { Search, Menu } from "lucide-react";
 import { Input } from "./ui/input";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerTrigger,
+} from "./ui/drawer";
 
 const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -25,18 +31,53 @@ const Navbar = () => {
     <header className="sticky top-0 z-50 w-full border-b border-gray-800 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
         <div className="flex flex-1 items-center justify-between gap-2 sm:gap-6">
-          <Link to="/" className="mr-2 sm:mr-6">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="text-sm xs:text-base sm:text-lg md:text-xl font-semibold gradient-text whitespace-nowrap"
-            >
-              Father of Luxury
-            </motion.div>
-          </Link>
+          <div className="flex items-center gap-2">
+            {/* Mobile Menu */}
+            <Drawer>
+              <DrawerTrigger className="block sm:hidden p-2">
+                <Menu className="h-5 w-5" />
+              </DrawerTrigger>
+              <DrawerContent>
+                <div className="p-4 space-y-4">
+                  <nav className="flex flex-col space-y-4">
+                    <Link to="/" className="text-lg hover:text-foreground/80">Home</Link>
+                    <Link to="/categories" className="text-lg hover:text-foreground/80">Categories</Link>
+                    <Link to="/blog" className="text-lg hover:text-foreground/80">Blog</Link>
+                    <Link to="/login" className="text-lg hover:text-foreground/80">Login</Link>
+                    <a 
+                      href="https://t.me/+pcnB8fU7jwo0MmNl" 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-lg hover:text-foreground/80"
+                    >
+                      Telegram
+                    </a>
+                    <a 
+                      href="https://wa.link/lbeu86" 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-lg hover:text-foreground/80"
+                    >
+                      Contact
+                    </a>
+                  </nav>
+                </div>
+              </DrawerContent>
+            </Drawer>
+
+            <Link to="/" className="mr-2 sm:mr-6">
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="text-sm xs:text-base sm:text-lg md:text-xl font-semibold gradient-text whitespace-nowrap"
+              >
+                Father of Luxury
+              </motion.div>
+            </Link>
+          </div>
 
           {/* Essential navigation shown on both mobile and desktop */}
-          <nav className="flex items-center space-x-2 sm:space-x-6 text-sm">
+          <nav className="hidden sm:flex items-center space-x-2 sm:space-x-6 text-sm">
             <Link to="/" className="transition-colors hover:text-foreground/80">Home</Link>
             <Link to="/categories" className="transition-colors hover:text-foreground/80">Categories</Link>
             <Link to="/blog" className="transition-colors hover:text-foreground/80">Blog</Link>
