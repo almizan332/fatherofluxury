@@ -37,20 +37,22 @@ const CategoryFormDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px] mx-4 md:mx-0">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="text-2xl font-bold text-purple-800">
             {editingCategory ? "Edit Category" : "Add New Category"}
           </DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
+            <label className="text-sm font-medium text-purple-700">Category Name</label>
             <Input
-              placeholder="Category name"
+              placeholder="Enter category name"
               value={editingCategory ? editingCategory.name : newCategory.name}
               onChange={(e) => onCategoryChange(e.target.value, 'name')}
+              className="border-purple-200 focus:border-purple-500"
             />
           </div>
           <div className="grid gap-2">
-            <label className="text-sm text-gray-500">Category Image</label>
+            <label className="text-sm font-medium text-purple-700">Category Image</label>
             <div className="flex items-center gap-2">
               <Input
                 type="file"
@@ -61,23 +63,26 @@ const CategoryFormDialog = ({
               />
               <label
                 htmlFor="imageUpload"
-                className="flex items-center gap-2 px-4 py-2 border rounded-md cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                className="flex items-center gap-2 px-4 py-2 border border-purple-200 rounded-md cursor-pointer hover:bg-purple-50 text-purple-700"
               >
                 <Image className="h-4 w-4" />
                 Upload Image
               </label>
             </div>
             {(editingCategory?.image || newCategory.image) && (
-              <div className="relative w-full h-32">
+              <div className="relative w-full h-32 rounded-md overflow-hidden border border-purple-200">
                 <img
                   src={editingCategory ? editingCategory.image : newCategory.image}
                   alt="Preview"
-                  className="w-full h-full object-cover rounded-md"
+                  className="w-full h-full object-cover"
                 />
               </div>
             )}
           </div>
-          <Button onClick={onSubmit}>
+          <Button 
+            onClick={onSubmit}
+            className="bg-purple-600 hover:bg-purple-700 text-white"
+          >
             {editingCategory ? "Update Category" : "Add Category"}
           </Button>
         </div>
