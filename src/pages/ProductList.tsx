@@ -11,7 +11,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Plus, FileSpreadsheet, Download, ImagePlus } from "lucide-react";
+import { Upload, Plus, FileSpreadsheet, Download, Trash2, Edit, Check } from "lucide-react";
 import { productExcelHeaders, sampleExcelData } from "@/utils/excelTemplate";
 import {
   Table,
@@ -22,6 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface Product {
   name: string;
@@ -34,7 +35,9 @@ interface Product {
 
 const ProductList = () => {
   const [products, setProducts] = useState<Product[]>([]);
-  const [isAddProductOpen, setIsAddProductOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
+  const [editingProduct, setEditingProduct] = useState<{ index: number; product: Product } | null>(null);
   const [newProduct, setNewProduct] = useState<Product>({
     name: "",
     link: "",
@@ -141,7 +144,39 @@ const ProductList = () => {
     });
   };
 
-  const handleAddProduct = async () => {
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedProducts(products.map((_, index) => index));
+    } else {
+      setSelectedProducts([]);
+    }
+  };
+
+  const handleSelectProduct = (index: number, checked: boolean) => {
+    if (checked) {
+      setSelectedProducts([...selectedProducts, index]);
+    } else {
+      setSelectedProducts(selectedProducts.filter(i => i !== index));
+    }
+  };
+
+  const handleDeleteSelected = () => {
+    const newProducts = products.filter((_, index) => !selectedProducts.includes(index));
+    setProducts(newProducts);
+    setSelectedProducts([]);
+    toast({
+      title: "Products deleted",
+      description: `${selectedProducts.length} products have been deleted`,
+    });
+  };
+
+  const handleEdit = (index: number) => {
+    setEditingProduct({ index, product: { ...products[index] } });
+    setNewProduct({ ...products[index] });
+    setIsDialogOpen(true);
+  };
+
+  const handleSave = () => {
     if (!newProduct.name || !newProduct.category) {
       toast({
         title: "Error",
@@ -152,14 +187,28 @@ const ProductList = () => {
     }
 
     try {
-      // In a real application, you would upload the images to your server/storage here
-      // For now, we'll use the temporary URLs
-      const productToAdd = {
+      const productToSave = {
         ...newProduct,
         link: newProduct.link.replace(/^(https?:\/\/)/, ''),
       };
 
-      setProducts([...products, productToAdd]);
+      if (editingProduct !== null) {
+        // Update existing product
+        const updatedProducts = [...products];
+        updatedProducts[editingProduct.index] = productToSave;
+        setProducts(updatedProducts);
+        toast({
+          title: "Product updated",
+          description: "The product has been updated successfully",
+        });
+      } else {
+        // Add new product
+        setProducts([...products, productToSave]);
+        toast({
+          title: "Product added",
+          description: "The new product has been added successfully",
+        });
+      }
       
       // Reset form
       setNewProduct({
@@ -172,16 +221,12 @@ const ProductList = () => {
       });
       setPreviewImageFile(null);
       setGalleryImageFiles([]);
-      setIsAddProductOpen(false);
-      
-      toast({
-        title: "Product added successfully",
-        description: "The new product has been added to the list and homepage",
-      });
+      setIsDialogOpen(false);
+      setEditingProduct(null);
     } catch (error) {
       toast({
-        title: "Error adding product",
-        description: "There was an error adding the product. Please try again.",
+        title: "Error",
+        description: "There was an error saving the product. Please try again.",
         variant: "destructive",
       });
     }
@@ -196,16 +241,34 @@ const ProductList = () => {
             <Download className="h-4 w-4 mr-2" />
             Download Template
           </Button>
-          <Dialog open={isAddProductOpen} onOpenChange={setIsAddProductOpen}>
+          {selectedProducts.length > 0 && (
+            <Button variant="destructive" onClick={handleDeleteSelected}>
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Selected ({selectedProducts.length})
+            </Button>
+          )}
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button>
+              <Button onClick={() => {
+                setEditingProduct(null);
+                setNewProduct({
+                  name: "",
+                  link: "",
+                  category: "",
+                  description: "",
+                  previewImage: "",
+                  galleryImages: [],
+                });
+              }}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Product
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
-                <DialogTitle>Add New Product</DialogTitle>
+                <DialogTitle>
+                  {editingProduct ? "Edit Product" : "Add New Product"}
+                </DialogTitle>
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
@@ -295,7 +358,9 @@ const ProductList = () => {
                 </div>
               </div>
               <div className="flex justify-end">
-                <Button onClick={handleAddProduct}>Add Product</Button>
+                <Button onClick={handleSave}>
+                  {editingProduct ? "Save Changes" : "Add Product"}
+                </Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -319,17 +384,30 @@ const ProductList = () => {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[50px]">
+                  <Checkbox
+                    checked={selectedProducts.length === products.length}
+                    onCheckedChange={handleSelectAll}
+                  />
+                </TableHead>
                 <TableHead>Product Name</TableHead>
                 <TableHead>Link</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Preview Image</TableHead>
                 <TableHead>Gallery Images</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {products.map((product, index) => (
                 <TableRow key={index}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedProducts.includes(index)}
+                      onCheckedChange={(checked) => handleSelectProduct(index, checked as boolean)}
+                    />
+                  </TableCell>
                   <TableCell>{product.name}</TableCell>
                   <TableCell>{product.link}</TableCell>
                   <TableCell>{product.category}</TableCell>
@@ -356,6 +434,16 @@ const ProductList = () => {
                         )
                       ))}
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEdit(index)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
