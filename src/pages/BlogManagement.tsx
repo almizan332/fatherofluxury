@@ -1,4 +1,3 @@
-
 import { motion } from "framer-motion";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, Plus, Trash2, Edit2 } from "lucide-react";
@@ -54,97 +53,97 @@ const BlogManagement = () => {
 
   const isAdmin = localStorage.getItem("isAdmin") === "true";
 
-  const handleDelete = (id: number) => {
+  const handleAction = (action: () => void) => {
     if (!isAdmin) {
       navigate("/login");
+      toast({
+        title: "Authentication Required",
+        description: "Please log in as an admin to perform this action.",
+      });
       return;
     }
-    setBlogPosts(posts => posts.filter(post => post.id !== id));
-    setSelectedPosts(selected => selected.filter(postId => postId !== id));
-    toast({
-      title: "Blog post deleted",
-      description: "The blog post has been successfully deleted.",
+    action();
+  };
+
+  const handleDelete = (id: number) => {
+    handleAction(() => {
+      setBlogPosts(posts => posts.filter(post => post.id !== id));
+      setSelectedPosts(selected => selected.filter(postId => postId !== id));
+      toast({
+        title: "Blog post deleted",
+        description: "The blog post has been successfully deleted.",
+      });
     });
   };
 
   const handleBulkDelete = () => {
-    if (!isAdmin) {
-      navigate("/login");
-      return;
-    }
-    setBlogPosts(posts => posts.filter(post => !selectedPosts.includes(post.id)));
-    setSelectedPosts([]);
-    toast({
-      title: "Posts deleted",
-      description: `${selectedPosts.length} posts have been successfully deleted.`,
+    handleAction(() => {
+      setBlogPosts(posts => posts.filter(post => !selectedPosts.includes(post.id)));
+      setSelectedPosts([]);
+      toast({
+        title: "Posts deleted",
+        description: `${selectedPosts.length} posts have been successfully deleted.`,
+      });
     });
   };
 
   const handleBulkEdit = () => {
-    if (!isAdmin) {
-      navigate("/login");
-      return;
-    }
-    setBlogPosts(posts => 
-      posts.map(post => 
-        selectedPosts.includes(post.id) 
-          ? { ...post, category: "Edited Category" }
-          : post
-      )
-    );
-    toast({
-      title: "Posts updated",
-      description: `${selectedPosts.length} posts have been successfully updated.`,
+    handleAction(() => {
+      setBlogPosts(posts => 
+        posts.map(post => 
+          selectedPosts.includes(post.id) 
+            ? { ...post, category: "Edited Category" }
+            : post
+        )
+      );
+      toast({
+        title: "Posts updated",
+        description: `${selectedPosts.length} posts have been successfully updated.`,
+      });
+      setSelectedPosts([]);
     });
-    setSelectedPosts([]);
   };
 
   const toggleSelectAll = () => {
-    if (!isAdmin) {
-      navigate("/login");
-      return;
-    }
-    if (selectedPosts.length === filteredPosts.length) {
-      setSelectedPosts([]);
-    } else {
-      setSelectedPosts(filteredPosts.map(post => post.id));
-    }
+    handleAction(() => {
+      if (selectedPosts.length === filteredPosts.length) {
+        setSelectedPosts([]);
+      } else {
+        setSelectedPosts(filteredPosts.map(post => post.id));
+      }
+    });
   };
 
   const togglePostSelection = (postId: number) => {
-    if (!isAdmin) {
-      navigate("/login");
-      return;
-    }
-    setSelectedPosts(selected => 
-      selected.includes(postId)
-        ? selected.filter(id => id !== postId)
-        : [...selected, postId]
-    );
+    handleAction(() => {
+      setSelectedPosts(selected => 
+        selected.includes(postId)
+          ? selected.filter(id => id !== postId)
+          : [...selected, postId]
+      );
+    });
   };
 
   const handleSave = (postData: any) => {
-    if (!isAdmin) {
-      navigate("/login");
-      return;
-    }
-    if (editingPost) {
-      setBlogPosts(posts => 
-        posts.map(post => post.id === editingPost.id ? { ...post, ...postData } : post)
-      );
-      toast({
-        title: "Blog post updated",
-        description: "The blog post has been successfully updated.",
-      });
-    } else {
-      setBlogPosts(posts => [...posts, { ...postData, id: Math.max(...posts.map(p => p.id)) + 1 }]);
-      toast({
-        title: "Blog post created",
-        description: "The new blog post has been successfully created.",
-      });
-    }
-    setIsAddDialogOpen(false);
-    setEditingPost(null);
+    handleAction(() => {
+      if (editingPost) {
+        setBlogPosts(posts => 
+          posts.map(post => post.id === editingPost.id ? { ...post, ...postData } : post)
+        );
+        toast({
+          title: "Blog post updated",
+          description: "The blog post has been successfully updated.",
+        });
+      } else {
+        setBlogPosts(posts => [...posts, { ...postData, id: Math.max(...posts.map(p => p.id)) + 1 }]);
+        toast({
+          title: "Blog post created",
+          description: "The new blog post has been successfully created.",
+        });
+      }
+      setIsAddDialogOpen(false);
+      setEditingPost(null);
+    });
   };
 
   const filteredPosts = blogPosts.filter(post => 
@@ -187,7 +186,7 @@ const BlogManagement = () => {
                 {isAdmin && (
                   <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                     <DialogTrigger asChild>
-                      <Button onClick={() => setEditingPost(null)}>
+                      <Button onClick={() => handleAction(() => setEditingPost(null))}>
                         <Plus className="h-4 w-4 mr-2" />
                         Add Post
                       </Button>
@@ -273,12 +272,10 @@ const BlogManagement = () => {
                     isSelected={selectedPosts.includes(post.id)}
                     onSelect={() => togglePostSelection(post.id)}
                     onEdit={(post) => {
-                      if (!isAdmin) {
-                        navigate("/login");
-                        return;
-                      }
-                      setEditingPost(post);
-                      setIsAddDialogOpen(true);
+                      handleAction(() => {
+                        setEditingPost(post);
+                        setIsAddDialogOpen(true);
+                      });
                     }}
                     onDelete={handleDelete}
                     isAdmin={isAdmin}

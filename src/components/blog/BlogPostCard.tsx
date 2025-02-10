@@ -89,3 +89,4 @@ const BlogPostCard = ({ post, isSelected, onSelect, onEdit, onDelete, isAdmin }:
 };
 
 export default BlogPostCard;
+
