@@ -43,7 +43,6 @@ const Navbar = () => {
                     <Link to="/" className="text-lg hover:text-foreground/80">Home</Link>
                     <Link to="/categories" className="text-lg hover:text-foreground/80">Categories</Link>
                     <Link to="/blog" className="text-lg hover:text-foreground/80">Blog</Link>
-                    <Link to="/login" className="text-lg hover:text-foreground/80">Login</Link>
                     <a 
                       href="https://t.me/+pcnB8fU7jwo0MmNl" 
                       target="_blank" 
@@ -85,7 +84,6 @@ const Navbar = () => {
 
           {/* Additional navigation items only shown on desktop */}
           <nav className="hidden sm:flex items-center space-x-6 text-sm">
-            <Link to="/login" className="transition-colors hover:text-foreground/80">Login</Link>
             <a 
               href="https://t.me/+pcnB8fU7jwo0MmNl" 
               target="_blank" 
