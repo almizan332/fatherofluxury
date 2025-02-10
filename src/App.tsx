@@ -22,11 +22,11 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <div className="min-h-screen w-full bg-background text-foreground antialiased">
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+      <BrowserRouter>
+        <TooltipProvider>
+          <div className="min-h-screen w-full bg-background text-foreground antialiased">
+            <Toaster />
+            <Sonner />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/categories" element={<Categories />} />
@@ -40,11 +40,12 @@ function App() {
               <Route path="/dashboard/products" element={<ProductList />} />
               <Route path="/dashboard/blog" element={<BlogManagement />} />
             </Routes>
-          </BrowserRouter>
-        </div>
-      </TooltipProvider>
+          </div>
+        </TooltipProvider>
+      </BrowserRouter>
     </QueryClientProvider>
   );
 }
 
 export default App;
+
