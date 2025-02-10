@@ -65,7 +65,7 @@ const Index = () => {
           <motion.h1 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-xl sm:text-2xl md:text-3xl font-bold mb-6 gradient-text"
+            className="text-xl sm:text-2xl md:text-3xl font-bold mb-6 gradient-text text-center"
           >
             Latest Products ({sortedProducts.length} products)
           </motion.h1>
@@ -91,7 +91,7 @@ const Index = () => {
                         />
                       </div>
                       <div className="p-3">
-                        <h3 className="text-sm font-medium text-gray-200 line-clamp-2">{product.title}</h3>
+                        <h3 className="text-sm font-medium text-gray-200 line-clamp-2 text-center">{product.title}</h3>
                         <div className="flex justify-between items-center mt-2">
                           <p className="text-xs text-gray-400">
                             {new Date(product.dateAdded).toLocaleDateString()}
