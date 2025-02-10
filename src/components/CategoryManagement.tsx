@@ -1,27 +1,12 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
-import { Plus, Pencil, Trash2, Image } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { useNavigate } from "react-router-dom";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-
-interface Category {
-  id: number;
-  name: string;
-  productCount: number;
-  image: string;
-  gradient: string;
-}
+import CategoryCard from "./category/CategoryCard";
+import CategoryFormDialog from "./category/CategoryFormDialog";
+import { Category } from "./category/types";
 
 const CategoryManagement = () => {
   const [categories, setCategories] = useState<Category[]>([
@@ -47,9 +32,9 @@ const CategoryManagement = () => {
     gradient: "from-purple-500 to-pink-500"
   });
   
+  const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
@@ -109,6 +94,7 @@ const CategoryManagement = () => {
       gradient: "from-purple-500 to-pink-500"
     });
     setSelectedImage(null);
+    setDialogOpen(false);
 
     toast({
       title: "Success",
@@ -133,6 +119,7 @@ const CategoryManagement = () => {
     ));
     
     setEditingCategory(null);
+    setDialogOpen(false);
     toast({
       title: "Success",
       description: "Category updated successfully",
@@ -147,114 +134,48 @@ const CategoryManagement = () => {
     });
   };
 
+  const handleCategoryChange = (value: string, field: 'name') => {
+    if (editingCategory) {
+      setEditingCategory({ ...editingCategory, [field]: value });
+    } else {
+      setNewCategory(prev => ({ ...prev, [field]: value }));
+    }
+  };
+
   return (
     <div className="p-4 md:p-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
         <h1 className="text-xl md:text-2xl font-bold text-right">Category Management</h1>
         
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="w-full md:w-auto">
-              <Plus className="h-4 w-4 mr-2" />
-              Add New Category
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px] mx-4 md:mx-0">
-            <DialogHeader>
-              <DialogTitle>
-                {editingCategory ? "Edit Category" : "Add New Category"}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Input
-                  placeholder="Category name"
-                  value={editingCategory ? editingCategory.name : newCategory.name}
-                  onChange={(e) => {
-                    if (editingCategory) {
-                      setEditingCategory({ ...editingCategory, name: e.target.value });
-                    } else {
-                      setNewCategory(prev => ({ ...prev, name: e.target.value }));
-                    }
-                  }}
-                />
-              </div>
-              <div className="grid gap-2">
-                <label className="text-sm text-gray-500">Category Image</label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                    id="imageUpload"
-                  />
-                  <label
-                    htmlFor="imageUpload"
-                    className="flex items-center gap-2 px-4 py-2 border rounded-md cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
-                  >
-                    <Image className="h-4 w-4" />
-                    Upload Image
-                  </label>
-                </div>
-                {(editingCategory?.image || newCategory.image) && (
-                  <div className="relative w-full h-32">
-                    <img
-                      src={editingCategory ? editingCategory.image : newCategory.image}
-                      alt="Preview"
-                      className="w-full h-full object-cover rounded-md"
-                    />
-                  </div>
-                )}
-              </div>
-              <Button onClick={editingCategory ? handleUpdateCategory : handleAddCategory}>
-                {editingCategory ? "Update Category" : "Add Category"}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={() => setDialogOpen(true)} className="w-full md:w-auto">
+          <Plus className="h-4 w-4 mr-2" />
+          Add New Category
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {categories.map((category) => (
-          <Card key={category.id} className="p-4 flex flex-col">
-            <div className="relative aspect-video mb-4 rounded-md overflow-hidden">
-              <img
-                src={category.image}
-                alt={category.name}
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-              <div className={`absolute inset-0 bg-gradient-to-br ${category.gradient} opacity-60`} />
-            </div>
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex-1 min-w-0">
-                <h3 className="font-medium truncate text-right">{category.name}</h3>
-                <p className="text-sm text-gray-500 text-right">
-                  {category.productCount} Products
-                </p>
-              </div>
-              <div className="flex gap-2 flex-shrink-0">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setEditingCategory(category)}
-                  className="h-8 w-8 p-0"
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => handleDeleteCategory(category.id)}
-                  className="h-8 w-8 p-0"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </Card>
+          <CategoryCard
+            key={category.id}
+            category={category}
+            onEdit={(category) => {
+              setEditingCategory(category);
+              setDialogOpen(true);
+            }}
+            onDelete={handleDeleteCategory}
+          />
         ))}
       </div>
+
+      <CategoryFormDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        editingCategory={editingCategory}
+        newCategory={newCategory}
+        onImageUpload={handleImageUpload}
+        onCategoryChange={handleCategoryChange}
+        onSubmit={editingCategory ? handleUpdateCategory : handleAddCategory}
+      />
     </div>
   );
 };
