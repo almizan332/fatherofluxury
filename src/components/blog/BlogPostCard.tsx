@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface BlogPostCardProps {
   post: {
@@ -18,19 +19,30 @@ interface BlogPostCardProps {
     seoDescription: string;
     seoKeywords: string;
   };
+  isSelected?: boolean;
+  onSelect?: () => void;
   onEdit: (post: BlogPostCardProps['post']) => void;
   onDelete: (id: number) => void;
 }
 
-const BlogPostCard = ({ post, onEdit, onDelete }: BlogPostCardProps) => {
+const BlogPostCard = ({ post, isSelected, onSelect, onEdit, onDelete }: BlogPostCardProps) => {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
-      className="group"
+      className="group relative"
     >
-      <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 bg-gray-900/50 border-gray-800">
+      {onSelect && (
+        <div className="absolute top-2 left-2 z-10">
+          <Checkbox
+            checked={isSelected}
+            onCheckedChange={onSelect}
+          />
+        </div>
+      )}
+      
+      <Card className={`overflow-hidden hover:shadow-lg transition-all duration-300 bg-gray-900/50 border-gray-800 ${isSelected ? 'ring-2 ring-primary' : ''}`}>
         <CardContent className="p-0">
           <div className="relative aspect-video">
             <img

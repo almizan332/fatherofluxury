@@ -1,7 +1,7 @@
 
 import { motion } from "framer-motion";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, Plus } from "lucide-react";
+import { Search, Plus, Trash2, Edit2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -10,6 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Sidebar, SidebarContent, SidebarProvider } from "@/components/ui/sidebar";
 import BlogPostCard from "@/components/blog/BlogPostCard";
 import BlogPostForm from "@/components/blog/BlogPostForm";
+import { Checkbox } from "@/components/ui/checkbox";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const initialBlogPosts = [
   {
@@ -45,6 +47,7 @@ const BlogManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<null | typeof blogPosts[0]>(null);
+  const [selectedPosts, setSelectedPosts] = useState<number[]>([]);
   const { toast } = useToast();
 
   const filteredPosts = blogPosts.filter(post => 
@@ -54,10 +57,52 @@ const BlogManagement = () => {
 
   const handleDelete = (id: number) => {
     setBlogPosts(posts => posts.filter(post => post.id !== id));
+    setSelectedPosts(selected => selected.filter(postId => postId !== id));
     toast({
       title: "Blog post deleted",
       description: "The blog post has been successfully deleted.",
     });
+  };
+
+  const handleBulkDelete = () => {
+    setBlogPosts(posts => posts.filter(post => !selectedPosts.includes(post.id)));
+    setSelectedPosts([]);
+    toast({
+      title: "Posts deleted",
+      description: `${selectedPosts.length} posts have been successfully deleted.`,
+    });
+  };
+
+  const handleBulkEdit = () => {
+    // For now, we'll just update the category as an example
+    setBlogPosts(posts => 
+      posts.map(post => 
+        selectedPosts.includes(post.id) 
+          ? { ...post, category: "Edited Category" }
+          : post
+      )
+    );
+    toast({
+      title: "Posts updated",
+      description: `${selectedPosts.length} posts have been successfully updated.`,
+    });
+    setSelectedPosts([]);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedPosts.length === filteredPosts.length) {
+      setSelectedPosts([]);
+    } else {
+      setSelectedPosts(filteredPosts.map(post => post.id));
+    }
+  };
+
+  const togglePostSelection = (postId: number) => {
+    setSelectedPosts(selected => 
+      selected.includes(postId)
+        ? selected.filter(id => id !== postId)
+        : [...selected, postId]
+    );
   };
 
   const handleSave = (postData: any) => {
@@ -136,12 +181,67 @@ const BlogManagement = () => {
               </div>
             </div>
 
+            {/* Bulk Actions */}
+            <div className="mb-4 flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="selectAll"
+                  checked={selectedPosts.length === filteredPosts.length && filteredPosts.length > 0}
+                  onCheckedChange={toggleSelectAll}
+                />
+                <label htmlFor="selectAll" className="text-sm">
+                  Select All ({selectedPosts.length}/{filteredPosts.length})
+                </label>
+              </div>
+
+              {selectedPosts.length > 0 && (
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleBulkEdit}
+                  >
+                    <Edit2 className="h-4 w-4 mr-2" />
+                    Bulk Edit
+                  </Button>
+
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete Selected
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will permanently delete {selectedPosts.length} selected posts. This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleBulkDelete}>
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              )}
+            </div>
+
             <ScrollArea className="h-[calc(100vh-12rem)]">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredPosts.map((post) => (
                   <BlogPostCard
                     key={post.id}
                     post={post}
+                    isSelected={selectedPosts.includes(post.id)}
+                    onSelect={() => togglePostSelection(post.id)}
                     onEdit={(post) => {
                       setEditingPost(post);
                       setIsAddDialogOpen(true);
