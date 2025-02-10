@@ -11,6 +11,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, Plus, FileSpreadsheet, Download, Trash2, Edit } from "lucide-react";
 import { productExcelHeaders, sampleExcelData } from "@/utils/excelTemplate";
@@ -24,6 +31,7 @@ import {
 } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Category } from "@/components/category/types";
 
 interface Product {
   name: string;
@@ -45,6 +53,25 @@ const ProductList = () => {
     previewImage: "",
     galleryImages: [],
   });
+
+  // Add categories state
+  const [categories] = useState<Category[]>([
+    {
+      id: 1,
+      name: "Smartphones",
+      productCount: 156,
+      image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=800&q=80",
+      gradient: "from-purple-500 to-pink-500"
+    },
+    {
+      id: 2,
+      name: "Laptops",
+      productCount: 89,
+      image: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=800&q=80",
+      gradient: "from-blue-500 to-cyan-500"
+    }
+  ]);
+
   const { toast } = useToast();
   const [previewImageFile, setPreviewImageFile] = useState<File | null>(null);
   const [galleryImageFiles, setGalleryImageFiles] = useState<File[]>([]);
@@ -272,13 +299,23 @@ const ProductList = () => {
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="category">Category</Label>
-                  <Input
-                    id="category"
+                  <Select
                     value={newProduct.category}
-                    onChange={(e) =>
-                      setNewProduct({ ...newProduct, category: e.target.value })
+                    onValueChange={(value) =>
+                      setNewProduct({ ...newProduct, category: value })
                     }
-                  />
+                  >
+                    <SelectTrigger id="category">
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.name}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="description">Description</Label>
@@ -436,4 +473,3 @@ const ProductList = () => {
 };
 
 export default ProductList;
-
