@@ -23,9 +23,10 @@ interface BlogPostCardProps {
   onSelect?: () => void;
   onEdit: (post: BlogPostCardProps['post']) => void;
   onDelete: (id: number) => void;
+  isAdmin: boolean;
 }
 
-const BlogPostCard = ({ post, isSelected, onSelect, onEdit, onDelete }: BlogPostCardProps) => {
+const BlogPostCard = ({ post, isSelected, onSelect, onEdit, onDelete, isAdmin }: BlogPostCardProps) => {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
@@ -33,7 +34,7 @@ const BlogPostCard = ({ post, isSelected, onSelect, onEdit, onDelete }: BlogPost
       transition={{ duration: 0.3 }}
       className="group relative"
     >
-      {onSelect && (
+      {isAdmin && onSelect && (
         <div className="absolute top-2 left-2 z-10">
           <Checkbox
             checked={isSelected}
@@ -51,22 +52,26 @@ const BlogPostCard = ({ post, isSelected, onSelect, onEdit, onDelete }: BlogPost
               className="absolute inset-0 w-full h-full object-cover"
               loading="lazy"
             />
-            <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => onEdit(post)}
-              >
-                <Edit className="h-4 w-4" />
-              </Button>
-              <Button
-                size="sm"
-                variant="destructive"
-                onClick={() => onDelete(post.id)}
-              >
-                <Trash className="h-4 w-4" />
-              </Button>
-            </div>
+            {isAdmin && (
+              <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onEdit(post)}
+                  className="h-8 w-8 p-0"
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => onDelete(post.id)}
+                  className="h-8 w-8 p-0"
+                >
+                  <Trash className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
           </div>
           <div className="p-6">
             <div className="flex items-center justify-between mb-2">

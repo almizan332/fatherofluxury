@@ -1,3 +1,4 @@
+
 import { motion } from "framer-motion";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, Plus, Trash2, Edit2 } from "lucide-react";
@@ -53,17 +54,11 @@ const BlogManagement = () => {
 
   const isAdmin = localStorage.getItem("isAdmin") === "true";
 
-  if (!isAdmin) {
-    navigate("/login");
-    return null;
-  }
-
-  const filteredPosts = blogPosts.filter(post => 
-    post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    post.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   const handleDelete = (id: number) => {
+    if (!isAdmin) {
+      navigate("/login");
+      return;
+    }
     setBlogPosts(posts => posts.filter(post => post.id !== id));
     setSelectedPosts(selected => selected.filter(postId => postId !== id));
     toast({
@@ -73,6 +68,10 @@ const BlogManagement = () => {
   };
 
   const handleBulkDelete = () => {
+    if (!isAdmin) {
+      navigate("/login");
+      return;
+    }
     setBlogPosts(posts => posts.filter(post => !selectedPosts.includes(post.id)));
     setSelectedPosts([]);
     toast({
@@ -82,6 +81,10 @@ const BlogManagement = () => {
   };
 
   const handleBulkEdit = () => {
+    if (!isAdmin) {
+      navigate("/login");
+      return;
+    }
     setBlogPosts(posts => 
       posts.map(post => 
         selectedPosts.includes(post.id) 
@@ -97,6 +100,10 @@ const BlogManagement = () => {
   };
 
   const toggleSelectAll = () => {
+    if (!isAdmin) {
+      navigate("/login");
+      return;
+    }
     if (selectedPosts.length === filteredPosts.length) {
       setSelectedPosts([]);
     } else {
@@ -105,6 +112,10 @@ const BlogManagement = () => {
   };
 
   const togglePostSelection = (postId: number) => {
+    if (!isAdmin) {
+      navigate("/login");
+      return;
+    }
     setSelectedPosts(selected => 
       selected.includes(postId)
         ? selected.filter(id => id !== postId)
@@ -113,6 +124,10 @@ const BlogManagement = () => {
   };
 
   const handleSave = (postData: any) => {
+    if (!isAdmin) {
+      navigate("/login");
+      return;
+    }
     if (editingPost) {
       setBlogPosts(posts => 
         posts.map(post => post.id === editingPost.id ? { ...post, ...postData } : post)
@@ -131,6 +146,11 @@ const BlogManagement = () => {
     setIsAddDialogOpen(false);
     setEditingPost(null);
   };
+
+  const filteredPosts = blogPosts.filter(post => 
+    post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    post.category.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <SidebarProvider>
@@ -164,81 +184,85 @@ const BlogManagement = () => {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
                 </div>
                 
-                <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button onClick={() => setEditingPost(null)}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Post
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[625px]">
-                    <DialogHeader>
-                      <DialogTitle>{editingPost ? 'Edit' : 'Add'} Blog Post</DialogTitle>
-                    </DialogHeader>
-                    <BlogPostForm
-                      initialData={editingPost}
-                      onSave={handleSave}
-                      onCancel={() => {
-                        setIsAddDialogOpen(false);
-                        setEditingPost(null);
-                      }}
-                    />
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </div>
-
-            <div className="mb-4 flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="selectAll"
-                  checked={selectedPosts.length === filteredPosts.length && filteredPosts.length > 0}
-                  onCheckedChange={toggleSelectAll}
-                />
-                <label htmlFor="selectAll" className="text-sm">
-                  Select All ({selectedPosts.length}/{filteredPosts.length})
-                </label>
-              </div>
-
-              {selectedPosts.length > 0 && (
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleBulkEdit}
-                  >
-                    <Edit2 className="h-4 w-4 mr-2" />
-                    Bulk Edit
-                  </Button>
-
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete Selected
+                {isAdmin && (
+                  <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button onClick={() => setEditingPost(null)}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Post
                       </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This will permanently delete {selectedPosts.length} selected posts. This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleBulkDelete}>
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              )}
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[625px]">
+                      <DialogHeader>
+                        <DialogTitle>{editingPost ? 'Edit' : 'Add'} Blog Post</DialogTitle>
+                      </DialogHeader>
+                      <BlogPostForm
+                        initialData={editingPost}
+                        onSave={handleSave}
+                        onCancel={() => {
+                          setIsAddDialogOpen(false);
+                          setEditingPost(null);
+                        }}
+                      />
+                    </DialogContent>
+                  </Dialog>
+                )}
+              </div>
             </div>
+
+            {isAdmin && (
+              <div className="mb-4 flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="selectAll"
+                    checked={selectedPosts.length === filteredPosts.length && filteredPosts.length > 0}
+                    onCheckedChange={toggleSelectAll}
+                  />
+                  <label htmlFor="selectAll" className="text-sm">
+                    Select All ({selectedPosts.length}/{filteredPosts.length})
+                  </label>
+                </div>
+
+                {selectedPosts.length > 0 && (
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleBulkEdit}
+                    >
+                      <Edit2 className="h-4 w-4 mr-2" />
+                      Bulk Edit
+                    </Button>
+
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete Selected
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This will permanently delete {selectedPosts.length} selected posts. This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={handleBulkDelete}>
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                )}
+              </div>
+            )}
 
             <ScrollArea className="h-[calc(100vh-12rem)]">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -249,10 +273,15 @@ const BlogManagement = () => {
                     isSelected={selectedPosts.includes(post.id)}
                     onSelect={() => togglePostSelection(post.id)}
                     onEdit={(post) => {
+                      if (!isAdmin) {
+                        navigate("/login");
+                        return;
+                      }
                       setEditingPost(post);
                       setIsAddDialogOpen(true);
                     }}
                     onDelete={handleDelete}
+                    isAdmin={isAdmin}
                   />
                 ))}
               </div>
