@@ -8,9 +8,10 @@ interface CategoryCardProps {
   category: Category;
   onEdit: (category: Category) => void;
   onDelete: (id: number) => void;
+  isAdmin: boolean;
 }
 
-const CategoryCard = ({ category, onEdit, onDelete }: CategoryCardProps) => {
+const CategoryCard = ({ category, onEdit, onDelete, isAdmin }: CategoryCardProps) => {
   return (
     <Card className="p-4 flex flex-col">
       <div className="relative aspect-video mb-4 rounded-md overflow-hidden">
@@ -28,27 +29,30 @@ const CategoryCard = ({ category, onEdit, onDelete }: CategoryCardProps) => {
             {category.productCount} Products
           </p>
         </div>
-        <div className="flex gap-2 flex-shrink-0">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onEdit(category)}
-            className="h-8 w-8 p-0"
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => onDelete(category.id)}
-            className="h-8 w-8 p-0"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
+        {isAdmin && (
+          <div className="flex gap-2 flex-shrink-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onEdit(category)}
+              className="h-8 w-8 p-0"
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => onDelete(category.id)}
+              className="h-8 w-8 p-0"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </div>
     </Card>
   );
 };
 
 export default CategoryCard;
+

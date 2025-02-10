@@ -38,15 +38,13 @@ const CategoryManagement = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
-  // Simulated auth check - replace with your actual auth logic
   const isAdmin = localStorage.getItem("isAdmin") === "true";
 
-  if (!isAdmin) {
-    navigate("/login");
-    return null;
-  }
-
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isAdmin) {
+      navigate("/login");
+      return;
+    }
     const file = e.target.files?.[0];
     if (file) {
       setSelectedImage(file);
@@ -60,6 +58,11 @@ const CategoryManagement = () => {
   };
 
   const handleAddCategory = () => {
+    if (!isAdmin) {
+      navigate("/login");
+      return;
+    }
+
     if (!newCategory.name.trim()) {
       toast({
         title: "Error",
@@ -103,6 +106,11 @@ const CategoryManagement = () => {
   };
 
   const handleUpdateCategory = () => {
+    if (!isAdmin) {
+      navigate("/login");
+      return;
+    }
+
     if (!editingCategory) return;
 
     if (!editingCategory.name.trim()) {
@@ -127,6 +135,11 @@ const CategoryManagement = () => {
   };
 
   const handleDeleteCategory = (id: number) => {
+    if (!isAdmin) {
+      navigate("/login");
+      return;
+    }
+
     setCategories(categories.filter((cat) => cat.id !== id));
     toast({
       title: "Success",
@@ -147,10 +160,12 @@ const CategoryManagement = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
         <h1 className="text-xl md:text-2xl font-bold text-right">Category Management</h1>
         
-        <Button onClick={() => setDialogOpen(true)} className="w-full md:w-auto">
-          <Plus className="h-4 w-4 mr-2" />
-          Add New Category
-        </Button>
+        {isAdmin && (
+          <Button onClick={() => setDialogOpen(true)} className="w-full md:w-auto">
+            <Plus className="h-4 w-4 mr-2" />
+            Add New Category
+          </Button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -159,10 +174,15 @@ const CategoryManagement = () => {
             key={category.id}
             category={category}
             onEdit={(category) => {
+              if (!isAdmin) {
+                navigate("/login");
+                return;
+              }
               setEditingCategory(category);
               setDialogOpen(true);
             }}
             onDelete={handleDeleteCategory}
+            isAdmin={isAdmin}
           />
         ))}
       </div>
@@ -181,3 +201,4 @@ const CategoryManagement = () => {
 };
 
 export default CategoryManagement;
+
