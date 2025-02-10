@@ -88,7 +88,7 @@ const Dashboard = () => {
         { title: "Product List", icon: Upload, url: "/dashboard/products" }
       ]
     },
-    { title: "Blog List", icon: Files, url: "/dashboard/blog" },
+    { title: "Blog Management", icon: Files, url: "/dashboard/blog-management" },
     { title: "Dynamic Pages", icon: Boxes, url: "#" },
     { title: "SEO Pages", icon: Search, url: "#" },
     { title: "Messages", icon: MessageSquare, url: "#" },
@@ -178,7 +178,6 @@ const Dashboard = () => {
         </Sidebar>
 
         <div className="flex-1 p-6">
-          {/* Header */}
           <div className="flex justify-between items-center mb-8">
             <div>
               <h1 className="text-3xl font-bold gradient-text">Dashboard</h1>
@@ -212,7 +211,6 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             {stats.map((stat) => (
               <Card key={stat.title} className="p-6">
@@ -228,7 +226,6 @@ const Dashboard = () => {
             ))}
           </div>
 
-          {/* Traffic Chart */}
           <Card className="p-6 mb-8">
             <h2 className="text-xl font-semibold mb-4">Traffic Overview</h2>
             <div className="h-[400px]">
@@ -266,7 +263,6 @@ const Dashboard = () => {
             </div>
           </Card>
 
-          {/* Top Countries */}
           <Card className="p-6">
             <h2 className="text-xl font-semibold mb-4">Top Countries</h2>
             <div className="space-y-4">
