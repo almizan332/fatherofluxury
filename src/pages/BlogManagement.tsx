@@ -1,9 +1,9 @@
-
 import { motion } from "framer-motion";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, Plus, Trash2, Edit2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -43,12 +43,20 @@ const initialBlogPosts = [
 ];
 
 const BlogManagement = () => {
+  const navigate = useNavigate();
   const [blogPosts, setBlogPosts] = useState(initialBlogPosts);
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<null | typeof blogPosts[0]>(null);
   const [selectedPosts, setSelectedPosts] = useState<number[]>([]);
   const { toast } = useToast();
+
+  const isAdmin = localStorage.getItem("isAdmin") === "true";
+
+  if (!isAdmin) {
+    navigate("/login");
+    return null;
+  }
 
   const filteredPosts = blogPosts.filter(post => 
     post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -74,7 +82,6 @@ const BlogManagement = () => {
   };
 
   const handleBulkEdit = () => {
-    // For now, we'll just update the category as an example
     setBlogPosts(posts => 
       posts.map(post => 
         selectedPosts.includes(post.id) 
@@ -140,7 +147,7 @@ const BlogManagement = () => {
               <motion.h1 
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-4xl font-bold"
+                className="text-4xl font-bold text-right w-full"
               >
                 Blog Management
               </motion.h1>
@@ -181,7 +188,6 @@ const BlogManagement = () => {
               </div>
             </div>
 
-            {/* Bulk Actions */}
             <div className="mb-4 flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <Checkbox

@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Plus, Pencil, Trash2, Image } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -47,15 +48,23 @@ const CategoryManagement = () => {
   });
   
   const { toast } = useToast();
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+
+  // Simulated auth check - replace with your actual auth logic
+  const isAdmin = localStorage.getItem("isAdmin") === "true";
+
+  if (!isAdmin) {
+    navigate("/login");
+    return null;
+  }
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setSelectedImage(file);
-      // Create a temporary URL for preview
       const imageUrl = URL.createObjectURL(file);
       if (editingCategory) {
         setEditingCategory({ ...editingCategory, image: imageUrl });
@@ -141,7 +150,7 @@ const CategoryManagement = () => {
   return (
     <div className="p-4 md:p-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-        <h1 className="text-xl md:text-2xl font-bold">Category Management</h1>
+        <h1 className="text-xl md:text-2xl font-bold text-right">Category Management</h1>
         
         <Dialog>
           <DialogTrigger asChild>
@@ -219,8 +228,8 @@ const CategoryManagement = () => {
             </div>
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
-                <h3 className="font-medium truncate">{category.name}</h3>
-                <p className="text-sm text-gray-500">
+                <h3 className="font-medium truncate text-right">{category.name}</h3>
+                <p className="text-sm text-gray-500 text-right">
                   {category.productCount} Products
                 </p>
               </div>
@@ -251,4 +260,3 @@ const CategoryManagement = () => {
 };
 
 export default CategoryManagement;
-
