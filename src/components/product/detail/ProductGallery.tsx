@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Product } from "@/types/product";
 import { MediaGalleryDialog } from "./MediaGalleryDialog";
 import { MediaType } from "@/types/product";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ProductGalleryProps {
   product: Product;
@@ -11,7 +12,8 @@ interface ProductGalleryProps {
 export const ProductGallery = ({ product }: ProductGalleryProps) => {
   const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
-
+  
+  // Get signed URLs for blob:// URLs if they exist
   const allMedia = getAllMedia(product);
 
   return (
@@ -44,14 +46,11 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
 
       <div className="grid grid-cols-5 gap-2">
         {allMedia.map((media, index) => (
-          <div
+          <button
             key={index}
-            onClick={() => {
-              setSelectedMediaIndex(index);
-              setIsGalleryOpen(true);
-            }}
-            className={`aspect-square relative rounded-lg overflow-hidden cursor-pointer group ${
-              selectedMediaIndex === index ? 'ring-2 ring-primary' : ''
+            onClick={() => setSelectedMediaIndex(index)}
+            className={`aspect-square relative rounded-lg overflow-hidden cursor-pointer border-2 transition-colors ${
+              selectedMediaIndex === index ? 'border-primary' : 'border-transparent'
             }`}
           >
             {media.type === 'video' ? (
@@ -67,16 +66,16 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
                 </div>
               </div>
             ) : (
-              <>
+              <div className="relative w-full h-full group">
                 <img
                   src={media.url}
                   alt={`${product.name} thumbnail ${index + 1}`}
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </>
+              </div>
             )}
-          </div>
+          </button>
         ))}
       </div>
 
@@ -93,13 +92,51 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
 };
 
 export const getAllMedia = (product: Product): MediaType[] => {
-  const media = [];
-  if (product.preview_image) media.push({ type: 'image', url: product.preview_image });
+  const media: MediaType[] = [];
+
+  // Handle preview image
+  if (product.preview_image) {
+    // If the URL starts with blob://, it's a temporary URL that needs to be handled differently
+    if (product.preview_image.startsWith('blob://')) {
+      const cleanPath = product.preview_image.replace('blob://', '');
+      media.push({ 
+        type: 'image', 
+        url: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${cleanPath}`
+      });
+    } else {
+      media.push({ type: 'image', url: product.preview_image });
+    }
+  }
+
+  // Handle gallery images
   if (product.gallery_images) {
-    product.gallery_images.forEach(url => media.push({ type: 'image', url }));
+    product.gallery_images.forEach(url => {
+      if (url.startsWith('blob://')) {
+        const cleanPath = url.replace('blob://', '');
+        media.push({ 
+          type: 'image', 
+          url: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${cleanPath}`
+        });
+      } else {
+        media.push({ type: 'image', url });
+      }
+    });
   }
+
+  // Handle video URLs
   if (product.video_urls) {
-    product.video_urls.forEach(url => media.push({ type: 'video', url }));
+    product.video_urls.forEach(url => {
+      if (url.startsWith('blob://')) {
+        const cleanPath = url.replace('blob://', '');
+        media.push({ 
+          type: 'video', 
+          url: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${cleanPath}`
+        });
+      } else {
+        media.push({ type: 'video', url });
+      }
+    });
   }
+
   return media;
 };
