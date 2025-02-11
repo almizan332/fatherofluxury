@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Dialog } from "@/components/ui/dialog";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, FileSpreadsheet, Download, Trash2, Edit } from "lucide-react";
 import { productExcelHeaders, sampleExcelData } from "@/utils/excelTemplate";
@@ -19,9 +19,6 @@ import { Category } from "@/components/category/types";
 import { Product } from "@/types/product";
 import { supabase } from "@/integrations/supabase/client";
 import ProductFormDialog from "./ProductFormDialog";
-import { getAllMedia } from "./detail/ProductGallery";
-import { Dialog as PreviewDialog, DialogContent } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 const ProductList = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -29,7 +26,6 @@ const ProductList = () => {
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [previewProduct, setPreviewProduct] = useState<Product | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -186,14 +182,15 @@ const ProductList = () => {
             </Button>
           )}
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <Button onClick={(e) => {
-              e.preventDefault();
-              setEditingProduct(null);
-              setIsDialogOpen(true);
-            }}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Product
-            </Button>
+            <DialogTrigger asChild>
+              <Button onClick={(e) => {
+                e.preventDefault();
+                setEditingProduct(null);
+              }}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Product
+              </Button>
+            </DialogTrigger>
             <ProductFormDialog
               product={editingProduct || undefined}
               categories={categories}
@@ -213,7 +210,7 @@ const ProductList = () => {
             />
             <Button variant="outline">
               <FileSpreadsheet className="h-4 w-4 mr-2" />
-              Import CSV
+              Import from CSV
             </Button>
           </div>
         </div>
@@ -230,11 +227,11 @@ const ProductList = () => {
                     onCheckedChange={handleSelectAll}
                   />
                 </TableHead>
-                <TableHead>Preview</TableHead>
                 <TableHead>Product Name</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead>Description</TableHead>
-                <TableHead>Media</TableHead>
+                <TableHead>Preview Image</TableHead>
+                <TableHead>Gallery Images</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -247,57 +244,44 @@ const ProductList = () => {
                       onCheckedChange={(checked) => handleSelectProduct(product.id, checked as boolean)}
                     />
                   </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="ghost"
-                      className="p-0 h-16 w-16 overflow-hidden rounded-lg hover:opacity-80"
-                      onClick={() => setPreviewProduct(product)}
-                    >
-                      <img 
-                        src={product.preview_image || '/placeholder.svg'} 
-                        alt={product.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          const img = e.target as HTMLImageElement;
-                          img.src = '/placeholder.svg';
-                        }}
-                      />
-                    </Button>
-                  </TableCell>
                   <TableCell>{product.name}</TableCell>
                   <TableCell>{(product as any).categories?.name}</TableCell>
-                  <TableCell className="max-w-[200px]">
-                    <div className="truncate">{product.description}</div>
-                  </TableCell>
+                  <TableCell>{product.description}</TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">
-                        {getAllMedia(product).length} items
-                      </span>
-                    </div>
+                    {product.preview_image && (
+                      <img 
+                        src={product.preview_image} 
+                        alt={product.name} 
+                        className="w-16 h-16 object-cover rounded"
+                      />
+                    )}
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          setEditingProduct(product);
-                          setIsDialogOpen(true);
-                        }}
-                        className="h-8 w-8"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setPreviewProduct(product)}
-                        className="h-8 w-8"
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
+                      {product.gallery_images?.map((img, idx) => (
+                        img && (
+                          <img 
+                            key={idx} 
+                            src={img} 
+                            alt={`${product.name} gallery ${idx + 1}`} 
+                            className="w-12 h-12 object-cover rounded"
+                          />
+                        )
+                      ))}
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setEditingProduct(product);
+                        setIsDialogOpen(true);
+                      }}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -309,131 +293,6 @@ const ProductList = () => {
           </div>
         )}
       </Card>
-
-      {/* Product Preview Dialog */}
-      <PreviewDialog 
-        open={!!previewProduct} 
-        onOpenChange={() => setPreviewProduct(null)}
-      >
-        <DialogContent className="max-w-4xl max-h-[90vh] p-0">
-          {previewProduct && (
-            <ScrollArea className="h-[90vh]">
-              <div className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div>
-                    <img
-                      src={previewProduct.preview_image || '/placeholder.svg'}
-                      alt={previewProduct.name}
-                      className="w-full aspect-square object-cover rounded-lg"
-                      onError={(e) => {
-                        const img = e.target as HTMLImageElement;
-                        img.src = '/placeholder.svg';
-                      }}
-                    />
-                    <div className="grid grid-cols-4 gap-2 mt-2">
-                      {getAllMedia(previewProduct).slice(0, 4).map((media, idx) => (
-                        <div key={idx} className="aspect-square rounded-lg overflow-hidden">
-                          {media.type === 'video' ? (
-                            <video
-                              src={media.url}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <img
-                              src={media.url}
-                              alt={`${previewProduct.name} preview ${idx + 1}`}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                const img = e.target as HTMLImageElement;
-                                img.src = '/placeholder.svg';
-                              }}
-                            />
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    <div>
-                      <h2 className="text-2xl font-bold">{previewProduct.name}</h2>
-                      <p className="text-muted-foreground">
-                        Category: {(previewProduct as any).categories?.name}
-                      </p>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-2">Description</h3>
-                      <p className="text-muted-foreground whitespace-pre-wrap">
-                        {previewProduct.description}
-                      </p>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-2">Affiliate Links</h3>
-                      <div className="space-y-2">
-                        {previewProduct.flylink_url && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium">Flylink:</span>
-                            <a 
-                              href={previewProduct.flylink_url} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="text-sm text-blue-500 hover:underline truncate"
-                            >
-                              {previewProduct.flylink_url}
-                            </a>
-                          </div>
-                        )}
-                        {previewProduct.alibaba_url && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium">Alibaba:</span>
-                            <a 
-                              href={previewProduct.alibaba_url} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="text-sm text-blue-500 hover:underline truncate"
-                            >
-                              {previewProduct.alibaba_url}
-                            </a>
-                          </div>
-                        )}
-                        {previewProduct.dhgate_url && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium">DHgate:</span>
-                            <a 
-                              href={previewProduct.dhgate_url} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="text-sm text-blue-500 hover:underline truncate"
-                            >
-                              {previewProduct.dhgate_url}
-                            </a>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="pt-4 flex justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        onClick={() => setPreviewProduct(null)}
-                      >
-                        Close
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          setEditingProduct(previewProduct);
-                          setIsDialogOpen(true);
-                          setPreviewProduct(null);
-                        }}
-                      >
-                        Edit Product
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </ScrollArea>
-          )}
-        </DialogContent>
-      </PreviewDialog>
     </div>
   );
 };

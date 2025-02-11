@@ -12,7 +12,6 @@ export interface Product {
   alibaba_url?: string | null;
   dhgate_url?: string | null;
   video_urls?: string[] | null;
-  related_products?: string[] | null;
 }
 
 export interface CategoryImages {
