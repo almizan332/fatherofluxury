@@ -3,15 +3,18 @@ import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Product } from "@/types/product";
 import { Button } from "@/components/ui/button";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 interface ProductCardProps {
   product: Product;
   index: number;
+  onDelete?: (id: string) => void;
+  showDeleteButton?: boolean;
 }
 
-const ProductCard = ({ product, index }: ProductCardProps) => {
+const ProductCard = ({ product, index, onDelete, showDeleteButton }: ProductCardProps) => {
   const hasAffiliateLinks = product.flylink_url || product.alibaba_url || product.dhgate_url;
 
   return (
@@ -21,7 +24,7 @@ const ProductCard = ({ product, index }: ProductCardProps) => {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3, delay: Math.min(index * 0.05, 1) }}
         whileHover={{ scale: 1.02 }}
-        className="transform transition-all duration-300"
+        className="transform transition-all duration-300 group relative"
       >
         <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer border-purple-700/20 bg-card hover:bg-accent">
           <CardContent className="p-0">
@@ -86,6 +89,43 @@ const ProductCard = ({ product, index }: ProductCardProps) => {
             </div>
           </CardContent>
         </Card>
+        {showDeleteButton && onDelete && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="destructive"
+                size="icon"
+                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete Product</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete this product? This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onDelete(product.id);
+                  }}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
       </motion.div>
     </Link>
   );
