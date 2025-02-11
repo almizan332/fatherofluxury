@@ -1,24 +1,15 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Sidebar, SidebarContent, SidebarProvider } from "@/components/ui/sidebar";
-import BlogPostForm from "@/components/blog/BlogPostForm";
 import BlogList from "@/components/blog/BlogList";
 import { useBlogPosts, BlogPost } from "@/hooks/blog/useBlogPosts";
 
 const BlogManagement = () => {
   const navigate = useNavigate();
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const { toast } = useToast();
-
   const isAdmin = localStorage.getItem("isAdmin") === "true";
-  const {
-    blogPosts,
-    handleDelete,
-    handleSave,
-  } = useBlogPosts();
+  const { blogPosts, handleDelete } = useBlogPosts();
 
   const handleAction = (action: () => void) => {
     if (!isAdmin) {
@@ -30,14 +21,6 @@ const BlogManagement = () => {
       return;
     }
     action();
-  };
-
-  const onSave = async (postData: Omit<BlogPost, 'id' | 'created_at'>) => {
-    const success = await handleSave(postData, editingPost?.id);
-    if (success) {
-      setIsAddDialogOpen(false);
-      setEditingPost(null);
-    }
   };
 
   return (
@@ -52,32 +35,10 @@ const BlogManagement = () => {
         <div className="flex-1 p-6">
           <BlogList
             posts={blogPosts}
-            onCreatePost={() => handleAction(() => {
-              setEditingPost(null);
-              setIsAddDialogOpen(true);
-            })}
-            onEdit={(post) => handleAction(() => {
-              setEditingPost(post);
-              setIsAddDialogOpen(true);
-            })}
+            onCreatePost={() => handleAction(() => navigate("/dashboard/blog-management/add-blog"))}
+            onEdit={(post) => handleAction(() => navigate(`/dashboard/blog-management/edit/${post.id}`))}
             onDelete={(id) => handleAction(() => handleDelete(id))}
           />
-
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogContent className="sm:max-w-[625px]">
-              <DialogHeader>
-                <DialogTitle>{editingPost ? 'Edit' : 'Add'} Blog Post</DialogTitle>
-              </DialogHeader>
-              <BlogPostForm
-                initialData={editingPost}
-                onSave={onSave}
-                onCancel={() => {
-                  setIsAddDialogOpen(false);
-                  setEditingPost(null);
-                }}
-              />
-            </DialogContent>
-          </Dialog>
         </div>
       </div>
     </SidebarProvider>

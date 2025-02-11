@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, ArrowUpDown } from "lucide-react";
 import { BlogPost } from "@/hooks/blog/useBlogPosts";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface BlogListProps {
   posts: BlogPost[];
@@ -18,6 +19,7 @@ const BlogList = ({ posts, onCreatePost, onEdit, onDelete }: BlogListProps) => {
   const [entriesPerPage, setEntriesPerPage] = useState("5");
   const [sortColumn, setSortColumn] = useState<keyof BlogPost>("created_at");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const navigate = useNavigate();
 
   const filteredPosts = posts.filter(post =>
     Object.values(post).some(value =>
@@ -48,7 +50,10 @@ const BlogList = ({ posts, onCreatePost, onEdit, onDelete }: BlogListProps) => {
     <div className="space-y-4">
       <div className="bg-[#7EDBD0] p-4 rounded-t-lg flex justify-between items-center">
         <h1 className="text-2xl font-semibold text-white">Blog List</h1>
-        <Button onClick={onCreatePost} className="bg-[#1BB55C] hover:bg-[#159e4f]">
+        <Button 
+          onClick={() => navigate("/dashboard/blog-management/add-blog")}
+          className="bg-[#1BB55C] hover:bg-[#159e4f]"
+        >
           <Plus className="h-4 w-4 mr-2" />
           Create Blog
         </Button>
