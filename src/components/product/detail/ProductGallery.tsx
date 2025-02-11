@@ -16,14 +16,18 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
 
   const handleThumbnailClick = (index: number) => {
     setSelectedMediaIndex(index);
+  };
+
+  const handleGalleryOpen = () => {
     setIsGalleryOpen(true);
   };
 
   return (
     <div className="space-y-4">
+      {/* Main Image */}
       <div 
-        className="aspect-square relative rounded-lg overflow-hidden bg-gray-100 cursor-pointer group"
-        onClick={() => setIsGalleryOpen(true)}
+        className="w-full aspect-[4/3] relative rounded-lg overflow-hidden bg-black cursor-pointer"
+        onClick={handleGalleryOpen}
       >
         {allMedia[selectedMediaIndex]?.type === 'video' ? (
           <video
@@ -34,26 +38,22 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
             playsInline
           />
         ) : (
-          <>
-            <img
-              src={allMedia[selectedMediaIndex].url}
-              alt={`${product.name} - View ${selectedMediaIndex + 1}`}
-              className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-              <div className="text-white text-lg font-medium">Click to view gallery</div>
-            </div>
-          </>
+          <img
+            src={allMedia[selectedMediaIndex].url}
+            alt={`${product.name} - View ${selectedMediaIndex + 1}`}
+            className="w-full h-full object-contain"
+          />
         )}
       </div>
 
-      <div className="grid grid-cols-4 sm:grid-cols-5 lg:grid-cols-6 gap-2">
+      {/* Thumbnails */}
+      <div className="grid grid-cols-5 gap-2">
         {allMedia.map((media, index) => (
           <button
             key={index}
             onClick={() => handleThumbnailClick(index)}
-            className={`aspect-square relative rounded-lg overflow-hidden cursor-pointer border-2 transition-colors ${
-              selectedMediaIndex === index ? 'border-primary' : 'border-transparent'
+            className={`relative aspect-square rounded-md overflow-hidden border-2 ${
+              selectedMediaIndex === index ? 'border-blue-500' : 'border-transparent'
             }`}
           >
             {media.type === 'video' ? (
@@ -63,20 +63,17 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                  <div className="w-8 h-8 rounded-full bg-white/80 flex items-center justify-center">
-                    <div className="w-0 h-0 border-t-8 border-t-transparent border-l-12 border-l-black border-b-8 border-b-transparent ml-1" />
+                  <div className="w-6 h-6 rounded-full bg-white/80 flex items-center justify-center">
+                    <div className="w-0 h-0 border-t-6 border-t-transparent border-l-8 border-l-black border-b-6 border-b-transparent ml-1" />
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="relative w-full h-full group">
-                <img
-                  src={media.url}
-                  alt={`${product.name} thumbnail ${index + 1}`}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </div>
+              <img
+                src={media.url}
+                alt={`${product.name} thumbnail ${index + 1}`}
+                className="w-full h-full object-cover hover:opacity-75 transition-opacity"
+              />
             )}
           </button>
         ))}
