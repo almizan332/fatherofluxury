@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -11,7 +12,7 @@ const BlogManagement = () => {
   const isAdmin = localStorage.getItem("isAdmin") === "true";
   const { blogPosts, handleDelete } = useBlogPosts();
 
-  const handleAction = (action: () => void) => {
+  const handleCreatePost = () => {
     if (!isAdmin) {
       navigate("/login");
       toast({
@@ -20,7 +21,31 @@ const BlogManagement = () => {
       });
       return;
     }
-    action();
+    navigate("/dashboard/blog-management/add-blog");
+  };
+
+  const handleEditPost = (post: BlogPost) => {
+    if (!isAdmin) {
+      navigate("/login");
+      toast({
+        title: "Authentication Required",
+        description: "Please log in as an admin to perform this action.",
+      });
+      return;
+    }
+    navigate(`/dashboard/blog-management/edit/${post.id}`);
+  };
+
+  const handleDeletePost = (id: string) => {
+    if (!isAdmin) {
+      navigate("/login");
+      toast({
+        title: "Authentication Required",
+        description: "Please log in as an admin to perform this action.",
+      });
+      return;
+    }
+    handleDelete(id);
   };
 
   return (
@@ -35,9 +60,9 @@ const BlogManagement = () => {
         <div className="flex-1 p-6">
           <BlogList
             posts={blogPosts}
-            onCreatePost={() => handleAction(() => navigate("/dashboard/blog-management/add-blog"))}
-            onEdit={(post) => handleAction(() => navigate(`/dashboard/blog-management/edit/${post.id}`))}
-            onDelete={(id) => handleAction(() => handleDelete(id))}
+            onCreatePost={handleCreatePost}
+            onEdit={handleEditPost}
+            onDelete={handleDeletePost}
           />
         </div>
       </div>

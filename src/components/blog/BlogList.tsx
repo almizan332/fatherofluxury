@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Plus, ArrowUpDown } from "lucide-react";
 import { BlogPost } from "@/hooks/blog/useBlogPosts";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 interface BlogListProps {
   posts: BlogPost[];
@@ -19,7 +18,6 @@ const BlogList = ({ posts, onCreatePost, onEdit, onDelete }: BlogListProps) => {
   const [entriesPerPage, setEntriesPerPage] = useState("5");
   const [sortColumn, setSortColumn] = useState<keyof BlogPost>("created_at");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
-  const navigate = useNavigate();
 
   const filteredPosts = posts.filter(post =>
     Object.values(post).some(value =>
