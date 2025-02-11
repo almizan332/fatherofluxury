@@ -8,7 +8,7 @@ import { Link } from "react-router-dom";
 interface CategoryCardProps {
   category: Category;
   onEdit: (category: Category) => void;
-  onDelete: (id: number) => void;
+  onDelete: (id: string) => void;
   isAdmin: boolean;
 }
 
@@ -18,17 +18,17 @@ const CategoryCard = ({ category, onEdit, onDelete, isAdmin }: CategoryCardProps
       <Card className="p-4 flex flex-col hover:shadow-xl transition-all duration-300 border border-purple-100">
         <div className="relative aspect-video mb-4 rounded-md overflow-hidden">
           <img
-            src={category.image}
+            src={category.image_url}
             alt={category.name}
             className="absolute inset-0 w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/60 to-pink-500/60" />
+          <div className={`absolute inset-0 bg-gradient-to-br ${category.gradient}`} />
         </div>
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-purple-900 truncate">{category.name}</h3>
             <p className="text-sm text-purple-600">
-              {category.productCount} Products
+              {category.product_count} Products
             </p>
           </div>
           {isAdmin && (

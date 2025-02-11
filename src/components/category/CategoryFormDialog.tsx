@@ -16,7 +16,7 @@ interface CategoryFormDialogProps {
   editingCategory: Category | null;
   newCategory: {
     name: string;
-    image: string;
+    image_url: string;
     gradient: string;
   };
   onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -69,10 +69,10 @@ const CategoryFormDialog = ({
                 Upload Image
               </label>
             </div>
-            {(editingCategory?.image || newCategory.image) && (
+            {(editingCategory?.image_url || newCategory.image_url) && (
               <div className="relative w-full h-32 rounded-md overflow-hidden border border-purple-200">
                 <img
-                  src={editingCategory ? editingCategory.image : newCategory.image}
+                  src={editingCategory ? editingCategory.image_url : newCategory.image_url}
                   alt="Preview"
                   className="w-full h-full object-cover"
                 />

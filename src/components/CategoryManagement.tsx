@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -7,28 +7,14 @@ import { useNavigate } from "react-router-dom";
 import CategoryCard from "./category/CategoryCard";
 import CategoryFormDialog from "./category/CategoryFormDialog";
 import { Category } from "./category/types";
+import { supabase } from "@/integrations/supabase/client";
 
 const CategoryManagement = () => {
-  const [categories, setCategories] = useState<Category[]>([
-    {
-      id: 1,
-      name: "Smartphones",
-      productCount: 156,
-      image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=800&q=80",
-      gradient: "from-purple-500 to-pink-500"
-    },
-    {
-      id: 2,
-      name: "Laptops",
-      productCount: 89,
-      image: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=800&q=80",
-      gradient: "from-blue-500 to-cyan-500"
-    }
-  ]);
-  
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [newCategory, setNewCategory] = useState({
     name: "",
-    image: "",
+    image_url: "",
     gradient: "from-purple-500 to-pink-500"
   });
   
@@ -40,24 +26,71 @@ const CategoryManagement = () => {
 
   const isAdmin = localStorage.getItem("isAdmin") === "true";
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Fetch categories on component mount
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      setCategories(data || []);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load categories",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!isAdmin) {
       navigate("/login");
       return;
     }
     const file = e.target.files?.[0];
     if (file) {
-      setSelectedImage(file);
-      const imageUrl = URL.createObjectURL(file);
-      if (editingCategory) {
-        setEditingCategory({ ...editingCategory, image: imageUrl });
-      } else {
-        setNewCategory(prev => ({ ...prev, image: imageUrl }));
+      try {
+        setSelectedImage(file);
+        
+        // Upload to Supabase Storage
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const { data, error } = await supabase.storage
+          .from('category-images')
+          .upload(fileName, file);
+
+        if (error) throw error;
+
+        const imageUrl = `${supabase.storage.from('category-images').getPublicUrl(fileName).data.publicUrl}`;
+        
+        if (editingCategory) {
+          setEditingCategory({ ...editingCategory, image_url: imageUrl });
+        } else {
+          setNewCategory(prev => ({ ...prev, image_url: imageUrl }));
+        }
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        toast({
+          title: "Error",
+          description: "Failed to upload image",
+          variant: "destructive",
+        });
       }
     }
   };
 
-  const handleAddCategory = () => {
+  const handleAddCategory = async () => {
     if (!isAdmin) {
       navigate("/login");
       return;
@@ -72,7 +105,7 @@ const CategoryManagement = () => {
       return;
     }
 
-    if (!newCategory.image) {
+    if (!newCategory.image_url) {
       toast({
         title: "Error",
         description: "Please upload a category image",
@@ -81,31 +114,43 @@ const CategoryManagement = () => {
       return;
     }
 
-    const newId = Math.max(...categories.map(cat => cat.id), 0) + 1;
-    const categoryToAdd = {
-      id: newId,
-      name: newCategory.name,
-      productCount: 0,
-      image: newCategory.image,
-      gradient: newCategory.gradient
-    };
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .insert([{
+          name: newCategory.name,
+          image_url: newCategory.image_url,
+          gradient: newCategory.gradient,
+        }])
+        .select()
+        .single();
 
-    setCategories([...categories, categoryToAdd]);
-    setNewCategory({
-      name: "",
-      image: "",
-      gradient: "from-purple-500 to-pink-500"
-    });
-    setSelectedImage(null);
-    setDialogOpen(false);
+      if (error) throw error;
 
-    toast({
-      title: "Success",
-      description: "Category added successfully",
-    });
+      setCategories([data, ...categories]);
+      setNewCategory({
+        name: "",
+        image_url: "",
+        gradient: "from-purple-500 to-pink-500"
+      });
+      setSelectedImage(null);
+      setDialogOpen(false);
+
+      toast({
+        title: "Success",
+        description: "Category added successfully",
+      });
+    } catch (error) {
+      console.error('Error adding category:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add category",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleUpdateCategory = () => {
+  const handleUpdateCategory = async () => {
     if (!isAdmin) {
       navigate("/login");
       return;
@@ -122,29 +167,68 @@ const CategoryManagement = () => {
       return;
     }
 
-    setCategories(categories.map(cat => 
-      cat.id === editingCategory.id ? editingCategory : cat
-    ));
-    
-    setEditingCategory(null);
-    setDialogOpen(false);
-    toast({
-      title: "Success",
-      description: "Category updated successfully",
-    });
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .update({
+          name: editingCategory.name,
+          image_url: editingCategory.image_url,
+          gradient: editingCategory.gradient,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', editingCategory.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setCategories(categories.map(cat => 
+        cat.id === editingCategory.id ? data : cat
+      ));
+      
+      setEditingCategory(null);
+      setDialogOpen(false);
+      toast({
+        title: "Success",
+        description: "Category updated successfully",
+      });
+    } catch (error) {
+      console.error('Error updating category:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update category",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDeleteCategory = (id: number) => {
+  const handleDeleteCategory = async (id: string) => {
     if (!isAdmin) {
       navigate("/login");
       return;
     }
 
-    setCategories(categories.filter((cat) => cat.id !== id));
-    toast({
-      title: "Success",
-      description: "Category deleted successfully",
-    });
+    try {
+      const { error } = await supabase
+        .from('categories')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setCategories(categories.filter((cat) => cat.id !== id));
+      toast({
+        title: "Success",
+        description: "Category deleted successfully",
+      });
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete category",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleCategoryChange = (value: string, field: 'name') => {
@@ -154,6 +238,14 @@ const CategoryManagement = () => {
       setNewCategory(prev => ({ ...prev, [field]: value }));
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[200px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-700"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 md:p-6">
@@ -201,4 +293,3 @@ const CategoryManagement = () => {
 };
 
 export default CategoryManagement;
-
