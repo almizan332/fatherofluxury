@@ -15,9 +15,10 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
   const allMedia = getAllMedia(product);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
+      {/* Main Image */}
       <div 
-        className="aspect-square relative rounded-lg overflow-hidden bg-gray-900 cursor-pointer group"
+        className="aspect-square relative rounded-lg overflow-hidden bg-white cursor-pointer group"
         onClick={() => setIsGalleryOpen(true)}
       >
         {allMedia[selectedMediaIndex]?.type === 'video' ? (
@@ -29,32 +30,29 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
             playsInline
           />
         ) : (
-          <>
+          <div className="w-full h-full flex items-center justify-center">
             <img
               src={allMedia[selectedMediaIndex].url}
               alt={`${product.name} - View ${selectedMediaIndex + 1}`}
-              className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
+              className="max-w-full max-h-full object-contain"
               onError={(e) => {
                 const img = e.target as HTMLImageElement;
                 img.src = '/placeholder.svg';
               }}
             />
-            <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-              <div className="text-white text-lg font-medium">Click to view gallery</div>
-            </div>
-          </>
+          </div>
         )}
       </div>
 
-      <div className="grid grid-cols-5 gap-2">
+      {/* Thumbnail Grid */}
+      <div className="grid grid-cols-6 gap-2">
         {allMedia.map((media, index) => (
-          <div
+          <button
             key={index}
             onClick={() => {
               setSelectedMediaIndex(index);
-              setIsGalleryOpen(true);
             }}
-            className={`aspect-square relative rounded-lg overflow-hidden cursor-pointer group ${
+            className={`aspect-square relative rounded-lg overflow-hidden bg-white ${
               selectedMediaIndex === index ? 'ring-2 ring-primary' : ''
             }`}
           >
@@ -65,26 +63,25 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                  <div className="w-8 h-8 rounded-full bg-white/80 flex items-center justify-center">
-                    <div className="w-0 h-0 border-t-8 border-t-transparent border-l-12 border-l-black border-b-8 border-b-transparent ml-1" />
+                  <div className="w-6 h-6 rounded-full bg-white/80 flex items-center justify-center">
+                    <div className="w-0 h-0 border-t-4 border-t-transparent border-l-6 border-l-black border-b-4 border-b-transparent ml-0.5" />
                   </div>
                 </div>
               </div>
             ) : (
-              <>
+              <div className="w-full h-full flex items-center justify-center">
                 <img
                   src={media.url}
                   alt={`${product.name} thumbnail ${index + 1}`}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  className="max-w-full max-h-full object-contain"
                   onError={(e) => {
                     const img = e.target as HTMLImageElement;
                     img.src = '/placeholder.svg';
                   }}
                 />
-                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </>
+              </div>
             )}
-          </div>
+          </button>
         ))}
       </div>
 
@@ -103,34 +100,31 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
 export const getAllMedia = (product: Product): MediaType[] => {
   const media: MediaType[] = [];
 
-  // Convert blob URLs to proper URLs
-  const convertBlobUrl = (url: string) => {
-    if (url.startsWith('blob:')) {
-      const urlParts = url.split('/');
-      return urlParts[urlParts.length - 1]; // Get the last part of the URL (the UUID)
-    }
-    return url;
-  };
-
   // Handle preview image
   if (product.preview_image) {
-    const url = convertBlobUrl(product.preview_image);
-    media.push({ type: 'image', url });
+    media.push({ 
+      type: 'image', 
+      url: `${window.location.origin}/${product.preview_image.replace('blob:', '')}`
+    });
   }
 
   // Handle gallery images
-  if (product.gallery_images) {
+  if (product.gallery_images && Array.isArray(product.gallery_images)) {
     product.gallery_images.forEach(imageUrl => {
-      const url = convertBlobUrl(imageUrl);
-      media.push({ type: 'image', url });
+      media.push({ 
+        type: 'image', 
+        url: `${window.location.origin}/${imageUrl.replace('blob:', '')}`
+      });
     });
   }
 
   // Handle video URLs
   if (product.video_urls && Array.isArray(product.video_urls)) {
     product.video_urls.forEach(videoUrl => {
-      const url = convertBlobUrl(videoUrl);
-      media.push({ type: 'video', url });
+      media.push({ 
+        type: 'video', 
+        url: `${window.location.origin}/${videoUrl.replace('blob:', '')}`
+      });
     });
   }
 
