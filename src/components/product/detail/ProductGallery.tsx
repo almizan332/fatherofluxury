@@ -76,6 +76,7 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
         selectedIndex={selectedMediaIndex}
         setSelectedIndex={setSelectedMediaIndex}
         productName={product.name}
+        productDescription={product.description}
       />
     </div>
   );
