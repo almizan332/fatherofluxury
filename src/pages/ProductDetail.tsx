@@ -24,20 +24,19 @@ const ProductDetail = () => {
 
   const fetchProduct = async () => {
     try {
-      // First try to find the product by its UUID
+      // Try to find the product by UUID first
       let { data: productData, error: productError } = await supabase
         .from('products')
         .select('*, categories(name)')
         .eq('id', id)
         .maybeSingle();
 
-      // If no product found or error due to invalid UUID, try to find by numeric ID in name or description
-      if (!productData || (productError && productError.code === '22P02')) {
+      // If not found by UUID, search by title
+      if (!productData) {
         const { data: searchData, error: searchError } = await supabase
           .from('products')
           .select('*, categories(name)')
-          .or(`name.ilike.%${id}%,description.ilike.%${id}%`)
-          .limit(1)
+          .ilike('name', `%${id}%`)
           .maybeSingle();
 
         if (searchError) throw searchError;
