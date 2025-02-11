@@ -7,22 +7,22 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 interface BlogPostCardProps {
   post: {
-    id: number;
+    id: string;
     title: string;
     excerpt: string;
     content: string;
     image: string;
     category: string;
-    date: string;
-    readTime: string;
-    seoTitle: string;
-    seoDescription: string;
-    seoKeywords: string;
+    read_time: string;
+    seo_title: string;
+    seo_description: string;
+    seo_keywords: string;
+    created_at: string;
   };
   isSelected?: boolean;
   onSelect?: () => void;
   onEdit: (post: BlogPostCardProps['post']) => void;
-  onDelete: (id: number) => void;
+  onDelete: (id: string) => void;
   isAdmin: boolean;
 }
 
@@ -76,11 +76,13 @@ const BlogPostCard = ({ post, isSelected, onSelect, onEdit, onDelete, isAdmin }:
           <div className="p-6">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-blue-400">{post.category}</span>
-              <span className="text-xs text-gray-400">{post.readTime}</span>
+              <span className="text-xs text-gray-400">{post.read_time}</span>
             </div>
             <h2 className="text-xl font-semibold mb-2">{post.title}</h2>
             <p className="text-gray-400 text-sm mb-4">{post.excerpt}</p>
-            <div className="text-xs text-gray-500">{post.date}</div>
+            <div className="text-xs text-gray-500">
+              {new Date(post.created_at).toLocaleDateString()}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -89,4 +91,3 @@ const BlogPostCard = ({ post, isSelected, onSelect, onEdit, onDelete, isAdmin }:
 };
 
 export default BlogPostCard;
-
