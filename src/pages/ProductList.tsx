@@ -11,8 +11,7 @@ import {
   Edit, 
   LayoutGrid,
   List,
-  Search,
-  Filter
+  Search
 } from "lucide-react";
 import { productExcelHeaders, sampleExcelData } from "@/utils/excelTemplate";
 import {
@@ -47,7 +46,6 @@ const ProductList = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const { toast } = useToast();
 
   useEffect(() => {
     fetchProducts();
@@ -115,20 +113,20 @@ const ProductList = () => {
     }
   };
 
-  const handleDeleteSelected = async (e: React.MouseEvent) => {
+  const handleDeleteSelected = async (e: React.MouseEvent, productIds: string[]) => {
     e.preventDefault();
     try {
       const { error } = await supabase
         .from('products')
         .delete()
-        .in('id', selectedProducts);
+        .in('id', productIds);
 
       if (error) throw error;
 
       setSelectedProducts([]);
       toast({
         title: "Products deleted",
-        description: `${selectedProducts.length} products have been deleted`,
+        description: `${productIds.length} products have been deleted`,
       });
     } catch (error: any) {
       toast({
@@ -211,7 +209,10 @@ const ProductList = () => {
               Template
             </Button>
             {selectedProducts.length > 0 && (
-              <Button variant="destructive" onClick={handleDeleteSelected}>
+              <Button 
+                variant="destructive" 
+                onClick={(e) => handleDeleteSelected(e, selectedProducts)}
+              >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete ({selectedProducts.length})
               </Button>
@@ -270,7 +271,7 @@ const ProductList = () => {
                 <SelectValue placeholder="All Categories" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Categories</SelectItem>
+                <SelectItem value="all">All Categories</SelectItem>
                 {categories.map((category) => (
                   <SelectItem key={category.id} value={category.id}>
                     {category.name}
@@ -381,10 +382,7 @@ const ProductList = () => {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handleDeleteSelected([product.id]);
-                            }}
+                            onClick={(e) => handleDeleteSelected(e, [product.id])}
                             className="h-8 w-8 hover:text-destructive"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -453,10 +451,7 @@ const ProductList = () => {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handleDeleteSelected([product.id]);
-                            }}
+                            onClick={(e) => handleDeleteSelected(e, [product.id])}
                             className="h-8 w-8 hover:text-destructive"
                           >
                             <Trash2 className="h-4 w-4" />
