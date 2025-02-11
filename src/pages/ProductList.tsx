@@ -54,21 +54,25 @@ const ProductList = () => {
     galleryImages: [],
   });
 
-  // Add categories state
+  // Add categories state - now with correct types
   const [categories] = useState<Category[]>([
     {
-      id: 1,
+      id: "1",
       name: "Smartphones",
-      productCount: 156,
-      image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=800&q=80",
-      gradient: "from-purple-500 to-pink-500"
+      image_url: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=800&q=80",
+      gradient: "from-purple-500 to-pink-500",
+      product_count: 156,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     },
     {
-      id: 2,
+      id: "2",
       name: "Laptops",
-      productCount: 89,
-      image: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=800&q=80",
-      gradient: "from-blue-500 to-cyan-500"
+      image_url: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=800&q=80",
+      gradient: "from-blue-500 to-cyan-500",
+      product_count: 89,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     }
   ]);
 
