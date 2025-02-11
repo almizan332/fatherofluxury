@@ -27,12 +27,16 @@ const categoryImages: CategoryImages = {
 
 export const generateProducts = (count: number, category: string): Product[] => {
   const images = categoryImages[category] || categoryImages.default;
+  const now = new Date().toISOString();
 
   return Array.from({ length: count }).map((_, index) => ({
-    id: index + 1,
-    title: `${category} ${381 + index}`,
-    image: `https://images.unsplash.com/photo-${images[index % images.length]}?auto=format&fit=crop&w=400&q=80`,
-    dateAdded: new Date(Date.now() - Math.random() * 10000000000),
-    price: Math.floor(Math.random() * 1000) + 100,
+    id: `${index + 1}`,
+    name: `${category} ${381 + index}`,
+    category_id: "",
+    description: "",
+    preview_image: `https://images.unsplash.com/photo-${images[index % images.length]}?auto=format&fit=crop&w=400&q=80`,
+    gallery_images: [],
+    created_at: now,
+    updated_at: now
   }));
 };

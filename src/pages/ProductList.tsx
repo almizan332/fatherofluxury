@@ -178,10 +178,18 @@ const ProductList = () => {
     }
 
     try {
+      const productData = {
+        name: newProduct.name,
+        category_id: newProduct.category_id,
+        description: newProduct.description,
+        preview_image: newProduct.preview_image,
+        gallery_images: newProduct.gallery_images,
+      };
+
       if (editingProduct) {
         const { error } = await supabase
           .from('products')
-          .update(newProduct)
+          .update(productData)
           .eq('id', editingProduct.id);
 
         if (error) throw error;
@@ -193,7 +201,7 @@ const ProductList = () => {
       } else {
         const { error } = await supabase
           .from('products')
-          .insert(newProduct);
+          .insert(productData);
 
         if (error) throw error;
 
@@ -216,6 +224,24 @@ const ProductList = () => {
     } catch (error: any) {
       toast({
         title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      toast({
+        title: "CSV upload not implemented",
+        description: "This feature will be implemented soon",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error uploading file",
         description: error.message,
         variant: "destructive",
       });

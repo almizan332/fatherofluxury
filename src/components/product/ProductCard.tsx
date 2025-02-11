@@ -23,20 +23,17 @@ const ProductCard = ({ product, index }: ProductCardProps) => {
           <CardContent className="p-0">
             <div className="aspect-square relative">
               <img
-                src={product.image}
-                alt={product.title}
+                src={product.preview_image}
+                alt={product.name}
                 className="w-full h-full object-cover"
                 loading="lazy"
               />
             </div>
             <div className="p-3">
-              <h3 className="text-sm font-medium line-clamp-2">{product.title}</h3>
+              <h3 className="text-sm font-medium line-clamp-2">{product.name}</h3>
               <div className="flex justify-between items-center mt-2">
-                <p className="text-sm font-semibold text-purple-500">
-                  ${product.price}
-                </p>
                 <p className="text-xs text-gray-400">
-                  {new Date(product.dateAdded).toLocaleDateString()}
+                  {new Date(product.created_at).toLocaleDateString()}
                 </p>
               </div>
             </div>
