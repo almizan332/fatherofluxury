@@ -32,28 +32,31 @@ export function useCategories() {
   };
 
   useEffect(() => {
-    fetchCategories();
+    const fetchAndSubscribe = async () => {
+      await fetchCategories();
 
-    // Subscribe to changes
-    const channel = supabase
-      .channel('schema-db-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'categories'
-        },
-        (payload) => {
-          console.log('Real-time update:', payload);
-          fetchCategories();
-        }
-      )
-      .subscribe();
+      const channel = supabase
+        .channel('schema-db-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'categories'
+          },
+          (payload) => {
+            console.log('Real-time update:', payload);
+            fetchCategories();
+          }
+        )
+        .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
+      return () => {
+        supabase.removeChannel(channel);
+      };
     };
+
+    fetchAndSubscribe();
   }, []);
 
   return {

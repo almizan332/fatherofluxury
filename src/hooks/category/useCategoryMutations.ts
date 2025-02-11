@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,14 +10,23 @@ export function useCategoryMutations(categories: Category[], setCategories: (cat
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
 
-  // Check admin status on mount
-  supabase.auth.getSession().then(({ data: { session } }) => {
-    const isAdminUser = session?.user?.user_metadata?.admin === true;
-    setIsAdmin(isAdminUser);
-    if (!isAdminUser) {
-      navigate("/login");
-    }
-  });
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const isAdminUser = session?.user?.user_metadata?.admin === true;
+      setIsAdmin(isAdminUser);
+    };
+
+    checkAdminStatus();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async () => {
+      await checkAdminStatus();
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const addCategory = async (newCategory: { name: string; image_url: string; gradient: string }) => {
     if (!isAdmin) {
