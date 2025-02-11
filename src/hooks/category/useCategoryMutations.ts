@@ -13,7 +13,7 @@ export function useCategoryMutations(categories: Category[], setCategories: (cat
   useEffect(() => {
     const checkAdminStatus = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      const isAdminUser = session?.user?.user_metadata?.admin === true;
+      const isAdminUser = session?.user?.email === 'homeincome08@gmail.com';
       setIsAdmin(isAdminUser);
     };
 
