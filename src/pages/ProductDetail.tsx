@@ -19,6 +19,7 @@ const ProductDetail = () => {
 
   useEffect(() => {
     if (id) {
+      console.log('Fetching product with ID:', id);
       fetchProduct();
     }
   }, [id]);
@@ -26,6 +27,7 @@ const ProductDetail = () => {
   const fetchProduct = async () => {
     try {
       setIsLoading(true);
+      console.log('Attempting UUID lookup for:', id);
       
       // First try UUID lookup
       let { data: productData, error } = await supabase
@@ -34,13 +36,18 @@ const ProductDetail = () => {
         .eq('id', id)
         .maybeSingle();
 
+      console.log('UUID lookup result:', productData, error);
+
       // If not found by UUID, try name-based lookup
       if (!productData && !error) {
+        console.log('UUID lookup failed, trying name-based lookup');
         const { data: nameProductData, error: nameError } = await supabase
           .from('products')
           .select('*, categories(name)')
           .ilike('name', id?.replace(/-/g, ' '))
           .maybeSingle();
+
+        console.log('Name-based lookup result:', nameProductData, nameError);
 
         if (nameError) throw nameError;
         productData = nameProductData;
@@ -64,6 +71,7 @@ const ProductDetail = () => {
           setRelatedProducts(relatedData || []);
         }
       } else {
+        console.log('Product not found after both lookups');
         toast({
           title: "Product not found",
           description: "The requested product could not be found.",
