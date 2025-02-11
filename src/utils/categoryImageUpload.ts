@@ -7,9 +7,16 @@ export const uploadCategoryImage = async (file: File) => {
   
   const { data, error } = await supabase.storage
     .from('category-images')
-    .upload(fileName, file);
+    .upload(fileName, file, {
+      cacheControl: '3600',
+      upsert: false
+    });
 
   if (error) throw error;
 
-  return supabase.storage.from('category-images').getPublicUrl(fileName).data.publicUrl;
+  const { data: { publicUrl } } = supabase.storage
+    .from('category-images')
+    .getPublicUrl(fileName);
+
+  return publicUrl;
 };
