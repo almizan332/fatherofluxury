@@ -17,7 +17,7 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
   return (
     <div className="space-y-4">
       <div 
-        className="aspect-square relative rounded-lg overflow-hidden bg-gray-900 cursor-pointer"
+        className="aspect-square relative rounded-lg overflow-hidden bg-gray-900 cursor-pointer group"
         onClick={() => setIsGalleryOpen(true)}
       >
         {allMedia[selectedMediaIndex]?.type === 'video' ? (
@@ -29,11 +29,16 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
             playsInline
           />
         ) : (
-          <img
-            src={allMedia[selectedMediaIndex].url}
-            alt={`${product.name} - View ${selectedMediaIndex + 1}`}
-            className="w-full h-full object-contain"
-          />
+          <>
+            <img
+              src={allMedia[selectedMediaIndex].url}
+              alt={`${product.name} - View ${selectedMediaIndex + 1}`}
+              className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <div className="text-white text-lg font-medium">Click to view gallery</div>
+            </div>
+          </>
         )}
       </div>
 
@@ -41,8 +46,11 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
         {allMedia.map((media, index) => (
           <div
             key={index}
-            onClick={() => setSelectedMediaIndex(index)}
-            className={`aspect-square relative rounded-lg overflow-hidden cursor-pointer ${
+            onClick={() => {
+              setSelectedMediaIndex(index);
+              setIsGalleryOpen(true);
+            }}
+            className={`aspect-square relative rounded-lg overflow-hidden cursor-pointer group ${
               selectedMediaIndex === index ? 'ring-2 ring-primary' : ''
             }`}
           >
@@ -59,11 +67,14 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
                 </div>
               </div>
             ) : (
-              <img
-                src={media.url}
-                alt={`${product.name} thumbnail ${index + 1}`}
-                className="w-full h-full object-cover hover:opacity-80 transition-opacity"
-              />
+              <>
+                <img
+                  src={media.url}
+                  alt={`${product.name} thumbnail ${index + 1}`}
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </>
             )}
           </div>
         ))}
@@ -75,8 +86,7 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
         allMedia={allMedia}
         selectedIndex={selectedMediaIndex}
         setSelectedIndex={setSelectedMediaIndex}
-        productName={product.name}
-        productDescription={product.description}
+        product={product}
       />
     </div>
   );

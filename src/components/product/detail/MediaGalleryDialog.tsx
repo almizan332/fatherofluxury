@@ -1,11 +1,13 @@
 
-import { X, ArrowLeft, ArrowRight } from "lucide-react";
+import { X, ArrowLeft, ArrowRight, ExternalLink } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogClose,
 } from "@/components/ui/dialog";
 import { MediaType } from "@/types/product";
+import { Button } from "@/components/ui/button";
+import { Product } from "@/types/product";
 
 interface MediaGalleryDialogProps {
   isOpen: boolean;
@@ -13,8 +15,7 @@ interface MediaGalleryDialogProps {
   allMedia: MediaType[];
   selectedIndex: number;
   setSelectedIndex: React.Dispatch<React.SetStateAction<number>>;
-  productName: string;
-  productDescription?: string;
+  product: Product;
 }
 
 export const MediaGalleryDialog = ({
@@ -23,8 +24,7 @@ export const MediaGalleryDialog = ({
   allMedia,
   selectedIndex,
   setSelectedIndex,
-  productName,
-  productDescription,
+  product,
 }: MediaGalleryDialogProps) => {
   const navigateGallery = (direction: 'prev' | 'next') => {
     if (direction === 'prev') {
@@ -64,7 +64,7 @@ export const MediaGalleryDialog = ({
             ) : (
               <img
                 src={allMedia[selectedIndex].url}
-                alt={`${productName} - View ${selectedIndex + 1}`}
+                alt={`${product.name} - View ${selectedIndex + 1}`}
                 className="max-w-full max-h-full object-contain"
               />
             )}
@@ -72,12 +72,48 @@ export const MediaGalleryDialog = ({
 
           {/* Product Info Panel */}
           <div className="hidden md:block bg-white h-full p-8 overflow-y-auto">
-            <h2 className="text-2xl font-bold mb-4">{productName}</h2>
-            {productDescription && (
-              <div className="text-gray-600 whitespace-pre-wrap">
-                {productDescription}
+            <h2 className="text-2xl font-bold mb-4">{product.name}</h2>
+            
+            {product.description && (
+              <div className="text-gray-600 whitespace-pre-wrap mb-6">
+                {product.description}
               </div>
             )}
+
+            <div className="space-y-3">
+              {product.flylink_url && (
+                <Button 
+                  className="w-full bg-blue-500 hover:bg-blue-600" 
+                  size="lg"
+                  onClick={() => window.open(product.flylink_url, '_blank')}
+                >
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  Buy on Flylink
+                </Button>
+              )}
+              
+              {product.alibaba_url && (
+                <Button 
+                  className="w-full bg-orange-500 hover:bg-orange-600" 
+                  size="lg"
+                  onClick={() => window.open(product.alibaba_url, '_blank')}
+                >
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  Buy on Alibaba
+                </Button>
+              )}
+              
+              {product.dhgate_url && (
+                <Button 
+                  className="w-full bg-green-500 hover:bg-green-600" 
+                  size="lg"
+                  onClick={() => window.open(product.dhgate_url, '_blank')}
+                >
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  Buy on DHgate
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Right Navigation Button */}
