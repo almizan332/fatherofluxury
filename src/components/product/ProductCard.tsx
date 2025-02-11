@@ -16,9 +16,12 @@ interface ProductCardProps {
 
 const ProductCard = ({ product, index, onDelete, showDeleteButton }: ProductCardProps) => {
   const hasAffiliateLinks = product.flylink_url || product.alibaba_url || product.dhgate_url;
+  const formatUrlSlug = (name: string) => {
+    return name.toLowerCase().replace(/\s+/g, '-');
+  };
 
   return (
-    <Link to={`/product/${product.id}`}>
+    <Link to={`/product/${formatUrlSlug(product.name)}`}>
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
