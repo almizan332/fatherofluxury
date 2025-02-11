@@ -24,13 +24,25 @@ const ProductDetail = () => {
 
   const fetchProduct = async () => {
     try {
-      const { data: productData, error: productError } = await supabase
+      // First try to find the product by its UUID
+      let { data: productData, error: productError } = await supabase
         .from('products')
         .select('*, categories(name)')
         .eq('id', id)
-        .single();
+        .maybeSingle();
 
-      if (productError) throw productError;
+      // If no product found or error due to invalid UUID, try to find by numeric ID in name or description
+      if (!productData || (productError && productError.code === '22P02')) {
+        const { data: searchData, error: searchError } = await supabase
+          .from('products')
+          .select('*, categories(name)')
+          .or(`name.ilike.%${id}%,description.ilike.%${id}%`)
+          .limit(1)
+          .maybeSingle();
+
+        if (searchError) throw searchError;
+        productData = searchData;
+      }
 
       if (productData) {
         setProduct(productData);
@@ -40,12 +52,18 @@ const ProductDetail = () => {
             .from('products')
             .select('*')
             .eq('category_id', productData.category_id)
-            .neq('id', id)
+            .neq('id', productData.id)
             .limit(6);
 
           if (relatedError) throw relatedError;
           setRelatedProducts(relatedData || []);
         }
+      } else {
+        toast({
+          title: "Product not found",
+          description: "The requested product could not be found.",
+          variant: "destructive",
+        });
       }
     } catch (error: any) {
       console.error('Error fetching product:', error);
