@@ -1,8 +1,10 @@
 
-import { Product } from "@/types/product";
-import { Card, CardContent } from "@/components/ui/card";
-import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
+import { Product } from "@/types/product";
+import { Button } from "@/components/ui/button";
+import { ExternalLink } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface ProductCardProps {
   product: Product;
@@ -10,6 +12,8 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product, index }: ProductCardProps) => {
+  const hasAffiliateLinks = product.flylink_url || product.alibaba_url || product.dhgate_url;
+
   return (
     <Link to={`/product/${product.id}`}>
       <motion.div
@@ -35,6 +39,49 @@ const ProductCard = ({ product, index }: ProductCardProps) => {
                 <p className="text-xs text-gray-400">
                   {new Date(product.created_at).toLocaleDateString()}
                 </p>
+                {hasAffiliateLinks && (
+                  <div className="flex gap-2">
+                    {product.flylink_url && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 px-2"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          window.open(product.flylink_url, '_blank');
+                        }}
+                      >
+                        Flylink
+                      </Button>
+                    )}
+                    {product.alibaba_url && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 px-2"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          window.open(product.alibaba_url, '_blank');
+                        }}
+                      >
+                        Alibaba
+                      </Button>
+                    )}
+                    {product.dhgate_url && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 px-2"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          window.open(product.dhgate_url, '_blank');
+                        }}
+                      >
+                        DHgate
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>

@@ -86,9 +86,12 @@ export type Database = {
       }
       products: {
         Row: {
+          alibaba_url: string | null
           category_id: string | null
           created_at: string
           description: string | null
+          dhgate_url: string | null
+          flylink_url: string | null
           gallery_images: string[] | null
           id: string
           name: string
@@ -96,9 +99,12 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          alibaba_url?: string | null
           category_id?: string | null
           created_at?: string
           description?: string | null
+          dhgate_url?: string | null
+          flylink_url?: string | null
           gallery_images?: string[] | null
           id?: string
           name: string
@@ -106,9 +112,12 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          alibaba_url?: string | null
           category_id?: string | null
           created_at?: string
           description?: string | null
+          dhgate_url?: string | null
+          flylink_url?: string | null
           gallery_images?: string[] | null
           id?: string
           name?: string

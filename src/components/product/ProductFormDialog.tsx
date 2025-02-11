@@ -74,6 +74,9 @@ const ProductFormDialog = ({ product, categories, onSuccess, onClose }: ProductF
         description: newProduct.description || '',
         preview_image: newProduct.preview_image || '',
         gallery_images: newProduct.gallery_images || [],
+        ...(newProduct.flylink_url && { flylink_url: newProduct.flylink_url }),
+        ...(newProduct.alibaba_url && { alibaba_url: newProduct.alibaba_url }),
+        ...(newProduct.dhgate_url && { dhgate_url: newProduct.dhgate_url }),
       };
 
       if (product) {
