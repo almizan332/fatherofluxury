@@ -12,7 +12,7 @@ interface MediaGalleryDialogProps {
   onOpenChange: (open: boolean) => void;
   allMedia: MediaType[];
   selectedIndex: number;
-  setSelectedIndex: (index: number) => void;
+  setSelectedIndex: React.Dispatch<React.SetStateAction<number>>;
   productName: string;
 }
 
@@ -26,9 +26,9 @@ export const MediaGalleryDialog = ({
 }: MediaGalleryDialogProps) => {
   const navigateGallery = (direction: 'prev' | 'next') => {
     if (direction === 'prev') {
-      setSelectedIndex(prev => (prev === 0 ? allMedia.length - 1 : prev - 1));
+      setSelectedIndex((prev: number) => prev === 0 ? allMedia.length - 1 : prev - 1);
     } else {
-      setSelectedIndex(prev => (prev === allMedia.length - 1 ? 0 : prev + 1));
+      setSelectedIndex((prev: number) => prev === allMedia.length - 1 ? 0 : prev + 1);
     }
   };
 
