@@ -1,3 +1,4 @@
+
 import React from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,27 +20,44 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useToast } from "@/components/ui/use-toast";
 
-const generateProducts = (count: number) => {
-  return Array.from({ length: count }).map((_, index) => ({
-    id: index + 1,
-    title: `YY${381 + index}`,
-    image: `https://images.unsplash.com/photo-${[
+const generateProducts = (count: number, category: string) => {
+  // Customize product data based on category
+  const categoryImages: { [key: string]: string[] } = {
+    Smartphones: [
+      '1567581573103-17c45c86d948',
+      '1511707171634-5f897ff02aa9',
+      '1523206389153-c012fa067a6b',
+      '1592434475716-7798d425d2e6',
+      '1605170439002-42b4e777de60',
+    ],
+    Laptops: [
+      '1496181133206-80ce9b88a853',
+      '1525547719571-a2d4ac8945e2',
+      '1504707748692-34f7c6d5c385',
+      '1531297484001-80022131f5a1',
+      '1498050108023-c5249f4df085',
+    ],
+    default: [
       '1649972904349-6e44c42644a7',
       '1488590528505-98d2b5aba04b',
       '1518770660439-4636190af475',
       '1461749280684-dccba630e2f6',
       '1486312338219-ce68d2c6f44d',
-      '1581091226825-a6a2a5aee158',
-      '1485827404703-89b55fcc595e',
-      '1526374965328-7f61d4dc18c5',
-      '1531297484001-80022131f5a1',
-      '1487058792275-0ad4aaf24ca7',
-    ][index % 10]}?auto=format&fit=crop&w=400&q=80`,
+    ],
+  };
+
+  const images = categoryImages[category] || categoryImages.default;
+
+  return Array.from({ length: count }).map((_, index) => ({
+    id: index + 1,
+    title: `${category} ${381 + index}`,
+    image: `https://images.unsplash.com/photo-${images[index % images.length]}?auto=format&fit=crop&w=400&q=80`,
     dateAdded: new Date(Date.now() - Math.random() * 10000000000),
+    price: Math.floor(Math.random() * 1000) + 100,
   }));
 };
 
-const ITEMS_PER_PAGE = 120;
+const ITEMS_PER_PAGE = 20;
 
 const SubCategory = () => {
   const { category } = useParams();
@@ -47,7 +65,7 @@ const SubCategory = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
   
-  const products = generateProducts(360);
+  const products = generateProducts(60, category || 'default');
   const sortedProducts = [...products].sort((a, b) => b.dateAdded.getTime() - a.dateAdded.getTime());
   
   const filteredProducts = sortedProducts.filter(product => 
@@ -84,13 +102,18 @@ const SubCategory = () => {
       <Navbar />
       <ScrollArea className="flex-grow">
         <main className="max-w-7xl mx-auto px-4 py-12">
-          <motion.h1 
+          <motion.div 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-2xl font-bold mb-6 gradient-text text-right"
+            className="flex justify-between items-center mb-6"
           >
-            Category {category} ({filteredProducts.length} products)
-          </motion.h1>
+            <h1 className="text-2xl font-bold gradient-text">
+              {category} Products
+            </h1>
+            <p className="text-sm text-gray-400">
+              {filteredProducts.length} products found
+            </p>
+          </motion.div>
 
           <div className="relative mb-6">
             <input
@@ -98,7 +121,7 @@ const SubCategory = () => {
               placeholder="Search products..."
               value={searchQuery}
               onChange={handleSearch}
-              className="bg-gray-900 border border-gray-700 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-gray-600 w-full md:w-[300px]"
+              className="w-full md:w-[300px] bg-background border border-purple-700/20 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20"
             />
             <Button variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-2">
               <Search className="h-4 w-4" />
@@ -110,7 +133,7 @@ const SubCategory = () => {
               <p className="text-gray-400">No products found matching your search.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {paginatedProducts.map((product, index) => (
                 <Link to={`/product/${product.id}`} key={product.id}>
                   <motion.div
@@ -120,7 +143,7 @@ const SubCategory = () => {
                     whileHover={{ scale: 1.02 }}
                     className="transform transition-all duration-300"
                   >
-                    <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer bg-gray-900/50 border-gray-800">
+                    <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer border-purple-700/20 bg-card hover:bg-accent">
                       <CardContent className="p-0">
                         <div className="aspect-square relative">
                           <img
@@ -131,14 +154,14 @@ const SubCategory = () => {
                           />
                         </div>
                         <div className="p-3">
-                          <h3 className="text-sm font-medium text-gray-200 line-clamp-2 text-right">{product.title}</h3>
+                          <h3 className="text-sm font-medium line-clamp-2">{product.title}</h3>
                           <div className="flex justify-between items-center mt-2">
+                            <p className="text-sm font-semibold text-purple-500">
+                              ${product.price}
+                            </p>
                             <p className="text-xs text-gray-400">
                               {new Date(product.dateAdded).toLocaleDateString()}
                             </p>
-                            <Button variant="ghost" size="sm" className="text-xs">
-                              View Details
-                            </Button>
                           </div>
                         </div>
                       </CardContent>
@@ -149,8 +172,8 @@ const SubCategory = () => {
             </div>
           )}
 
-          {filteredProducts.length > 0 && (
-            <div className="mt-8 mb-12">
+          {filteredProducts.length > ITEMS_PER_PAGE && (
+            <div className="mt-8 flex justify-center">
               <Pagination>
                 <PaginationContent>
                   <PaginationItem>
