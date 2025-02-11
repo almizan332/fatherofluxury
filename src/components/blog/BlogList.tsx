@@ -51,8 +51,8 @@ const BlogList = ({ posts, onCreatePost, onEdit, onDelete }: BlogListProps) => {
       <div className="bg-[#7EDBD0] p-4 rounded-t-lg flex justify-between items-center">
         <h1 className="text-2xl font-semibold text-white">Blog List</h1>
         <Button 
-          onClick={() => navigate("/dashboard/blog-management/add-blog")}
-          className="bg-[#1BB55C] hover:bg-[#159e4f]"
+          onClick={onCreatePost}
+          className="bg-[#1BB55C] hover:bg-[#159e4f] text-white"
         >
           <Plus className="h-4 w-4 mr-2" />
           Create Blog
