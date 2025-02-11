@@ -26,28 +26,30 @@ const ProductDetail = () => {
   const fetchProduct = async () => {
     try {
       setIsLoading(true);
-      // First try exact name match
+      
+      // First try UUID lookup
       let { data: productData, error } = await supabase
         .from('products')
         .select('*, categories(name)')
-        .eq('name', id?.replace(/-/g, ' '))
+        .eq('id', id)
         .maybeSingle();
 
-      // If not found, try case-insensitive search
+      // If not found by UUID, try name-based lookup
       if (!productData && !error) {
-        const { data: altProductData, error: altError } = await supabase
+        const { data: nameProductData, error: nameError } = await supabase
           .from('products')
           .select('*, categories(name)')
           .ilike('name', id?.replace(/-/g, ' '))
           .maybeSingle();
 
-        if (altError) throw altError;
-        productData = altProductData;
+        if (nameError) throw nameError;
+        productData = nameProductData;
       }
 
       if (error) throw error;
 
       if (productData) {
+        console.log('Found product:', productData);
         setProduct(productData);
         
         if (productData.category_id) {
