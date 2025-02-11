@@ -17,3 +17,8 @@ export interface Product {
 export interface CategoryImages {
   [key: string]: string[];
 }
+
+export interface MediaType {
+  type: 'image' | 'video';
+  url: string;
+}
