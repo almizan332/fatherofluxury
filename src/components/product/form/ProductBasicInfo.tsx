@@ -27,6 +27,7 @@ const ProductBasicInfo = ({ product, categories, onProductChange }: ProductBasic
           id="name"
           value={product.name || ''}
           onChange={(e) => onProductChange({ name: e.target.value })}
+          placeholder="Enter product name"
         />
       </div>
       <div className="grid gap-2">
@@ -53,6 +54,7 @@ const ProductBasicInfo = ({ product, categories, onProductChange }: ProductBasic
           id="description"
           value={product.description || ''}
           onChange={(e) => onProductChange({ description: e.target.value })}
+          placeholder="Enter product description"
         />
       </div>
     </>
