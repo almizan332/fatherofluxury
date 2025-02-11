@@ -11,6 +11,7 @@ export interface Product {
   flylink_url?: string | null;
   alibaba_url?: string | null;
   dhgate_url?: string | null;
+  video_urls?: string[] | null;
 }
 
 export interface CategoryImages {

@@ -10,18 +10,12 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Product } from "@/types/product";
 import { useToast } from "@/components/ui/use-toast";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
 
 const ProductDetail = () => {
   const { id } = useParams();
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -32,7 +26,6 @@ const ProductDetail = () => {
 
   const fetchProduct = async () => {
     try {
-      // Fetch the main product
       const { data: productData, error: productError } = await supabase
         .from('products')
         .select('*, categories(name)')
@@ -44,7 +37,6 @@ const ProductDetail = () => {
       if (productData) {
         setProduct(productData);
         
-        // Fetch related products from the same category
         if (productData.category_id) {
           const { data: relatedData, error: relatedError } = await supabase
             .from('products')
@@ -67,6 +59,18 @@ const ProductDetail = () => {
     }
   };
 
+  const getAllMedia = (product: Product) => {
+    const media = [];
+    if (product.preview_image) media.push({ type: 'image', url: product.preview_image });
+    if (product.gallery_images) {
+      product.gallery_images.forEach(url => media.push({ type: 'image', url }));
+    }
+    if (product.video_urls) {
+      product.video_urls.forEach(url => media.push({ type: 'video', url }));
+    }
+    return media;
+  };
+
   if (!product) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
@@ -79,6 +83,8 @@ const ProductDetail = () => {
     );
   }
 
+  const allMedia = getAllMedia(product);
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
@@ -90,63 +96,66 @@ const ProductDetail = () => {
             </nav>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Carousel className="w-full">
-                <CarouselContent>
-                  {product.preview_image && (
-                    <CarouselItem>
-                      <div className="aspect-square relative">
-                        <img
-                          src={product.preview_image}
-                          alt={`${product.name} - Preview`}
-                          className="w-full h-full object-cover rounded-lg"
-                        />
-                      </div>
-                    </CarouselItem>
-                  )}
-                  {product.gallery_images?.map((image, index) => (
-                    <CarouselItem key={index}>
-                      <div className="aspect-square relative">
-                        <img
-                          src={image}
-                          alt={`${product.name} - View ${index + 1}`}
-                          className="w-full h-full object-cover rounded-lg"
-                        />
-                      </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious />
-                <CarouselNext />
-              </Carousel>
-
-              <div className="grid grid-cols-4 gap-2 mt-2">
-                {product.preview_image && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-4">
+              <div className="aspect-square relative rounded-lg overflow-hidden bg-gray-900">
+                {allMedia[selectedMediaIndex]?.type === 'video' ? (
+                  <video
+                    src={allMedia[selectedMediaIndex].url}
+                    className="w-full h-full object-contain"
+                    controls
+                    autoPlay
+                    playsInline
+                  />
+                ) : (
                   <img
-                    src={product.preview_image}
-                    alt="Preview"
-                    className="aspect-square object-cover rounded-md cursor-pointer hover:opacity-80 transition-opacity"
+                    src={allMedia[selectedMediaIndex].url}
+                    alt={`${product.name} - View ${selectedMediaIndex + 1}`}
+                    className="w-full h-full object-contain"
                   />
                 )}
-                {product.gallery_images?.map((image, index) => (
-                  <img
+              </div>
+
+              <div className="grid grid-cols-5 gap-2">
+                {allMedia.map((media, index) => (
+                  <div
                     key={index}
-                    src={image}
-                    alt={`Thumbnail ${index + 1}`}
-                    className="aspect-square object-cover rounded-md cursor-pointer hover:opacity-80 transition-opacity"
-                  />
+                    onClick={() => setSelectedMediaIndex(index)}
+                    className={`aspect-square relative rounded-lg overflow-hidden cursor-pointer ${
+                      selectedMediaIndex === index ? 'ring-2 ring-primary' : ''
+                    }`}
+                  >
+                    {media.type === 'video' ? (
+                      <div className="relative w-full h-full">
+                        <video
+                          src={media.url}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                          <div className="w-8 h-8 rounded-full bg-white/80 flex items-center justify-center">
+                            <div className="w-0 h-0 border-t-8 border-t-transparent border-l-12 border-l-black border-b-8 border-b-transparent ml-1" />
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <img
+                        src={media.url}
+                        alt={`${product.name} thumbnail ${index + 1}`}
+                        className="w-full h-full object-cover hover:opacity-80 transition-opacity"
+                      />
+                    )}
+                  </div>
                 ))}
               </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-6">
               <div>
-                <h1 className="text-3xl font-bold mb-1">{product.name}</h1>
-                <p className="text-gray-400">{product.description}</p>
+                <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
+                <p className="text-gray-400 whitespace-pre-wrap">{product.description}</p>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {product.flylink_url && (
                   <Button 
                     className="w-full bg-blue-500 hover:bg-blue-600" 
@@ -202,8 +211,8 @@ const ProductDetail = () => {
           </div>
 
           {relatedProducts.length > 0 && (
-            <div className="mt-8">
-              <h2 className="text-2xl font-bold mb-4">Related Products</h2>
+            <div className="mt-12">
+              <h2 className="text-2xl font-bold mb-6">Related Products</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 {relatedProducts.map((relatedProduct) => (
                   <Link to={`/product/${relatedProduct.id}`} key={relatedProduct.id}>
@@ -217,7 +226,7 @@ const ProductDetail = () => {
                           />
                         </div>
                         <div className="p-4">
-                          <h3 className="font-medium">{relatedProduct.name}</h3>
+                          <h3 className="font-medium line-clamp-2">{relatedProduct.name}</h3>
                         </div>
                       </CardContent>
                     </Card>

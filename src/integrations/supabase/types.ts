@@ -97,6 +97,7 @@ export type Database = {
           name: string
           preview_image: string | null
           updated_at: string
+          video_urls: string[] | null
         }
         Insert: {
           alibaba_url?: string | null
@@ -110,6 +111,7 @@ export type Database = {
           name: string
           preview_image?: string | null
           updated_at?: string
+          video_urls?: string[] | null
         }
         Update: {
           alibaba_url?: string | null
@@ -123,6 +125,7 @@ export type Database = {
           name?: string
           preview_image?: string | null
           updated_at?: string
+          video_urls?: string[] | null
         }
         Relationships: [
           {
