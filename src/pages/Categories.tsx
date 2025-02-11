@@ -10,15 +10,20 @@ const Categories = () => {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       <ScrollArea className="flex-grow">
-        <main className="max-w-7xl mx-auto px-4 py-12">
+        <main className="container mx-auto px-4 py-12">
           <motion.div 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-lg shadow-md p-6"
+            className="space-y-8"
           >
-            <h1 className="text-3xl font-bold text-purple-800 mb-8">
-              Category Management
-            </h1>
+            <div className="flex flex-col gap-4">
+              <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-500">
+                Category Management
+              </h1>
+              <p className="text-muted-foreground">
+                Manage your product categories and organize your inventory efficiently
+              </p>
+            </div>
 
             <CategoryManagement />
           </motion.div>

@@ -66,86 +66,91 @@ const SubCategory = () => {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       <ScrollArea className="flex-grow">
-        <main className="max-w-7xl mx-auto px-4 py-12">
+        <main className="container mx-auto px-4 py-12">
           <motion.div 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex justify-between items-center mb-6"
+            className="space-y-8"
           >
-            <h1 className="text-2xl font-bold gradient-text">
-              {category} Products
-            </h1>
-            <p className="text-sm text-gray-400">
-              {filteredProducts.length} products found
-            </p>
-          </motion.div>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div>
+                <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-500">
+                  {category} Products
+                </h1>
+                <p className="text-muted-foreground mt-2">
+                  {filteredProducts.length} products found
+                </p>
+              </div>
 
-          <div className="relative mb-6">
-            <input
-              type="search"
-              placeholder="Search products..."
-              value={searchQuery}
-              onChange={handleSearch}
-              className="w-full md:w-[300px] bg-background border border-purple-700/20 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20"
-            />
-            <Button variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-2">
-              <Search className="h-4 w-4" />
-            </Button>
-          </div>
-
-          {filteredProducts.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-400">No products found matching your search.</p>
+              <div className="relative w-full md:w-[300px]">
+                <input
+                  type="search"
+                  placeholder="Search products..."
+                  value={searchQuery}
+                  onChange={handleSearch}
+                  className="w-full bg-white/50 backdrop-blur-sm border border-purple-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-colors"
+                />
+                <Button variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-3">
+                  <Search className="h-4 w-4 text-purple-500" />
+                </Button>
+              </div>
             </div>
-          ) : (
-            <ProductGrid products={paginatedProducts} />
-          )}
 
-          {filteredProducts.length > ITEMS_PER_PAGE && (
-            <div className="mt-8 flex justify-center">
-              <Pagination>
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious 
-                      onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
-                      className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                    />
-                  </PaginationItem>
-                  
-                  {Array.from({ length: totalPages }, (_, i) => i + 1)
-                    .filter(page => {
-                      if (page === 1 || page === totalPages) return true;
-                      if (page >= currentPage - 1 && page <= currentPage + 1) return true;
-                      return false;
-                    })
-                    .map((page, index, array) => (
-                      <React.Fragment key={page}>
-                        {index > 0 && array[index - 1] !== page - 1 && (
+            {filteredProducts.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">No products found matching your search.</p>
+              </div>
+            ) : (
+              <ProductGrid products={paginatedProducts} />
+            )}
+
+            {filteredProducts.length > ITEMS_PER_PAGE && (
+              <div className="mt-8 flex justify-center">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+                        className={`${currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer hover:bg-purple-50"}`}
+                      />
+                    </PaginationItem>
+                    
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter(page => {
+                        if (page === 1 || page === totalPages) return true;
+                        if (page >= currentPage - 1 && page <= currentPage + 1) return true;
+                        return false;
+                      })
+                      .map((page, index, array) => (
+                        <React.Fragment key={page}>
+                          {index > 0 && array[index - 1] !== page - 1 && (
+                            <PaginationItem>
+                              <PaginationEllipsis />
+                            </PaginationItem>
+                          )}
                           <PaginationItem>
-                            <PaginationEllipsis />
+                            <PaginationLink
+                              isActive={currentPage === page}
+                              onClick={() => handlePageChange(page)}
+                              className={currentPage === page ? "bg-purple-500 text-white hover:bg-purple-600" : "hover:bg-purple-50"}
+                            >
+                              {page}
+                            </PaginationLink>
                           </PaginationItem>
-                        )}
-                        <PaginationItem>
-                          <PaginationLink
-                            isActive={currentPage === page}
-                            onClick={() => handlePageChange(page)}
-                          >
-                            {page}
-                          </PaginationLink>
-                        </PaginationItem>
-                      </React.Fragment>
-                    ))}
+                        </React.Fragment>
+                      ))}
 
-                  <PaginationItem>
-                    <PaginationNext
-                      onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
-                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-            </div>
-          )}
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
+                        className={`${currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer hover:bg-purple-50"}`}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
+          </motion.div>
         </main>
       </ScrollArea>
       <Footer />
