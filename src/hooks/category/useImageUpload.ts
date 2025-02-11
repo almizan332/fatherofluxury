@@ -9,22 +9,35 @@ export function useImageUpload() {
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      try {
-        setSelectedImage(file);
-        const imageUrl = await uploadCategoryImage(file);
-        return imageUrl;
-      } catch (error) {
-        console.error('Error uploading image:', error);
-        toast({
-          title: "Error",
-          description: "Failed to upload image",
-          variant: "destructive",
-        });
-        return null;
-      }
+    if (!file) {
+      toast({
+        title: "Error",
+        description: "Please select an image to upload",
+        variant: "destructive",
+      });
+      return null;
     }
-    return null;
+
+    try {
+      setSelectedImage(file);
+      const imageUrl = await uploadCategoryImage(file);
+      
+      toast({
+        title: "Success",
+        description: "Image uploaded successfully",
+      });
+      
+      return imageUrl;
+    } catch (error: any) {
+      console.error('Error uploading image:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to upload image",
+        variant: "destructive",
+      });
+      setSelectedImage(null);
+      return null;
+    }
   };
 
   return {
