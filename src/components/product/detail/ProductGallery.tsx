@@ -16,6 +16,11 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
   // Get signed URLs for blob:// URLs if they exist
   const allMedia = getAllMedia(product);
 
+  const handleThumbnailClick = (index: number) => {
+    setSelectedMediaIndex(index);
+    setIsGalleryOpen(true);
+  };
+
   return (
     <div className="space-y-4">
       <div 
@@ -48,7 +53,7 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
         {allMedia.map((media, index) => (
           <button
             key={index}
-            onClick={() => setSelectedMediaIndex(index)}
+            onClick={() => handleThumbnailClick(index)}
             className={`aspect-square relative rounded-lg overflow-hidden cursor-pointer border-2 transition-colors ${
               selectedMediaIndex === index ? 'border-primary' : 'border-transparent'
             }`}
