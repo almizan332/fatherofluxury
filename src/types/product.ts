@@ -8,6 +8,9 @@ export interface Product {
   gallery_images: string[];
   created_at: string;
   updated_at: string;
+  flylink_url?: string | null;
+  alibaba_url?: string | null;
+  dhgate_url?: string | null;
 }
 
 export interface CategoryImages {
