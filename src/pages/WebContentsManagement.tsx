@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,14 +11,53 @@ import { SidebarProvider, Sidebar, SidebarContent } from "@/components/ui/sideba
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+interface WebContent {
+  how_to_buy_link: string | null;
+  chat_with_us_link: string | null;
+  how_to_buy_content: string | null;
+}
+
 const WebContentsManagement = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [webContents, setWebContents] = useState({
-    howToBuyLink: "",
-    chatWithUsLink: "",
-    howToBuyContent: "",
+  const [webContents, setWebContents] = useState<WebContent>({
+    how_to_buy_link: "",
+    chat_with_us_link: "",
+    how_to_buy_content: "",
   });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchWebContents = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('web_contents')
+          .select('*')
+          .eq('id', 'default')
+          .single();
+
+        if (error) throw error;
+
+        if (data) {
+          setWebContents({
+            how_to_buy_link: data.how_to_buy_link || "",
+            chat_with_us_link: data.chat_with_us_link || "",
+            how_to_buy_content: data.how_to_buy_content || "",
+          });
+        }
+      } catch (error: any) {
+        toast({
+          title: "Error",
+          description: "Failed to load website contents",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchWebContents();
+  }, [toast]);
 
   const handleSave = async () => {
     try {
@@ -26,9 +65,9 @@ const WebContentsManagement = () => {
         .from('web_contents')
         .upsert({
           id: 'default',
-          how_to_buy_link: webContents.howToBuyLink,
-          chat_with_us_link: webContents.chatWithUsLink,
-          how_to_buy_content: webContents.howToBuyContent,
+          how_to_buy_link: webContents.how_to_buy_link || null,
+          chat_with_us_link: webContents.chat_with_us_link || null,
+          how_to_buy_content: webContents.how_to_buy_content || null,
         });
 
       if (error) throw error;
@@ -70,42 +109,46 @@ const WebContentsManagement = () => {
           </div>
 
           <Card className="p-6">
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="howToBuyLink">How to Buy Link</Label>
-                <Input
-                  id="howToBuyLink"
-                  value={webContents.howToBuyLink}
-                  onChange={(e) => setWebContents(prev => ({ ...prev, howToBuyLink: e.target.value }))}
-                  placeholder="Enter How to Buy link"
-                />
-              </div>
+            {isLoading ? (
+              <div className="text-center py-4">Loading...</div>
+            ) : (
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="howToBuyLink">How to Buy Link</Label>
+                  <Input
+                    id="howToBuyLink"
+                    value={webContents.how_to_buy_link || ""}
+                    onChange={(e) => setWebContents(prev => ({ ...prev, how_to_buy_link: e.target.value }))}
+                    placeholder="Enter How to Buy link"
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="chatWithUsLink">Chat With Us Link</Label>
-                <Input
-                  id="chatWithUsLink"
-                  value={webContents.chatWithUsLink}
-                  onChange={(e) => setWebContents(prev => ({ ...prev, chatWithUsLink: e.target.value }))}
-                  placeholder="Enter Chat With Us link"
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="chatWithUsLink">Chat With Us Link</Label>
+                  <Input
+                    id="chatWithUsLink"
+                    value={webContents.chat_with_us_link || ""}
+                    onChange={(e) => setWebContents(prev => ({ ...prev, chat_with_us_link: e.target.value }))}
+                    placeholder="Enter Chat With Us link"
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="howToBuyContent">How to Buy Content</Label>
-                <Textarea
-                  id="howToBuyContent"
-                  value={webContents.howToBuyContent}
-                  onChange={(e) => setWebContents(prev => ({ ...prev, howToBuyContent: e.target.value }))}
-                  placeholder="Enter How to Buy content"
-                  rows={6}
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="howToBuyContent">How to Buy Content</Label>
+                  <Textarea
+                    id="howToBuyContent"
+                    value={webContents.how_to_buy_content || ""}
+                    onChange={(e) => setWebContents(prev => ({ ...prev, how_to_buy_content: e.target.value }))}
+                    placeholder="Enter How to Buy content"
+                    rows={6}
+                  />
+                </div>
 
-              <Button onClick={handleSave} className="w-full">
-                Save Changes
-              </Button>
-            </div>
+                <Button onClick={handleSave} className="w-full">
+                  Save Changes
+                </Button>
+              </div>
+            )}
           </Card>
         </div>
       </div>

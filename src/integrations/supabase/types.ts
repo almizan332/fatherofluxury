@@ -134,6 +134,33 @@ export type Database = {
           },
         ]
       }
+      web_contents: {
+        Row: {
+          chat_with_us_link: string | null
+          created_at: string
+          how_to_buy_content: string | null
+          how_to_buy_link: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          chat_with_us_link?: string | null
+          created_at?: string
+          how_to_buy_content?: string | null
+          how_to_buy_link?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          chat_with_us_link?: string | null
+          created_at?: string
+          how_to_buy_content?: string | null
+          how_to_buy_link?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
