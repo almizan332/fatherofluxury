@@ -17,8 +17,8 @@ export function CategoryOperations({ categories, setCategories, onSuccess }: Cat
     gradient: "from-purple-500 to-pink-500"
   });
 
-  const { selectedImage, setSelectedImage, handleImageUpload, isAdmin } = useImageUpload();
-  const { addCategory, updateCategory, deleteCategory } = useCategoryMutations(categories, setCategories);
+  const { selectedImage, setSelectedImage, handleImageUpload } = useImageUpload();
+  const { addCategory, updateCategory, deleteCategory, isAdmin } = useCategoryMutations(categories, setCategories);
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const imageUrl = await handleImageUpload(e);
