@@ -41,6 +41,10 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
             src={allMedia[selectedMediaIndex].url}
             alt={`${product.name} - View ${selectedMediaIndex + 1}`}
             className="w-full h-full object-contain"
+            onError={(e) => {
+              const img = e.target as HTMLImageElement;
+              img.src = '/placeholder.svg';
+            }}
           />
         )}
         <div className="absolute inset-0 bg-black/10 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -78,6 +82,10 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
                   src={media.url}
                   alt={`${product.name} thumbnail ${index + 1}`}
                   className="w-full h-full object-cover hover:opacity-80 transition-opacity"
+                  onError={(e) => {
+                    const img = e.target as HTMLImageElement;
+                    img.src = '/placeholder.svg';
+                  }}
                 />
               )}
             </button>
@@ -100,22 +108,34 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
 export const getAllMedia = (product: Product): MediaType[] => {
   const media: MediaType[] = [];
 
+  // Convert blob URLs to proper URLs
+  const convertBlobUrl = (url: string) => {
+    if (url.startsWith('blob:')) {
+      // Extract the path after the domain
+      const urlParts = url.split('lovableproject.com/');
+      if (urlParts.length > 1) {
+        return urlParts[1];
+      }
+    }
+    return url;
+  };
+
   // Handle preview image
   if (product.preview_image) {
-    media.push({ type: 'image', url: product.preview_image });
+    media.push({ type: 'image', url: convertBlobUrl(product.preview_image) });
   }
 
   // Handle gallery images
   if (product.gallery_images) {
     product.gallery_images.forEach(imageUrl => {
-      media.push({ type: 'image', url: imageUrl });
+      media.push({ type: 'image', url: convertBlobUrl(imageUrl) });
     });
   }
 
   // Handle video URLs
   if (product.video_urls) {
     product.video_urls.forEach(videoUrl => {
-      media.push({ type: 'video', url: videoUrl });
+      media.push({ type: 'video', url: convertBlobUrl(videoUrl) });
     });
   }
 

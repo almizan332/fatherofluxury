@@ -66,6 +66,10 @@ export const MediaGalleryDialog = ({
                 src={allMedia[selectedIndex].url}
                 alt={`${product.name} - View ${selectedIndex + 1}`}
                 className="max-w-full max-h-full object-contain"
+                onError={(e) => {
+                  const img = e.target as HTMLImageElement;
+                  img.src = '/placeholder.svg';
+                }}
               />
             )}
 
@@ -117,6 +121,10 @@ export const MediaGalleryDialog = ({
                         src={media.url}
                         alt={`${product.name} thumbnail ${index + 1}`}
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const img = e.target as HTMLImageElement;
+                          img.src = '/placeholder.svg';
+                        }}
                       />
                     )}
                   </button>
