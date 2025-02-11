@@ -44,8 +44,15 @@ const CategoryManagement = () => {
 
   return (
     <div className="p-4 md:p-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-        <h1 className="text-xl md:text-2xl font-bold text-right">Category Management</h1>
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+        <div className="space-y-2">
+          <h1 className="text-3xl md:text-4xl font-bold gradient-text animate-gradient-text">
+            Category Management
+          </h1>
+          <p className="text-sm md:text-base text-muted-foreground">
+            Create and manage your product categories
+          </p>
+        </div>
         <CategoryActions 
           isAdmin={isAdmin} 
           onAddClick={() => setDialogOpen(true)} 
