@@ -44,8 +44,8 @@ export function useCategories() {
             schema: 'public',
             table: 'categories'
           },
-          (payload) => {
-            console.log('Real-time update:', payload);
+          () => {
+            console.log('Categories updated, refreshing...');
             fetchCategories();
           }
         )
