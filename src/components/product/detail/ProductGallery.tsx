@@ -3,7 +3,6 @@ import { useState } from "react";
 import { Product } from "@/types/product";
 import { MediaGalleryDialog } from "./MediaGalleryDialog";
 import { MediaType } from "@/types/product";
-import { supabase } from "@/integrations/supabase/client";
 
 interface ProductGalleryProps {
   product: Product;
@@ -13,7 +12,6 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
   const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   
-  // Get signed URLs for blob:// URLs if they exist
   const allMedia = getAllMedia(product);
 
   const handleThumbnailClick = (index: number) => {
@@ -24,7 +22,7 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
   return (
     <div className="space-y-4">
       <div 
-        className="aspect-square relative rounded-lg overflow-hidden bg-gray-900 cursor-pointer group"
+        className="aspect-square relative rounded-lg overflow-hidden bg-gray-100 cursor-pointer group"
         onClick={() => setIsGalleryOpen(true)}
       >
         {allMedia[selectedMediaIndex]?.type === 'video' ? (
@@ -49,7 +47,7 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
         )}
       </div>
 
-      <div className="grid grid-cols-5 gap-2">
+      <div className="grid grid-cols-4 sm:grid-cols-5 lg:grid-cols-6 gap-2">
         {allMedia.map((media, index) => (
           <button
             key={index}
@@ -101,45 +99,29 @@ export const getAllMedia = (product: Product): MediaType[] => {
 
   // Handle preview image
   if (product.preview_image) {
-    // If the URL starts with blob://, it's a temporary URL that needs to be handled differently
-    if (product.preview_image.startsWith('blob://')) {
-      const cleanPath = product.preview_image.replace('blob://', '');
-      media.push({ 
-        type: 'image', 
-        url: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${cleanPath}`
-      });
-    } else {
-      media.push({ type: 'image', url: product.preview_image });
-    }
+    const url = product.preview_image.startsWith('blob://')
+      ? `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${product.preview_image.replace('blob://', '')}`
+      : product.preview_image;
+    media.push({ type: 'image', url });
   }
 
   // Handle gallery images
   if (product.gallery_images) {
-    product.gallery_images.forEach(url => {
-      if (url.startsWith('blob://')) {
-        const cleanPath = url.replace('blob://', '');
-        media.push({ 
-          type: 'image', 
-          url: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${cleanPath}`
-        });
-      } else {
-        media.push({ type: 'image', url });
-      }
+    product.gallery_images.forEach(imageUrl => {
+      const url = imageUrl.startsWith('blob://')
+        ? `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${imageUrl.replace('blob://', '')}`
+        : imageUrl;
+      media.push({ type: 'image', url });
     });
   }
 
   // Handle video URLs
   if (product.video_urls) {
-    product.video_urls.forEach(url => {
-      if (url.startsWith('blob://')) {
-        const cleanPath = url.replace('blob://', '');
-        media.push({ 
-          type: 'video', 
-          url: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${cleanPath}`
-        });
-      } else {
-        media.push({ type: 'video', url });
-      }
+    product.video_urls.forEach(videoUrl => {
+      const url = videoUrl.startsWith('blob://')
+        ? `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/${videoUrl.replace('blob://', '')}`
+        : videoUrl;
+      media.push({ type: 'video', url });
     });
   }
 

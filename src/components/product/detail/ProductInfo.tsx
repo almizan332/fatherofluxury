@@ -39,7 +39,34 @@ export const ProductInfo = ({ product }: ProductInfoProps) => {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
-        <p className="text-gray-400 whitespace-pre-wrap">{product.description}</p>
+        <div className="space-y-4">
+          {/* Shipping & Customer Assurance Section */}
+          <div>
+            <h2 className="text-lg font-semibold">Shipping & Customer Assurance</h2>
+            <div className="text-gray-400 space-y-2">
+              <p>
+                <span className="font-medium">Delivery Time:</span> Orders are processed within 3-5 working days, and the product will be delivered to you within 15-20 working days.
+              </p>
+              <p>
+                <span className="font-medium">Quality Assurance:</span><br />
+                If there are quality issues with the product, please contact our customer service team. We will provide a free replacement to ensure your satisfaction. However, if there are any remaining defects, we guarantee a free refund or resend of the product.
+              </p>
+              <p>
+                <span className="font-medium">Track Your Order:</span><br />
+                Easily monitor your shipment's status by visiting https://www.17track.net.
+              </p>
+              <p>
+                We are committed to providing you with a smooth shopping experience and top-quality service. Please feel free to reach out for any assistance!
+              </p>
+            </div>
+          </div>
+
+          {/* Product Description */}
+          <div>
+            <h2 className="text-lg font-semibold">Product Description</h2>
+            <p className="text-gray-400 whitespace-pre-wrap">{product.description}</p>
+          </div>
+        </div>
       </div>
 
       <div className="space-y-3">
