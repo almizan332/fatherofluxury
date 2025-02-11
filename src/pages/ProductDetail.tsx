@@ -24,31 +24,14 @@ const ProductDetail = () => {
 
   const fetchProduct = async () => {
     try {
-      let productData = null;
-      
-      // Try to parse as number first
-      const numericId = parseInt(id);
-      
-      if (!isNaN(numericId)) {
-        // If it's a valid number, fetch using limit/offset
-        const { data, error } = await supabase
-          .from('products')
-          .select('*, categories(name)')
-          .limit(1)
-          .offset(numericId - 1)
-          .maybeSingle();
-        
-        if (!error) productData = data;
-      } else {
-        // If not a number, try UUID search
-        const { data, error } = await supabase
-          .from('products')
-          .select('*, categories(name)')
-          .eq('id', id)
-          .maybeSingle();
-          
-        if (!error) productData = data;
-      }
+      // Try to find product by name
+      const { data: productData, error } = await supabase
+        .from('products')
+        .select('*, categories(name)')
+        .ilike('name', id?.replace(/-/g, ' '))
+        .maybeSingle();
+
+      if (error) throw error;
 
       if (productData) {
         setProduct(productData);
