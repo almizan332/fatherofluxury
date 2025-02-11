@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Product } from "@/types/product";
 import { MediaGalleryDialog } from "./MediaGalleryDialog";
 import { MediaType } from "@/types/product";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ProductGalleryProps {
   product: Product;
@@ -13,6 +14,7 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
 
   const allMedia = getAllMedia(product);
+  console.log('Media array:', allMedia); // Debug log
 
   return (
     <div className="space-y-2">
@@ -36,6 +38,7 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
               alt={`${product.name} - View ${selectedMediaIndex + 1}`}
               className="max-w-full max-h-full object-contain"
               onError={(e) => {
+                console.error('Image load error:', e);
                 const img = e.target as HTMLImageElement;
                 img.src = '/placeholder.svg';
               }}
@@ -75,6 +78,7 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
                   alt={`${product.name} thumbnail ${index + 1}`}
                   className="max-w-full max-h-full object-contain"
                   onError={(e) => {
+                    console.error('Thumbnail load error:', e);
                     const img = e.target as HTMLImageElement;
                     img.src = '/placeholder.svg';
                   }}
@@ -100,31 +104,38 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
 export const getAllMedia = (product: Product): MediaType[] => {
   const media: MediaType[] = [];
 
+  const getPublicUrl = (path: string) => {
+    if (!path) return '';
+    // Remove the 'blob:' prefix if it exists
+    const cleanPath = path.replace('blob:', '');
+    // Remove any leading slashes
+    const trimmedPath = cleanPath.replace(/^\/+/, '');
+    // Get the public URL
+    return `${window.location.origin}/${trimmedPath}`;
+  };
+
   // Handle preview image
   if (product.preview_image) {
-    media.push({ 
-      type: 'image', 
-      url: `${window.location.origin}/${product.preview_image.replace('blob:', '')}`
-    });
+    const url = getPublicUrl(product.preview_image);
+    console.log('Preview image URL:', url); // Debug log
+    media.push({ type: 'image', url });
   }
 
   // Handle gallery images
   if (product.gallery_images && Array.isArray(product.gallery_images)) {
     product.gallery_images.forEach(imageUrl => {
-      media.push({ 
-        type: 'image', 
-        url: `${window.location.origin}/${imageUrl.replace('blob:', '')}`
-      });
+      const url = getPublicUrl(imageUrl);
+      console.log('Gallery image URL:', url); // Debug log
+      media.push({ type: 'image', url });
     });
   }
 
   // Handle video URLs
   if (product.video_urls && Array.isArray(product.video_urls)) {
     product.video_urls.forEach(videoUrl => {
-      media.push({ 
-        type: 'video', 
-        url: `${window.location.origin}/${videoUrl.replace('blob:', '')}`
-      });
+      const url = getPublicUrl(videoUrl);
+      console.log('Video URL:', url); // Debug log
+      media.push({ type: 'video', url });
     });
   }
 
