@@ -10,6 +10,11 @@ import { ProductGallery } from "@/components/product/detail/ProductGallery";
 import { ProductInfo } from "@/components/product/detail/ProductInfo";
 import { RelatedProducts } from "@/components/product/detail/RelatedProducts";
 
+const isUUID = (str: string) => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+};
+
 const ProductDetail = () => {
   const { id } = useParams();
   const [product, setProduct] = useState<Product | null>(null);
@@ -27,30 +32,34 @@ const ProductDetail = () => {
   const fetchProduct = async () => {
     try {
       setIsLoading(true);
-      console.log('Attempting UUID lookup for:', id);
-      
-      // First try UUID lookup
-      let { data: productData, error } = await supabase
-        .from('products')
-        .select('*, categories(name)')
-        .eq('id', id)
-        .maybeSingle();
+      let productData = null;
+      let error = null;
 
-      console.log('UUID lookup result:', productData, error);
-
-      // If not found by UUID, try name-based lookup
-      if (!productData && !error) {
-        console.log('UUID lookup failed, trying name-based lookup');
-        const { data: nameProductData, error: nameError } = await supabase
+      if (isUUID(id!)) {
+        console.log('Attempting UUID lookup for:', id);
+        const result = await supabase
           .from('products')
           .select('*, categories(name)')
-          .ilike('name', id?.replace(/-/g, ' '))
+          .eq('id', id)
           .maybeSingle();
-
-        console.log('Name-based lookup result:', nameProductData, nameError);
-
-        if (nameError) throw nameError;
-        productData = nameProductData;
+        
+        productData = result.data;
+        error = result.error;
+        console.log('UUID lookup result:', productData, error);
+      } else {
+        console.log('Attempting name-based lookup for:', id);
+        const decodedName = decodeURIComponent(id!.replace(/-/g, ' '));
+        console.log('Decoded name:', decodedName);
+        
+        const result = await supabase
+          .from('products')
+          .select('*, categories(name)')
+          .ilike('name', decodedName)
+          .maybeSingle();
+        
+        productData = result.data;
+        error = result.error;
+        console.log('Name-based lookup result:', productData, error);
       }
 
       if (error) throw error;
@@ -71,7 +80,7 @@ const ProductDetail = () => {
           setRelatedProducts(relatedData || []);
         }
       } else {
-        console.log('Product not found after both lookups');
+        console.log('Product not found after lookup');
         toast({
           title: "Product not found",
           description: "The requested product could not be found.",
