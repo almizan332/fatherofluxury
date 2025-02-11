@@ -15,6 +15,12 @@ import ImageUploadField from "./form/ImageUploadField";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 
 interface ProductFormDialogProps {
   product?: Product;
@@ -74,7 +80,6 @@ const ProductFormDialog = ({ product, categories, onSuccess, onClose }: ProductF
     }
 
     try {
-      // Only include non-empty affiliate links
       const productData = {
         name: newProduct.name,
         category_id: newProduct.category_id,
@@ -93,7 +98,6 @@ const ProductFormDialog = ({ product, categories, onSuccess, onClose }: ProductF
           .eq('id', product.id);
 
         if (error) throw error;
-
         toast({
           title: "Product updated",
           description: "The product has been updated successfully",
@@ -104,7 +108,6 @@ const ProductFormDialog = ({ product, categories, onSuccess, onClose }: ProductF
           .insert([productData]);
 
         if (error) throw error;
-
         toast({
           title: "Product added",
           description: "The new product has been added successfully",
@@ -123,32 +126,53 @@ const ProductFormDialog = ({ product, categories, onSuccess, onClose }: ProductF
   };
 
   return (
-    <DialogContent className="sm:max-w-[600px]">
+    <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle>
           {product ? "Edit Product" : "Add New Product"}
         </DialogTitle>
       </DialogHeader>
-      <div className="grid gap-4 py-4">
-        <ProductBasicInfo
-          product={newProduct}
-          categories={categories}
-          onProductChange={handleProductChange}
-        />
-        
-        <Separator className="my-2" />
-        
-        <div className="space-y-4">
-          <Label className="text-base">Affiliate Links</Label>
-          <div className="grid gap-3">
+
+      <Tabs defaultValue="basic" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="basic">Basic Info</TabsTrigger>
+          <TabsTrigger value="images">Images</TabsTrigger>
+          <TabsTrigger value="links">Links</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="basic" className="space-y-4 mt-4">
+          <ProductBasicInfo
+            product={newProduct}
+            categories={categories}
+            onProductChange={handleProductChange}
+          />
+        </TabsContent>
+
+        <TabsContent value="images" className="space-y-4 mt-4">
+          <ImageUploadField
+            id="previewImage"
+            label="Preview Image"
+            value={newProduct.preview_image}
+            onChange={handlePreviewImageUpload}
+          />
+          <ImageUploadField
+            id="galleryImages"
+            label="Gallery Images"
+            multiple
+            value={newProduct.gallery_images}
+            onChange={handleGalleryImagesUpload}
+          />
+        </TabsContent>
+
+        <TabsContent value="links" className="space-y-4 mt-4">
+          <div className="space-y-4">
             <div>
               <Label htmlFor="flylink">Flylink URL</Label>
               <Input
                 id="flylink"
-                placeholder="Enter Flylink URL (optional)"
+                placeholder="Enter Flylink URL"
                 value={newProduct.flylink_url || ''}
                 onChange={(e) => handleProductChange({ flylink_url: e.target.value || null })}
-                className="mt-1"
               />
             </div>
             
@@ -156,10 +180,9 @@ const ProductFormDialog = ({ product, categories, onSuccess, onClose }: ProductF
               <Label htmlFor="alibaba">Alibaba URL</Label>
               <Input
                 id="alibaba"
-                placeholder="Enter Alibaba URL (optional)"
+                placeholder="Enter Alibaba URL"
                 value={newProduct.alibaba_url || ''}
                 onChange={(e) => handleProductChange({ alibaba_url: e.target.value || null })}
-                className="mt-1"
               />
             </div>
             
@@ -167,32 +190,16 @@ const ProductFormDialog = ({ product, categories, onSuccess, onClose }: ProductF
               <Label htmlFor="dhgate">DHgate URL</Label>
               <Input
                 id="dhgate"
-                placeholder="Enter DHgate URL (optional)"
+                placeholder="Enter DHgate URL"
                 value={newProduct.dhgate_url || ''}
                 onChange={(e) => handleProductChange({ dhgate_url: e.target.value || null })}
-                className="mt-1"
               />
             </div>
           </div>
-        </div>
+        </TabsContent>
+      </Tabs>
 
-        <Separator className="my-2" />
-
-        <ImageUploadField
-          id="previewImage"
-          label="Preview Image"
-          value={newProduct.preview_image}
-          onChange={handlePreviewImageUpload}
-        />
-        <ImageUploadField
-          id="galleryImages"
-          label="Gallery Images"
-          multiple
-          value={newProduct.gallery_images}
-          onChange={handleGalleryImagesUpload}
-        />
-      </div>
-      <div className="flex justify-end gap-2">
+      <div className="flex justify-end gap-2 mt-4">
         <Button variant="outline" onClick={onClose}>
           Cancel
         </Button>

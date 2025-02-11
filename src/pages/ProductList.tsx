@@ -47,6 +47,8 @@ const ProductList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
 
+  const { toast } = useToast();
+
   useEffect(() => {
     fetchProducts();
     fetchCategories();
