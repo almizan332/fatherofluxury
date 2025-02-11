@@ -26,29 +26,27 @@ const ProductDetail = () => {
     try {
       let productData = null;
       
-      // Check if id is a valid UUID format
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-      const isUUID = uuidRegex.test(id);
-
-      if (isUUID) {
-        // Try UUID search first if it's a valid UUID format
+      // Try to parse as number first
+      const numericId = parseInt(id);
+      
+      if (!isNaN(numericId)) {
+        // If it's a valid number, fetch using limit/offset
+        const { data, error } = await supabase
+          .from('products')
+          .select('*, categories(name)')
+          .limit(1)
+          .offset(numericId - 1)
+          .maybeSingle();
+        
+        if (!error) productData = data;
+      } else {
+        // If not a number, try UUID search
         const { data, error } = await supabase
           .from('products')
           .select('*, categories(name)')
           .eq('id', id)
           .maybeSingle();
           
-        if (!error) productData = data;
-      }
-
-      // If not found by UUID, try searching by row number
-      if (!productData) {
-        const { data, error } = await supabase
-          .from('products')
-          .select('*, categories(name)')
-          .range(parseInt(id) - 1, parseInt(id) - 1)
-          .maybeSingle();
-
         if (!error) productData = data;
       }
 
