@@ -81,6 +81,7 @@ const ProductList = () => {
   const [galleryImageFiles, setGalleryImageFiles] = useState<File[]>([]);
 
   const handlePreviewImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    event.preventDefault();
     const file = event.target.files?.[0];
     if (file) {
       setPreviewImageFile(file);
@@ -90,6 +91,7 @@ const ProductList = () => {
   };
 
   const handleGalleryImagesUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    event.preventDefault();
     const files = Array.from(event.target.files || []);
     setGalleryImageFiles(files);
     const imageUrls = files.map(file => URL.createObjectURL(file));
@@ -97,6 +99,7 @@ const ProductList = () => {
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    event.preventDefault();
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -141,7 +144,8 @@ const ProductList = () => {
     }
   };
 
-  const downloadExcelTemplate = () => {
+  const downloadExcelTemplate = (e: React.MouseEvent) => {
+    e.preventDefault();
     const csvRows = [
       productExcelHeaders.join(','),
       ...sampleExcelData.map(row => [
@@ -186,7 +190,8 @@ const ProductList = () => {
     }
   };
 
-  const handleDeleteSelected = () => {
+  const handleDeleteSelected = (e: React.MouseEvent) => {
+    e.preventDefault();
     const newProducts = products.filter((_, index) => !selectedProducts.includes(index));
     setProducts(newProducts);
     setSelectedProducts([]);
@@ -202,7 +207,8 @@ const ProductList = () => {
     setIsDialogOpen(true);
   };
 
-  const handleSave = () => {
+  const handleSave = (e: React.MouseEvent) => {
+    e.preventDefault();
     if (!newProduct.name || !newProduct.category) {
       toast({
         title: "Error",
@@ -270,7 +276,8 @@ const ProductList = () => {
           )}
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button onClick={() => {
+              <Button onClick={(e) => {
+                e.preventDefault();
                 setEditingProduct(null);
                 setNewProduct({
                   name: "",
@@ -477,4 +484,3 @@ const ProductList = () => {
 };
 
 export default ProductList;
-
