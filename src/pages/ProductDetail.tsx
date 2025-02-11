@@ -24,23 +24,32 @@ const ProductDetail = () => {
 
   const fetchProduct = async () => {
     try {
-      // Try to find the product by UUID first
-      let { data: productData, error: productError } = await supabase
-        .from('products')
-        .select('*, categories(name)')
-        .eq('id', id)
-        .maybeSingle();
+      let productData = null;
+      
+      // Check if id is a valid UUID format
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      const isUUID = uuidRegex.test(id);
 
-      // If not found by UUID, search by title
-      if (!productData) {
-        const { data: searchData, error: searchError } = await supabase
+      if (isUUID) {
+        // Try UUID search first if it's a valid UUID format
+        const { data, error } = await supabase
           .from('products')
           .select('*, categories(name)')
-          .ilike('name', `%${id}%`)
+          .eq('id', id)
+          .maybeSingle();
+          
+        if (!error) productData = data;
+      }
+
+      // If not found by UUID, try searching by row number
+      if (!productData) {
+        const { data, error } = await supabase
+          .from('products')
+          .select('*, categories(name)')
+          .range(parseInt(id) - 1, parseInt(id) - 1)
           .maybeSingle();
 
-        if (searchError) throw searchError;
-        productData = searchData;
+        if (!error) productData = data;
       }
 
       if (productData) {
