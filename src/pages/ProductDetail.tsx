@@ -15,6 +15,7 @@ const ProductDetail = () => {
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (id) {
@@ -24,12 +25,25 @@ const ProductDetail = () => {
 
   const fetchProduct = async () => {
     try {
-      // Try to find product by name
-      const { data: productData, error } = await supabase
+      setIsLoading(true);
+      // First try exact name match
+      let { data: productData, error } = await supabase
         .from('products')
         .select('*, categories(name)')
-        .ilike('name', id?.replace(/-/g, ' '))
+        .eq('name', id?.replace(/-/g, ' '))
         .maybeSingle();
+
+      // If not found, try case-insensitive search
+      if (!productData && !error) {
+        const { data: altProductData, error: altError } = await supabase
+          .from('products')
+          .select('*, categories(name)')
+          .ilike('name', id?.replace(/-/g, ' '))
+          .maybeSingle();
+
+        if (altError) throw altError;
+        productData = altProductData;
+      }
 
       if (error) throw error;
 
@@ -61,15 +75,34 @@ const ProductDetail = () => {
         description: "Failed to load product details",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Navbar />
+        <div className="flex-grow flex items-center justify-center">
+          <div className="animate-pulse">
+            <p className="text-lg">Loading product details...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   if (!product) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
-        <div className="flex-grow flex items-center justify-center">
-          <p>Loading product details...</p>
+        <div className="flex-grow flex flex-col items-center justify-center gap-4">
+          <p className="text-lg">Product not found</p>
+          <Link to="/" className="text-primary hover:underline">
+            Return to Home
+          </Link>
         </div>
         <Footer />
       </div>
