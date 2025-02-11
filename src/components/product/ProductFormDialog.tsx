@@ -1,25 +1,17 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import { Product } from "@/types/product";
 import { Category } from "@/components/category/types";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import ProductBasicInfo from "./form/ProductBasicInfo";
+import ImageUploadField from "./form/ImageUploadField";
 
 interface ProductFormDialogProps {
   product?: Product;
@@ -42,13 +34,17 @@ const ProductFormDialog = ({ product, categories, onSuccess, onClose }: ProductF
   const [galleryImageFiles, setGalleryImageFiles] = useState<File[]>([]);
   const { toast } = useToast();
 
+  const handleProductChange = (updates: Partial<Product>) => {
+    setNewProduct({ ...newProduct, ...updates });
+  };
+
   const handlePreviewImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     event.preventDefault();
     const file = event.target.files?.[0];
     if (file) {
       setPreviewImageFile(file);
       const imageUrl = URL.createObjectURL(file);
-      setNewProduct({ ...newProduct, preview_image: imageUrl });
+      handleProductChange({ preview_image: imageUrl });
     }
   };
 
@@ -57,7 +53,7 @@ const ProductFormDialog = ({ product, categories, onSuccess, onClose }: ProductF
     const files = Array.from(event.target.files || []);
     setGalleryImageFiles(files);
     const imageUrls = files.map(file => URL.createObjectURL(file));
-    setNewProduct({ ...newProduct, gallery_images: imageUrls });
+    handleProductChange({ gallery_images: imageUrls });
   };
 
   const handleSave = async (e: React.MouseEvent) => {
@@ -124,90 +120,24 @@ const ProductFormDialog = ({ product, categories, onSuccess, onClose }: ProductF
         </DialogTitle>
       </DialogHeader>
       <div className="grid gap-4 py-4">
-        <div className="grid gap-2">
-          <Label htmlFor="name">Product Name</Label>
-          <Input
-            id="name"
-            value={newProduct.name}
-            onChange={(e) =>
-              setNewProduct({ ...newProduct, name: e.target.value })
-            }
-          />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="category">Category</Label>
-          <Select
-            value={newProduct.category_id}
-            onValueChange={(value) =>
-              setNewProduct({ ...newProduct, category_id: value })
-            }
-          >
-            <SelectTrigger id="category">
-              <SelectValue placeholder="Select a category" />
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map((category) => (
-                <SelectItem key={category.id} value={category.id}>
-                  {category.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="description">Description</Label>
-          <Textarea
-            id="description"
-            value={newProduct.description}
-            onChange={(e) =>
-              setNewProduct({ ...newProduct, description: e.target.value })
-            }
-          />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="previewImage">Preview Image</Label>
-          <div className="flex items-center gap-2">
-            <Input
-              id="previewImage"
-              type="file"
-              accept="image/*"
-              onChange={handlePreviewImageUpload}
-              className="flex-1"
-            />
-            {newProduct.preview_image && (
-              <img
-                src={newProduct.preview_image}
-                alt="Preview"
-                className="w-12 h-12 object-cover rounded"
-              />
-            )}
-          </div>
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="galleryImages">Gallery Images</Label>
-          <div className="flex items-center gap-2">
-            <Input
-              id="galleryImages"
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleGalleryImagesUpload}
-              className="flex-1"
-            />
-          </div>
-          {newProduct.gallery_images && newProduct.gallery_images.length > 0 && (
-            <div className="flex gap-2 mt-2 overflow-x-auto">
-              {newProduct.gallery_images.map((url, index) => (
-                <img
-                  key={index}
-                  src={url}
-                  alt={`Gallery ${index + 1}`}
-                  className="w-12 h-12 object-cover rounded"
-                />
-              ))}
-            </div>
-          )}
-        </div>
+        <ProductBasicInfo
+          product={newProduct}
+          categories={categories}
+          onProductChange={handleProductChange}
+        />
+        <ImageUploadField
+          id="previewImage"
+          label="Preview Image"
+          value={newProduct.preview_image}
+          onChange={handlePreviewImageUpload}
+        />
+        <ImageUploadField
+          id="galleryImages"
+          label="Gallery Images"
+          multiple
+          value={newProduct.gallery_images}
+          onChange={handleGalleryImagesUpload}
+        />
       </div>
       <div className="flex justify-end">
         <Button onClick={handleSave}>
