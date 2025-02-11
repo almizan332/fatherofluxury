@@ -161,6 +161,62 @@ export type Database = {
         }
         Relationships: []
       }
+      yupoo_drafts: {
+        Row: {
+          alibaba_url: string | null
+          category_id: string | null
+          created_at: string
+          description: string | null
+          dhgate_url: string | null
+          flylink_url: string | null
+          gallery_images: string[] | null
+          id: string
+          name: string | null
+          preview_image: string | null
+          status: string
+          updated_at: string
+          yupoo_url: string
+        }
+        Insert: {
+          alibaba_url?: string | null
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          dhgate_url?: string | null
+          flylink_url?: string | null
+          gallery_images?: string[] | null
+          id?: string
+          name?: string | null
+          preview_image?: string | null
+          status?: string
+          updated_at?: string
+          yupoo_url: string
+        }
+        Update: {
+          alibaba_url?: string | null
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          dhgate_url?: string | null
+          flylink_url?: string | null
+          gallery_images?: string[] | null
+          id?: string
+          name?: string | null
+          preview_image?: string | null
+          status?: string
+          updated_at?: string
+          yupoo_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "yupoo_drafts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

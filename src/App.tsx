@@ -18,6 +18,7 @@ import ProductList from "./pages/ProductList";
 import BlogManagement from "./pages/BlogManagement";
 import BlogPostFormPage from "./pages/BlogPostFormPage";
 import WebContentsManagement from "./pages/WebContentsManagement";
+import YupooUpload from "./pages/YupooUpload";
 
 function App() {
   const [queryClient] = useState(() => new QueryClient());
@@ -44,6 +45,7 @@ function App() {
               <Route path="/dashboard/blog-management/add-blog" element={<BlogPostFormPage />} />
               <Route path="/dashboard/blog-management/edit/:id" element={<BlogPostFormPage />} />
               <Route path="/dashboard/web-contents" element={<WebContentsManagement />} />
+              <Route path="/dashboard/yupoo-upload" element={<YupooUpload />} />
             </Routes>
           </div>
         </TooltipProvider>
