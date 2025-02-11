@@ -11,10 +11,8 @@ import { Category } from "@/components/category/types";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ProductBasicInfo from "./form/ProductBasicInfo";
-import ImageUploadField from "./form/ImageUploadField";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
+import ProductImages from "./form/ProductImages";
+import ProductLinks from "./form/ProductLinks";
 import {
   Tabs,
   TabsContent,
@@ -149,53 +147,18 @@ const ProductFormDialog = ({ product, categories, onSuccess, onClose }: ProductF
         </TabsContent>
 
         <TabsContent value="images" className="space-y-4 mt-4">
-          <ImageUploadField
-            id="previewImage"
-            label="Preview Image"
-            value={newProduct.preview_image}
-            onChange={handlePreviewImageUpload}
-          />
-          <ImageUploadField
-            id="galleryImages"
-            label="Gallery Images"
-            multiple
-            value={newProduct.gallery_images}
-            onChange={handleGalleryImagesUpload}
+          <ProductImages
+            product={newProduct}
+            onPreviewImageUpload={handlePreviewImageUpload}
+            onGalleryImagesUpload={handleGalleryImagesUpload}
           />
         </TabsContent>
 
         <TabsContent value="links" className="space-y-4 mt-4">
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="flylink">Flylink URL</Label>
-              <Input
-                id="flylink"
-                placeholder="Enter Flylink URL"
-                value={newProduct.flylink_url || ''}
-                onChange={(e) => handleProductChange({ flylink_url: e.target.value || null })}
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="alibaba">Alibaba URL</Label>
-              <Input
-                id="alibaba"
-                placeholder="Enter Alibaba URL"
-                value={newProduct.alibaba_url || ''}
-                onChange={(e) => handleProductChange({ alibaba_url: e.target.value || null })}
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="dhgate">DHgate URL</Label>
-              <Input
-                id="dhgate"
-                placeholder="Enter DHgate URL"
-                value={newProduct.dhgate_url || ''}
-                onChange={(e) => handleProductChange({ dhgate_url: e.target.value || null })}
-              />
-            </div>
-          </div>
+          <ProductLinks
+            product={newProduct}
+            onProductChange={handleProductChange}
+          />
         </TabsContent>
       </Tabs>
 
