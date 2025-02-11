@@ -34,6 +34,10 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
               src={allMedia[selectedMediaIndex].url}
               alt={`${product.name} - View ${selectedMediaIndex + 1}`}
               className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
+              onError={(e) => {
+                const img = e.target as HTMLImageElement;
+                img.src = '/placeholder.svg';
+              }}
             />
             <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
               <div className="text-white text-lg font-medium">Click to view gallery</div>
@@ -72,6 +76,10 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
                   src={media.url}
                   alt={`${product.name} thumbnail ${index + 1}`}
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  onError={(e) => {
+                    const img = e.target as HTMLImageElement;
+                    img.src = '/placeholder.svg';
+                  }}
                 />
                 <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity" />
               </>
@@ -93,13 +101,38 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
 };
 
 export const getAllMedia = (product: Product): MediaType[] => {
-  const media = [];
-  if (product.preview_image) media.push({ type: 'image', url: product.preview_image });
+  const media: MediaType[] = [];
+
+  // Convert blob URLs to proper URLs
+  const convertBlobUrl = (url: string) => {
+    if (url.startsWith('blob:')) {
+      const urlParts = url.split('/');
+      return urlParts[urlParts.length - 1]; // Get the last part of the URL (the UUID)
+    }
+    return url;
+  };
+
+  // Handle preview image
+  if (product.preview_image) {
+    const url = convertBlobUrl(product.preview_image);
+    media.push({ type: 'image', url });
+  }
+
+  // Handle gallery images
   if (product.gallery_images) {
-    product.gallery_images.forEach(url => media.push({ type: 'image', url }));
+    product.gallery_images.forEach(imageUrl => {
+      const url = convertBlobUrl(imageUrl);
+      media.push({ type: 'image', url });
+    });
   }
-  if (product.video_urls) {
-    product.video_urls.forEach(url => media.push({ type: 'video', url }));
+
+  // Handle video URLs
+  if (product.video_urls && Array.isArray(product.video_urls)) {
+    product.video_urls.forEach(videoUrl => {
+      const url = convertBlobUrl(videoUrl);
+      media.push({ type: 'video', url });
+    });
   }
+
   return media;
 };
