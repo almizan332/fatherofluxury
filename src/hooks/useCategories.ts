@@ -19,11 +19,11 @@ export function useCategories() {
       if (error) throw error;
 
       setCategories(data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching categories:', error);
       toast({
         title: "Error",
-        description: "Failed to load categories",
+        description: error.message || "Failed to load categories",
         variant: "destructive",
       });
     } finally {
@@ -33,6 +33,27 @@ export function useCategories() {
 
   useEffect(() => {
     fetchCategories();
+
+    // Subscribe to changes
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'categories'
+        },
+        (payload) => {
+          console.log('Real-time update:', payload);
+          fetchCategories();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   return {

@@ -8,10 +8,24 @@ import { Category } from "@/components/category/types";
 export function useCategoryMutations(categories: Category[], setCategories: (categories: Category[]) => void) {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const isAdmin = localStorage.getItem("isAdmin") === "true";
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  // Check admin status on mount
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    const isAdminUser = session?.user?.user_metadata?.admin === true;
+    setIsAdmin(isAdminUser);
+    if (!isAdminUser) {
+      navigate("/login");
+    }
+  });
 
   const addCategory = async (newCategory: { name: string; image_url: string; gradient: string }) => {
     if (!isAdmin) {
+      toast({
+        title: "Unauthorized",
+        description: "You must be an admin to perform this action",
+        variant: "destructive",
+      });
       navigate("/login");
       return false;
     }
@@ -54,11 +68,11 @@ export function useCategoryMutations(categories: Category[], setCategories: (cat
       });
       
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding category:', error);
       toast({
         title: "Error",
-        description: "Failed to add category",
+        description: error.message || "Failed to add category",
         variant: "destructive",
       });
       return false;
@@ -67,6 +81,11 @@ export function useCategoryMutations(categories: Category[], setCategories: (cat
 
   const updateCategory = async (category: Category) => {
     if (!isAdmin) {
+      toast({
+        title: "Unauthorized",
+        description: "You must be an admin to perform this action",
+        variant: "destructive",
+      });
       navigate("/login");
       return false;
     }
@@ -96,11 +115,11 @@ export function useCategoryMutations(categories: Category[], setCategories: (cat
       });
 
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating category:', error);
       toast({
         title: "Error",
-        description: "Failed to update category",
+        description: error.message || "Failed to update category",
         variant: "destructive",
       });
       return false;
@@ -109,6 +128,11 @@ export function useCategoryMutations(categories: Category[], setCategories: (cat
 
   const deleteCategory = async (id: string) => {
     if (!isAdmin) {
+      toast({
+        title: "Unauthorized",
+        description: "You must be an admin to perform this action",
+        variant: "destructive",
+      });
       navigate("/login");
       return false;
     }
@@ -127,11 +151,11 @@ export function useCategoryMutations(categories: Category[], setCategories: (cat
         description: "Category deleted successfully",
       });
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting category:', error);
       toast({
         title: "Error",
-        description: "Failed to delete category",
+        description: error.message || "Failed to delete category",
         variant: "destructive",
       });
       return false;
