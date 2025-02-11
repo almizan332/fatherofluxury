@@ -1,4 +1,3 @@
-
 import { Card } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
@@ -14,12 +13,12 @@ import {
   Files, 
   Boxes,
   Search,
-  MessageSquare,
   Mail,
   UserCog,
   ListPlus,
   Upload,
-  ChevronDown
+  ChevronDown,
+  ExternalLink
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
@@ -49,10 +48,8 @@ const Dashboard = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Initial fetch of all data
     const fetchDashboardData = async () => {
       try {
-        // Fetch categories
         const { data: categoriesData, error: categoriesError } = await supabase
           .from('categories')
           .select('*');
@@ -60,19 +57,15 @@ const Dashboard = () => {
         if (categoriesError) throw categoriesError;
         setCategories(categoriesData || []);
 
-        // Calculate total products from categories
         const totalProductCount = (categoriesData || []).reduce(
           (acc, cat) => acc + (cat.product_count || 0), 
           0
         );
         setTotalProducts(totalProductCount);
 
-        // Set placeholder data for countries and pages
-        // In a real application, these would come from their respective tables
         setTotalCountries(92); // Placeholder
         setTotalPages(845); // Placeholder
 
-        // Set placeholder data for top countries
         setTopCountries([
           { country: 'United States', visits: 12500 },
           { country: 'United Kingdom', visits: 8300 },
@@ -92,7 +85,6 @@ const Dashboard = () => {
 
     fetchDashboardData();
 
-    // Subscribe to real-time changes for categories
     const channel = supabase
       .channel('schema-db-changes')
       .on(
@@ -132,7 +124,6 @@ const Dashboard = () => {
     { name: 'Jul', visits: 3490 },
   ];
 
-  // Updated stats with real-time data
   const stats = [
     { 
       title: 'Total Categories', 
@@ -173,13 +164,13 @@ const Dashboard = () => {
       url: "#",
       submenu: [
         { title: "Category List", icon: ListPlus, url: "/dashboard/categories" },
-        { title: "Product List", icon: Upload, url: "/dashboard/products" }
+        { title: "Product List", icon: Upload, url: "/dashboard/products" },
+        { title: "Upload from Yupoo", icon: ExternalLink, url: "/dashboard/yupoo-upload" }
       ]
     },
     { title: "Blog Management", icon: Files, url: "/dashboard/blog-management" },
     { title: "Dynamic Pages", icon: Boxes, url: "#" },
     { title: "SEO Pages", icon: Search, url: "#" },
-    { title: "Messages", icon: MessageSquare, url: "#" },
     { title: "Mail-settings", icon: Mail, url: "#" },
     { title: "Role Management", icon: UserCog, url: "#" },
   ];
