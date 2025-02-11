@@ -1,3 +1,4 @@
+
 import { Card } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
@@ -21,7 +22,7 @@ import {
   ChevronDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Sidebar, 
   SidebarContent, 
@@ -34,10 +35,57 @@ import {
   SidebarProvider 
 } from "@/components/ui/sidebar";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Dashboard = () => {
   const [timeRange, setTimeRange] = useState<'1d' | '1w' | '1m' | '1y'>('1w');
   const [openMenus, setOpenMenus] = useState<string[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    // Initial fetch of categories
+    const fetchCategories = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('categories')
+          .select('*');
+        
+        if (error) throw error;
+        setCategories(data || []);
+      } catch (error: any) {
+        toast({
+          title: "Error fetching categories",
+          description: error.message,
+          variant: "destructive"
+        });
+      }
+    };
+
+    fetchCategories();
+
+    // Subscribe to real-time changes
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to all changes
+          schema: 'public',
+          table: 'categories'
+        },
+        (payload) => {
+          console.log('Real-time update:', payload);
+          fetchCategories(); // Refetch categories when changes occur
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [toast]);
 
   const toggleMenu = (menuTitle: string) => {
     setOpenMenus(prev => 
@@ -65,9 +113,20 @@ const Dashboard = () => {
     { country: 'India', visits: 4800 },
   ];
 
+  // Updated stats to use real data from categories
   const stats = [
-    { title: 'Total Visitors', value: '45.2K', icon: Users, change: '+12.5%' },
-    { title: 'Avg. Time', value: '3m 42s', icon: Clock, change: '+8.2%' },
+    { 
+      title: 'Total Categories', 
+      value: categories.length.toString(), 
+      icon: Boxes, 
+      change: '+12.5%' 
+    },
+    { 
+      title: 'Total Products', 
+      value: categories.reduce((acc, cat) => acc + (cat.product_count || 0), 0).toString(), 
+      icon: ShoppingBag, 
+      change: '+8.2%' 
+    },
     { title: 'Countries', value: '92', icon: Globe, change: '+3.1%' },
     { title: 'Total Pages', value: '845', icon: FileText, change: '+5.4%' },
   ];
@@ -227,39 +286,17 @@ const Dashboard = () => {
           </div>
 
           <Card className="p-6 mb-8">
-            <h2 className="text-xl font-semibold mb-4">Traffic Overview</h2>
-            <div className="h-[400px]">
-              <ChartContainer
-                config={{
-                  visits: {
-                    label: "Visits",
-                    theme: {
-                      light: "hsl(var(--primary))",
-                      dark: "hsl(var(--primary))",
-                    },
-                  },
-                }}
-              >
-                <AreaChart data={trafficData}>
-                  <defs>
-                    <linearGradient id="colorVisits" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <ChartTooltip />
-                  <Area
-                    type="monotone"
-                    dataKey="visits"
-                    stroke="hsl(var(--primary))"
-                    fillOpacity={1}
-                    fill="url(#colorVisits)"
-                  />
-                </AreaChart>
-              </ChartContainer>
+            <h2 className="text-xl font-semibold mb-4">Categories Overview</h2>
+            <div className="space-y-4">
+              {categories.map((category) => (
+                <div key={category.id} className="flex items-center justify-between border-b pb-4">
+                  <div className="flex items-center gap-3">
+                    <Boxes className="h-5 w-5 text-muted-foreground" />
+                    <span>{category.name}</span>
+                  </div>
+                  <span className="font-semibold">{category.product_count} products</span>
+                </div>
+              ))}
             </div>
           </Card>
 
