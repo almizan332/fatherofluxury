@@ -1,10 +1,13 @@
 
 export interface Product {
-  id: number;
-  title: string;
-  image: string;
-  dateAdded: Date;
-  price: number;
+  id: string;
+  name: string;
+  category_id: string;
+  description: string;
+  preview_image: string;
+  gallery_images: string[];
+  created_at: string;
+  updated_at: string;
 }
 
 export interface CategoryImages {

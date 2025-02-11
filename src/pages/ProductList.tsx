@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -32,53 +31,76 @@ import {
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Category } from "@/components/category/types";
-
-interface Product {
-  name: string;
-  category: string;
-  description: string;
-  previewImage: string;
-  galleryImages: string[];
-}
+import { Product } from "@/types/product";
+import { supabase } from "@/integrations/supabase/client";
 
 const ProductList = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
-  const [editingProduct, setEditingProduct] = useState<{ index: number; product: Product } | null>(null);
-  const [newProduct, setNewProduct] = useState<Product>({
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+  const [editingProduct, setEditingProduct] = useState<{ id: string; product: Product } | null>(null);
+  const [newProduct, setNewProduct] = useState<Partial<Product>>({
     name: "",
-    category: "",
     description: "",
-    previewImage: "",
-    galleryImages: [],
+    preview_image: "",
+    gallery_images: [],
   });
-
-  // Add categories state
-  const [categories] = useState<Category[]>([
-    {
-      id: "1",
-      name: "Smartphones",
-      image_url: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=800&q=80",
-      gradient: "from-purple-500 to-pink-500",
-      product_count: 156,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    },
-    {
-      id: "2",
-      name: "Laptops",
-      image_url: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=800&q=80",
-      gradient: "from-blue-500 to-cyan-500",
-      product_count: 89,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }
-  ]);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   const { toast } = useToast();
   const [previewImageFile, setPreviewImageFile] = useState<File | null>(null);
   const [galleryImageFiles, setGalleryImageFiles] = useState<File[]>([]);
+
+  useEffect(() => {
+    fetchProducts();
+    fetchCategories();
+
+    // Subscribe to changes
+    const productsSubscription = supabase
+      .channel('products_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, () => {
+        fetchProducts();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(productsSubscription);
+    };
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*, categories(name)');
+      
+      if (error) throw error;
+      setProducts(data || []);
+    } catch (error: any) {
+      toast({
+        title: "Error fetching products",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*');
+      
+      if (error) throw error;
+      setCategories(data || []);
+    } catch (error: any) {
+      toast({
+        title: "Error fetching categories",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
 
   const handlePreviewImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     event.preventDefault();
@@ -86,7 +108,7 @@ const ProductList = () => {
     if (file) {
       setPreviewImageFile(file);
       const imageUrl = URL.createObjectURL(file);
-      setNewProduct({ ...newProduct, previewImage: imageUrl });
+      setNewProduct({ ...newProduct, preview_image: imageUrl });
     }
   };
 
@@ -95,52 +117,108 @@ const ProductList = () => {
     const files = Array.from(event.target.files || []);
     setGalleryImageFiles(files);
     const imageUrls = files.map(file => URL.createObjectURL(file));
-    setNewProduct({ ...newProduct, galleryImages: imageUrls });
+    setNewProduct({ ...newProduct, gallery_images: imageUrls });
   };
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    event.preventDefault();
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const text = e.target?.result as string;
-          const rows = text.split('\n');
-          const headers = rows[0].split(',');
-          const productsData: Product[] = [];
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedProducts(products.map(p => p.id));
+    } else {
+      setSelectedProducts([]);
+    }
+  };
 
-          for (let i = 1; i < rows.length; i++) {
-            if (!rows[i].trim()) continue;
-            const values = rows[i].split(',');
-            if (values.length === headers.length) {
-              const galleryImagesStr = values[4].trim();
-              const galleryImages = galleryImagesStr ? galleryImagesStr.split(';').map(url => url.trim()) : [];
-              
-              productsData.push({
-                name: values[0].trim(),
-                category: values[1].trim(),
-                description: values[2].trim(),
-                previewImage: values[3].trim(),
-                galleryImages
-              });
-            }
-          }
+  const handleSelectProduct = (id: string, checked: boolean) => {
+    if (checked) {
+      setSelectedProducts([...selectedProducts, id]);
+    } else {
+      setSelectedProducts(selectedProducts.filter(pid => pid !== id));
+    }
+  };
 
-          setProducts((prevProducts) => [...prevProducts, ...productsData]);
-          toast({
-            title: "File processed successfully",
-            description: `Imported ${productsData.length} products`,
-          });
-        } catch (error) {
-          toast({
-            title: "Error processing file",
-            description: "Please make sure the file format is correct",
-            variant: "destructive",
-          });
-        }
-      };
-      reader.readAsText(file);
+  const handleDeleteSelected = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    try {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .in('id', selectedProducts);
+
+      if (error) throw error;
+
+      setSelectedProducts([]);
+      toast({
+        title: "Products deleted",
+        description: `${selectedProducts.length} products have been deleted`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error deleting products",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEdit = (product: Product) => {
+    setEditingProduct({ id: product.id, product });
+    setNewProduct(product);
+    setIsDialogOpen(true);
+  };
+
+  const handleSave = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!newProduct.name || !newProduct.category_id) {
+      toast({
+        title: "Error",
+        description: "Please fill in at least the product name and category",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      if (editingProduct) {
+        const { error } = await supabase
+          .from('products')
+          .update(newProduct)
+          .eq('id', editingProduct.id);
+
+        if (error) throw error;
+
+        toast({
+          title: "Product updated",
+          description: "The product has been updated successfully",
+        });
+      } else {
+        const { error } = await supabase
+          .from('products')
+          .insert(newProduct);
+
+        if (error) throw error;
+
+        toast({
+          title: "Product added",
+          description: "The new product has been added successfully",
+        });
+      }
+      
+      setNewProduct({
+        name: "",
+        description: "",
+        preview_image: "",
+        gallery_images: [],
+      });
+      setPreviewImageFile(null);
+      setGalleryImageFiles([]);
+      setIsDialogOpen(false);
+      setEditingProduct(null);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -174,91 +252,6 @@ const ProductList = () => {
     });
   };
 
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedProducts(products.map((_, index) => index));
-    } else {
-      setSelectedProducts([]);
-    }
-  };
-
-  const handleSelectProduct = (index: number, checked: boolean) => {
-    if (checked) {
-      setSelectedProducts([...selectedProducts, index]);
-    } else {
-      setSelectedProducts(selectedProducts.filter(i => i !== index));
-    }
-  };
-
-  const handleDeleteSelected = (e: React.MouseEvent) => {
-    e.preventDefault();
-    const newProducts = products.filter((_, index) => !selectedProducts.includes(index));
-    setProducts(newProducts);
-    setSelectedProducts([]);
-    toast({
-      title: "Products deleted",
-      description: `${selectedProducts.length} products have been deleted`,
-    });
-  };
-
-  const handleEdit = (index: number) => {
-    setEditingProduct({ index, product: { ...products[index] } });
-    setNewProduct({ ...products[index] });
-    setIsDialogOpen(true);
-  };
-
-  const handleSave = (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (!newProduct.name || !newProduct.category) {
-      toast({
-        title: "Error",
-        description: "Please fill in at least the product name and category",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const productToSave = {
-        ...newProduct,
-      };
-
-      if (editingProduct !== null) {
-        const updatedProducts = [...products];
-        updatedProducts[editingProduct.index] = productToSave;
-        setProducts(updatedProducts);
-        toast({
-          title: "Product updated",
-          description: "The product has been updated successfully",
-        });
-      } else {
-        setProducts((prevProducts) => [...prevProducts, productToSave]);
-        toast({
-          title: "Product added",
-          description: "The new product has been added successfully",
-        });
-      }
-      
-      setNewProduct({
-        name: "",
-        category: "",
-        description: "",
-        previewImage: "",
-        galleryImages: [],
-      });
-      setPreviewImageFile(null);
-      setGalleryImageFiles([]);
-      setIsDialogOpen(false);
-      setEditingProduct(null);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "There was an error saving the product. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
@@ -281,10 +274,9 @@ const ProductList = () => {
                 setEditingProduct(null);
                 setNewProduct({
                   name: "",
-                  category: "",
                   description: "",
-                  previewImage: "",
-                  galleryImages: [],
+                  preview_image: "",
+                  gallery_images: [],
                 });
               }}>
                 <Plus className="h-4 w-4 mr-2" />
@@ -311,9 +303,9 @@ const ProductList = () => {
                 <div className="grid gap-2">
                   <Label htmlFor="category">Category</Label>
                   <Select
-                    value={newProduct.category}
+                    value={newProduct.category_id}
                     onValueChange={(value) =>
-                      setNewProduct({ ...newProduct, category: value })
+                      setNewProduct({ ...newProduct, category_id: value })
                     }
                   >
                     <SelectTrigger id="category">
@@ -321,7 +313,7 @@ const ProductList = () => {
                     </SelectTrigger>
                     <SelectContent>
                       {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.name}>
+                        <SelectItem key={category.id} value={category.id}>
                           {category.name}
                         </SelectItem>
                       ))}
@@ -348,9 +340,9 @@ const ProductList = () => {
                       onChange={handlePreviewImageUpload}
                       className="flex-1"
                     />
-                    {newProduct.previewImage && (
+                    {newProduct.preview_image && (
                       <img
-                        src={newProduct.previewImage}
+                        src={newProduct.preview_image}
                         alt="Preview"
                         className="w-12 h-12 object-cover rounded"
                       />
@@ -369,9 +361,9 @@ const ProductList = () => {
                       className="flex-1"
                     />
                   </div>
-                  {newProduct.galleryImages.length > 0 && (
+                  {newProduct.gallery_images && newProduct.gallery_images.length > 0 && (
                     <div className="flex gap-2 mt-2 overflow-x-auto">
-                      {newProduct.galleryImages.map((url, index) => (
+                      {newProduct.gallery_images.map((url, index) => (
                         <img
                           key={index}
                           src={url}
@@ -425,21 +417,21 @@ const ProductList = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {products.map((product, index) => (
-                <TableRow key={index}>
+              {products.map((product) => (
+                <TableRow key={product.id}>
                   <TableCell>
                     <Checkbox
-                      checked={selectedProducts.includes(index)}
-                      onCheckedChange={(checked) => handleSelectProduct(index, checked as boolean)}
+                      checked={selectedProducts.includes(product.id)}
+                      onCheckedChange={(checked) => handleSelectProduct(product.id, checked as boolean)}
                     />
                   </TableCell>
                   <TableCell>{product.name}</TableCell>
-                  <TableCell>{product.category}</TableCell>
+                  <TableCell>{(product as any).categories?.name}</TableCell>
                   <TableCell>{product.description}</TableCell>
                   <TableCell>
-                    {product.previewImage && (
+                    {product.preview_image && (
                       <img 
-                        src={product.previewImage} 
+                        src={product.preview_image} 
                         alt={product.name} 
                         className="w-16 h-16 object-cover rounded"
                       />
@@ -447,7 +439,7 @@ const ProductList = () => {
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                      {product.galleryImages.map((img, idx) => (
+                      {product.gallery_images?.map((img, idx) => (
                         img && (
                           <img 
                             key={idx} 
@@ -463,7 +455,7 @@ const ProductList = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleEdit(index)}
+                      onClick={() => handleEdit(product)}
                       className="h-8 w-8 p-0"
                     >
                       <Edit className="h-4 w-4" />
@@ -475,7 +467,7 @@ const ProductList = () => {
           </Table>
         ) : (
           <div className="text-center py-8 text-muted-foreground">
-            No products imported yet. Download the template and import your products.
+            No products imported yet. Add your first product or import from CSV.
           </div>
         )}
       </Card>

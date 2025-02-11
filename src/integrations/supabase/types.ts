@@ -39,6 +39,47 @@ export type Database = {
         }
         Relationships: []
       }
+      products: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          description: string | null
+          gallery_images: string[] | null
+          id: string
+          name: string
+          preview_image: string | null
+          updated_at: string
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          gallery_images?: string[] | null
+          id?: string
+          name: string
+          preview_image?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          gallery_images?: string[] | null
+          id?: string
+          name?: string
+          preview_image?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
