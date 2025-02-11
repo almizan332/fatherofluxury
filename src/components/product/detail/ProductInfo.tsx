@@ -2,12 +2,39 @@
 import { Button } from "@/components/ui/button";
 import { MessageSquare, ShoppingCart, HelpCircle } from "lucide-react";
 import { Product } from "@/types/product";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ProductInfoProps {
   product: Product;
 }
 
 export const ProductInfo = ({ product }: ProductInfoProps) => {
+  // Fetch web contents for the chat and how to buy links
+  const { data: webContents } = useQuery({
+    queryKey: ['webContents'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('web_contents')
+        .select('*')
+        .eq('id', 'default')
+        .single();
+      return data;
+    },
+  });
+
+  const handleChatClick = () => {
+    if (webContents?.chat_with_us_link) {
+      window.open(webContents.chat_with_us_link, '_blank');
+    }
+  };
+
+  const handleHowToBuyClick = () => {
+    if (webContents?.how_to_buy_link) {
+      window.open(webContents.how_to_buy_link, '_blank');
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -53,6 +80,7 @@ export const ProductInfo = ({ product }: ProductInfoProps) => {
           variant="secondary" 
           className="w-full" 
           size="lg"
+          onClick={handleChatClick}
         >
           <MessageSquare className="mr-2 h-4 w-4" />
           Chat With Us
@@ -62,6 +90,7 @@ export const ProductInfo = ({ product }: ProductInfoProps) => {
           variant="outline" 
           className="w-full" 
           size="lg"
+          onClick={handleHowToBuyClick}
         >
           <HelpCircle className="mr-2 h-4 w-4" />
           How To Buy
