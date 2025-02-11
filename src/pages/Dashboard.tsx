@@ -42,30 +42,57 @@ const Dashboard = () => {
   const [timeRange, setTimeRange] = useState<'1d' | '1w' | '1m' | '1y'>('1w');
   const [openMenus, setOpenMenus] = useState<string[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [totalCountries, setTotalCountries] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [topCountries, setTopCountries] = useState<{ country: string; visits: number; }[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
-    // Initial fetch of categories
-    const fetchCategories = async () => {
+    // Initial fetch of all data
+    const fetchDashboardData = async () => {
       try {
-        const { data, error } = await supabase
+        // Fetch categories
+        const { data: categoriesData, error: categoriesError } = await supabase
           .from('categories')
           .select('*');
         
-        if (error) throw error;
-        setCategories(data || []);
+        if (categoriesError) throw categoriesError;
+        setCategories(categoriesData || []);
+
+        // Calculate total products from categories
+        const totalProductCount = (categoriesData || []).reduce(
+          (acc, cat) => acc + (cat.product_count || 0), 
+          0
+        );
+        setTotalProducts(totalProductCount);
+
+        // Set placeholder data for countries and pages
+        // In a real application, these would come from their respective tables
+        setTotalCountries(92); // Placeholder
+        setTotalPages(845); // Placeholder
+
+        // Set placeholder data for top countries
+        setTopCountries([
+          { country: 'United States', visits: 12500 },
+          { country: 'United Kingdom', visits: 8300 },
+          { country: 'Germany', visits: 6200 },
+          { country: 'France', visits: 5100 },
+          { country: 'India', visits: 4800 },
+        ]);
+
       } catch (error: any) {
         toast({
-          title: "Error fetching categories",
+          title: "Error fetching dashboard data",
           description: error.message,
           variant: "destructive"
         });
       }
     };
 
-    fetchCategories();
+    fetchDashboardData();
 
-    // Subscribe to real-time changes
+    // Subscribe to real-time changes for categories
     const channel = supabase
       .channel('schema-db-changes')
       .on(
@@ -77,7 +104,7 @@ const Dashboard = () => {
         },
         (payload) => {
           console.log('Real-time update:', payload);
-          fetchCategories(); // Refetch categories when changes occur
+          fetchDashboardData(); // Refetch all dashboard data when changes occur
         }
       )
       .subscribe();
@@ -105,15 +132,7 @@ const Dashboard = () => {
     { name: 'Jul', visits: 3490 },
   ];
 
-  const topCountries = [
-    { country: 'United States', visits: 12500 },
-    { country: 'United Kingdom', visits: 8300 },
-    { country: 'Germany', visits: 6200 },
-    { country: 'France', visits: 5100 },
-    { country: 'India', visits: 4800 },
-  ];
-
-  // Updated stats to use real data from categories
+  // Updated stats with real-time data
   const stats = [
     { 
       title: 'Total Categories', 
@@ -123,12 +142,22 @@ const Dashboard = () => {
     },
     { 
       title: 'Total Products', 
-      value: categories.reduce((acc, cat) => acc + (cat.product_count || 0), 0).toString(), 
+      value: totalProducts.toString(), 
       icon: ShoppingBag, 
       change: '+8.2%' 
     },
-    { title: 'Countries', value: '92', icon: Globe, change: '+3.1%' },
-    { title: 'Total Pages', value: '845', icon: FileText, change: '+5.4%' },
+    { 
+      title: 'Countries', 
+      value: totalCountries.toString(), 
+      icon: Globe, 
+      change: '+3.1%' 
+    },
+    { 
+      title: 'Total Pages', 
+      value: totalPages.toString(), 
+      icon: FileText, 
+      change: '+5.4%' 
+    },
   ];
 
   const mainMenuItems = [
@@ -294,7 +323,7 @@ const Dashboard = () => {
                     <Boxes className="h-5 w-5 text-muted-foreground" />
                     <span>{category.name}</span>
                   </div>
-                  <span className="font-semibold">{category.product_count} products</span>
+                  <span className="font-semibold">{category.product_count || 0} products</span>
                 </div>
               ))}
             </div>
