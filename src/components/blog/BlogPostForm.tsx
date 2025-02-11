@@ -6,35 +6,35 @@ import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 
 interface BlogPost {
-  id?: number;
+  id?: string;
   title: string;
   excerpt: string;
   content: string;
   image: string;
   category: string;
-  readTime: string;
-  seoTitle: string;
-  seoDescription: string;
-  seoKeywords: string;
+  read_time: string;
+  seo_title: string;
+  seo_description: string;
+  seo_keywords: string;
 }
 
 interface BlogPostFormProps {
   initialData: BlogPost | null;
-  onSave: (data: BlogPost) => void;
+  onSave: (data: Omit<BlogPost, 'id'>) => void;
   onCancel: () => void;
 }
 
 const BlogPostForm = ({ initialData, onSave, onCancel }: BlogPostFormProps) => {
-  const [formData, setFormData] = useState<BlogPost>(initialData || {
-    title: "",
-    excerpt: "",
-    content: "",
-    image: "",
-    category: "",
-    readTime: "",
-    seoTitle: "",
-    seoDescription: "",
-    seoKeywords: ""
+  const [formData, setFormData] = useState<Omit<BlogPost, 'id'>>({
+    title: initialData?.title || "",
+    excerpt: initialData?.excerpt || "",
+    content: initialData?.content || "",
+    image: initialData?.image || "",
+    category: initialData?.category || "",
+    read_time: initialData?.read_time || "",
+    seo_title: initialData?.seo_title || "",
+    seo_description: initialData?.seo_description || "",
+    seo_keywords: initialData?.seo_keywords || ""
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -97,42 +97,42 @@ const BlogPostForm = ({ initialData, onSave, onCancel }: BlogPostFormProps) => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="readTime">Read Time</Label>
+            <Label htmlFor="read_time">Read Time</Label>
             <Input
-              id="readTime"
-              value={formData.readTime}
-              onChange={(e) => setFormData({ ...formData, readTime: e.target.value })}
+              id="read_time"
+              value={formData.read_time}
+              onChange={(e) => setFormData({ ...formData, read_time: e.target.value })}
               required
             />
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="seoTitle">SEO Title</Label>
+          <Label htmlFor="seo_title">SEO Title</Label>
           <Input
-            id="seoTitle"
-            value={formData.seoTitle}
-            onChange={(e) => setFormData({ ...formData, seoTitle: e.target.value })}
+            id="seo_title"
+            value={formData.seo_title}
+            onChange={(e) => setFormData({ ...formData, seo_title: e.target.value })}
             required
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="seoDescription">SEO Description</Label>
+          <Label htmlFor="seo_description">SEO Description</Label>
           <Textarea
-            id="seoDescription"
-            value={formData.seoDescription}
-            onChange={(e) => setFormData({ ...formData, seoDescription: e.target.value })}
+            id="seo_description"
+            value={formData.seo_description}
+            onChange={(e) => setFormData({ ...formData, seo_description: e.target.value })}
             required
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="seoKeywords">SEO Keywords</Label>
+          <Label htmlFor="seo_keywords">SEO Keywords</Label>
           <Input
-            id="seoKeywords"
-            value={formData.seoKeywords}
-            onChange={(e) => setFormData({ ...formData, seoKeywords: e.target.value })}
+            id="seo_keywords"
+            value={formData.seo_keywords}
+            onChange={(e) => setFormData({ ...formData, seo_keywords: e.target.value })}
             placeholder="Comma-separated keywords"
             required
           />

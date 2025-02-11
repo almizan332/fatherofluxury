@@ -1,8 +1,9 @@
+
 import { motion } from "framer-motion";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, Plus, Trash2, Edit2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -12,46 +13,55 @@ import BlogPostCard from "@/components/blog/BlogPostCard";
 import BlogPostForm from "@/components/blog/BlogPostForm";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { supabase } from "@/integrations/supabase/client";
 
-const initialBlogPosts = [
-  {
-    id: 1,
-    title: "The Future of Technology",
-    excerpt: "Exploring upcoming trends in tech and their impact on daily life...",
-    content: "Full content here...",
-    image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=800&q=80",
-    category: "Technology",
-    date: "2024-03-15",
-    readTime: "5 min read",
-    seoTitle: "The Future of Technology in 2024 | Company Name",
-    seoDescription: "Discover the latest technology trends and their impact on daily life. Learn about AI, automation, and digital transformation.",
-    seoKeywords: "technology trends, future tech, AI, automation"
-  },
-  {
-    id: 2,
-    title: "Artificial Intelligence in 2024",
-    excerpt: "How AI is transforming industries and creating new opportunities...",
-    content: "Full content here...",
-    image: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=800&q=80",
-    category: "AI",
-    date: "2024-03-14",
-    readTime: "8 min read",
-    seoTitle: "AI Trends 2024: Industry Transformation | Company Name",
-    seoDescription: "Explore how artificial intelligence is revolutionizing industries and creating new opportunities in 2024.",
-    seoKeywords: "AI, artificial intelligence, machine learning, industry transformation"
-  },
-];
+interface BlogPost {
+  id: string;
+  title: string;
+  excerpt: string;
+  content: string;
+  image: string;
+  category: string;
+  read_time: string;
+  seo_title: string;
+  seo_description: string;
+  seo_keywords: string;
+  created_at: string;
+}
 
 const BlogManagement = () => {
   const navigate = useNavigate();
-  const [blogPosts, setBlogPosts] = useState(initialBlogPosts);
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [editingPost, setEditingPost] = useState<null | typeof blogPosts[0]>(null);
-  const [selectedPosts, setSelectedPosts] = useState<number[]>([]);
+  const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
+  const [selectedPosts, setSelectedPosts] = useState<string[]>([]);
   const { toast } = useToast();
 
   const isAdmin = localStorage.getItem("isAdmin") === "true";
+
+  useEffect(() => {
+    fetchBlogPosts();
+  }, []);
+
+  const fetchBlogPosts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setBlogPosts(data || []);
+    } catch (error: any) {
+      console.error('Error fetching blog posts:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch blog posts",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleAction = (action: () => void) => {
     if (!isAdmin) {
@@ -65,25 +75,57 @@ const BlogManagement = () => {
     action();
   };
 
-  const handleDelete = (id: number) => {
-    handleAction(() => {
-      setBlogPosts(posts => posts.filter(post => post.id !== id));
-      setSelectedPosts(selected => selected.filter(postId => postId !== id));
-      toast({
-        title: "Blog post deleted",
-        description: "The blog post has been successfully deleted.",
-      });
+  const handleDelete = async (id: string) => {
+    handleAction(async () => {
+      try {
+        const { error } = await supabase
+          .from('blog_posts')
+          .delete()
+          .eq('id', id);
+
+        if (error) throw error;
+
+        setBlogPosts(posts => posts.filter(post => post.id !== id));
+        setSelectedPosts(selected => selected.filter(postId => postId !== id));
+        toast({
+          title: "Blog post deleted",
+          description: "The blog post has been successfully deleted.",
+        });
+      } catch (error: any) {
+        console.error('Error deleting blog post:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete blog post",
+          variant: "destructive",
+        });
+      }
     });
   };
 
-  const handleBulkDelete = () => {
-    handleAction(() => {
-      setBlogPosts(posts => posts.filter(post => !selectedPosts.includes(post.id)));
-      setSelectedPosts([]);
-      toast({
-        title: "Posts deleted",
-        description: `${selectedPosts.length} posts have been successfully deleted.`,
-      });
+  const handleBulkDelete = async () => {
+    handleAction(async () => {
+      try {
+        const { error } = await supabase
+          .from('blog_posts')
+          .delete()
+          .in('id', selectedPosts);
+
+        if (error) throw error;
+
+        setBlogPosts(posts => posts.filter(post => !selectedPosts.includes(post.id)));
+        setSelectedPosts([]);
+        toast({
+          title: "Posts deleted",
+          description: `${selectedPosts.length} posts have been successfully deleted.`,
+        });
+      } catch (error: any) {
+        console.error('Error deleting blog posts:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete blog posts",
+          variant: "destructive",
+        });
+      }
     });
   };
 
@@ -114,7 +156,7 @@ const BlogManagement = () => {
     });
   };
 
-  const togglePostSelection = (postId: number) => {
+  const togglePostSelection = (postId: string) => {
     handleAction(() => {
       setSelectedPosts(selected => 
         selected.includes(postId)
@@ -124,25 +166,49 @@ const BlogManagement = () => {
     });
   };
 
-  const handleSave = (postData: any) => {
-    handleAction(() => {
-      if (editingPost) {
-        setBlogPosts(posts => 
-          posts.map(post => post.id === editingPost.id ? { ...post, ...postData } : post)
-        );
+  const handleSave = async (postData: Omit<BlogPost, 'id' | 'created_at'>) => {
+    handleAction(async () => {
+      try {
+        if (editingPost) {
+          const { error } = await supabase
+            .from('blog_posts')
+            .update(postData)
+            .eq('id', editingPost.id);
+
+          if (error) throw error;
+
+          setBlogPosts(posts => 
+            posts.map(post => post.id === editingPost.id ? { ...post, ...postData } : post)
+          );
+          toast({
+            title: "Blog post updated",
+            description: "The blog post has been successfully updated.",
+          });
+        } else {
+          const { data, error } = await supabase
+            .from('blog_posts')
+            .insert([postData])
+            .select();
+
+          if (error) throw error;
+          if (data) {
+            setBlogPosts(posts => [...posts, data[0]]);
+            toast({
+              title: "Blog post created",
+              description: "The new blog post has been successfully created.",
+            });
+          }
+        }
+        setIsAddDialogOpen(false);
+        setEditingPost(null);
+      } catch (error: any) {
+        console.error('Error saving blog post:', error);
         toast({
-          title: "Blog post updated",
-          description: "The blog post has been successfully updated.",
-        });
-      } else {
-        setBlogPosts(posts => [...posts, { ...postData, id: Math.max(...posts.map(p => p.id)) + 1 }]);
-        toast({
-          title: "Blog post created",
-          description: "The new blog post has been successfully created.",
+          title: "Error",
+          description: "Failed to save blog post",
+          variant: "destructive",
         });
       }
-      setIsAddDialogOpen(false);
-      setEditingPost(null);
     });
   };
 
