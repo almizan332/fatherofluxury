@@ -17,6 +17,7 @@ import ProductCategories from "./pages/ProductCategories";
 import ProductList from "./pages/ProductList";
 import BlogManagement from "./pages/BlogManagement";
 import BlogPostFormPage from "./pages/BlogPostFormPage";
+import WebContentsManagement from "./pages/WebContentsManagement";
 
 function App() {
   const [queryClient] = useState(() => new QueryClient());
@@ -42,6 +43,7 @@ function App() {
               <Route path="/dashboard/blog-management" element={<BlogManagement />} />
               <Route path="/dashboard/blog-management/add-blog" element={<BlogPostFormPage />} />
               <Route path="/dashboard/blog-management/edit/:id" element={<BlogPostFormPage />} />
+              <Route path="/dashboard/web-contents" element={<WebContentsManagement />} />
             </Routes>
           </div>
         </TooltipProvider>

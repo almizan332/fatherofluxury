@@ -165,7 +165,7 @@ const Dashboard = () => {
   ];
 
   const adminMenuItems = [
-    { title: "Website Contents", icon: MonitorDot, url: "#" },
+    { title: "Website Contents", icon: MonitorDot, url: "/dashboard/web-contents" },
     { title: "User List", icon: Users2, url: "#" },
     { 
       title: "Product", 
