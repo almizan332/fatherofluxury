@@ -91,6 +91,7 @@ export type Database = {
           created_at: string
           description: string | null
           dhgate_url: string | null
+          display_id: number
           flylink_url: string | null
           gallery_images: string[] | null
           id: string
@@ -105,6 +106,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           dhgate_url?: string | null
+          display_id?: number
           flylink_url?: string | null
           gallery_images?: string[] | null
           id?: string
@@ -119,6 +121,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           dhgate_url?: string | null
+          display_id?: number
           flylink_url?: string | null
           gallery_images?: string[] | null
           id?: string

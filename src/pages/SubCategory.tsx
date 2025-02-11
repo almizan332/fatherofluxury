@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
@@ -17,8 +17,9 @@ import {
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useToast } from "@/components/ui/use-toast";
-import { generateProducts } from "@/utils/productUtils";
 import ProductGrid from "@/components/product/ProductGrid";
+import { supabase } from "@/integrations/supabase/client";
+import { Product } from "@/types/product";
 
 const ITEMS_PER_PAGE = 20;
 
@@ -26,17 +27,51 @@ const SubCategory = () => {
   const { category } = useParams();
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  
-  const products = generateProducts(60, category || 'default');
-  const sortedProducts = [...products].sort((a, b) => 
-    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  );
-  
-  const filteredProducts = sortedProducts.filter(product => 
+
+  useEffect(() => {
+    fetchProducts();
+  }, [category]);
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const { data: categoryData, error: categoryError } = await supabase
+        .from('categories')
+        .select('id')
+        .ilike('name', category || '')
+        .single();
+
+      if (categoryError) throw categoryError;
+
+      if (categoryData) {
+        const { data: productsData, error: productsError } = await supabase
+          .from('products')
+          .select('*')
+          .eq('category_id', categoryData.id)
+          .order('display_id', { ascending: true });
+
+        if (productsError) throw productsError;
+        setProducts(productsData || []);
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load products",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
-  
+
   const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
   const paginatedProducts = filteredProducts.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
@@ -47,7 +82,7 @@ const SubCategory = () => {
     const query = e.target.value;
     setSearchQuery(query);
     setCurrentPage(1);
-    
+
     if (query && filteredProducts.length === 0) {
       toast({
         title: "No products found",
@@ -67,7 +102,7 @@ const SubCategory = () => {
       <Navbar />
       <ScrollArea className="flex-grow">
         <main className="container mx-auto px-4 py-12">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             className="space-y-8"
@@ -96,7 +131,11 @@ const SubCategory = () => {
               </div>
             </div>
 
-            {filteredProducts.length === 0 ? (
+            {loading ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">Loading products...</p>
+              </div>
+            ) : filteredProducts.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-muted-foreground">No products found matching your search.</p>
               </div>
@@ -109,12 +148,12 @@ const SubCategory = () => {
                 <Pagination>
                   <PaginationContent>
                     <PaginationItem>
-                      <PaginationPrevious 
+                      <PaginationPrevious
                         onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
                         className={`${currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer hover:bg-purple-50"}`}
                       />
                     </PaginationItem>
-                    
+
                     {Array.from({ length: totalPages }, (_, i) => i + 1)
                       .filter(page => {
                         if (page === 1 || page === totalPages) return true;
