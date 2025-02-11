@@ -1,15 +1,17 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useCategories } from "@/hooks/useCategories";
 
 const ProductCategories = () => {
-  const [categories, setCategories] = useState<Array<{ id: number; name: string }>>([]);
   const [newCategory, setNewCategory] = useState("");
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const { toast } = useToast();
+  const { categories, isLoading, fetchCategories } = useCategories();
 
   const handleAddCategory = () => {
     if (!newCategory.trim()) {
@@ -21,7 +23,7 @@ const ProductCategories = () => {
       return;
     }
 
-    setCategories([...categories, { id: Date.now(), name: newCategory }]);
+    // You'll implement the add functionality here
     setNewCategory("");
     toast({
       title: "Success",
@@ -29,12 +31,8 @@ const ProductCategories = () => {
     });
   };
 
-  const handleEditCategory = (id: number, newName: string) => {
-    setCategories(
-      categories.map((cat) =>
-        cat.id === id ? { ...cat, name: newName } : cat
-      )
-    );
+  const handleEditCategory = (id: string, newName: string) => {
+    // You'll implement the edit functionality here
     setEditingId(null);
     toast({
       title: "Success",
@@ -42,13 +40,21 @@ const ProductCategories = () => {
     });
   };
 
-  const handleDeleteCategory = (id: number) => {
-    setCategories(categories.filter((cat) => cat.id !== id));
+  const handleDeleteCategory = (id: string) => {
+    // You'll implement the delete functionality here
     toast({
       title: "Success",
       description: "Category deleted successfully",
     });
   };
+
+  if (isLoading) {
+    return (
+      <div className="p-6 flex justify-center items-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-700"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">
@@ -82,7 +88,10 @@ const ProductCategories = () => {
                   onBlur={() => setEditingId(null)}
                 />
               ) : (
-                <span>{category.name}</span>
+                <div className="flex flex-col">
+                  <span className="font-medium">{category.name}</span>
+                  <span className="text-sm text-muted-foreground">Products: {category.product_count || 0}</span>
+                </div>
               )}
               <div className="flex gap-2">
                 <Button
@@ -103,6 +112,12 @@ const ProductCategories = () => {
             </div>
           </Card>
         ))}
+
+        {categories.length === 0 && (
+          <div className="text-center py-8 text-muted-foreground">
+            No categories found. Add your first category above.
+          </div>
+        )}
       </div>
     </div>
   );
