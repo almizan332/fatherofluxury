@@ -16,15 +16,6 @@ const Categories = () => {
             animate={{ opacity: 1, y: 0 }}
             className="space-y-8"
           >
-            <div className="flex flex-col gap-4">
-              <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-500">
-                Category Management
-              </h1>
-              <p className="text-muted-foreground">
-                Manage your product categories and organize your inventory efficiently
-              </p>
-            </div>
-
             <CategoryManagement />
           </motion.div>
         </main>
