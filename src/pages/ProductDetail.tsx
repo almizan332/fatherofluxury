@@ -68,6 +68,7 @@ const ProductDetail = () => {
         console.log('Found product:', productData);
         setProduct(productData);
         
+        // Fetch related products
         if (productData.category_id) {
           const { data: relatedData, error: relatedError } = await supabase
             .from('products')
@@ -131,15 +132,19 @@ const ProductDetail = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      <main className="container py-4 flex-grow">
+      <main className="container py-8 flex-grow">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-4">
-            <nav className="text-sm text-gray-400">
-              <Link to="/">Home</Link> / <Link to="/categories">Categories</Link> / {product.name}
+          <div className="mb-6">
+            <nav className="text-sm text-muted-foreground">
+              <Link to="/" className="hover:text-foreground">Home</Link>
+              {' / '}
+              <Link to="/categories" className="hover:text-foreground">Categories</Link>
+              {' / '}
+              <span className="text-foreground">{product.name}</span>
             </nav>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
             <ProductGallery product={product} />
             <ProductInfo product={product} />
           </div>
