@@ -8,7 +8,7 @@ export const uploadCategoryImage = async (file: File) => {
   const fileName = `${Math.random().toString(36).substring(7)}.${fileExt}`;
   
   const { data, error } = await supabase.storage
-    .from('category-images')
+    .from('category_images')
     .upload(fileName, file, {
       cacheControl: '3600',
       upsert: false
@@ -20,7 +20,7 @@ export const uploadCategoryImage = async (file: File) => {
   }
 
   const { data: { publicUrl } } = supabase.storage
-    .from('category-images')
+    .from('category_images')
     .getPublicUrl(fileName);
 
   if (!publicUrl) {
@@ -29,4 +29,3 @@ export const uploadCategoryImage = async (file: File) => {
 
   return publicUrl;
 };
-

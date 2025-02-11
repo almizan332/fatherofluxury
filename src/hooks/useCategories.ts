@@ -13,7 +13,7 @@ export function useCategories() {
     try {
       const { data, error } = await supabase
         .from('categories')
-        .select('*')
+        .select('id, name, image_url, gradient, product_count, created_at, updated_at')
         .order('created_at', { ascending: false });
 
       if (error) {

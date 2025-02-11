@@ -17,8 +17,8 @@ export function useCategoryMutations(categories: Category[], setCategories: (cat
       const isAdminUser = user?.email === 'homeincome08@gmail.com';
       setIsAdmin(isAdminUser);
 
-      if (!user) {
-        console.log('No authenticated user');
+      if (!isAdminUser && window.location.pathname.includes('/dashboard')) {
+        navigate('/login');
       }
     };
 
@@ -26,30 +26,25 @@ export function useCategoryMutations(categories: Category[], setCategories: (cat
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event, session?.user?.email);
-      await checkAdminStatus();
+      const isAdminUser = session?.user?.email === 'homeincome08@gmail.com';
+      setIsAdmin(isAdminUser);
+      
+      if (!isAdminUser && window.location.pathname.includes('/dashboard')) {
+        navigate('/login');
+      }
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [navigate]);
 
   const addCategory = async (newCategory: { name: string; image_url: string; gradient: string }) => {
-    if (!isAdmin) {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session || !isAdmin) {
       toast({
         title: "Unauthorized",
         description: "You must be an admin to perform this action",
-        variant: "destructive",
-      });
-      navigate("/login");
-      return false;
-    }
-
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      toast({
-        title: "Authentication Required",
-        description: "Please log in to perform this action",
         variant: "destructive",
       });
       navigate("/login");
@@ -106,21 +101,11 @@ export function useCategoryMutations(categories: Category[], setCategories: (cat
   };
 
   const updateCategory = async (category: Category) => {
-    if (!isAdmin) {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session || !isAdmin) {
       toast({
         title: "Unauthorized",
         description: "You must be an admin to perform this action",
-        variant: "destructive",
-      });
-      navigate("/login");
-      return false;
-    }
-
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      toast({
-        title: "Authentication Required",
-        description: "Please log in to perform this action",
         variant: "destructive",
       });
       navigate("/login");
@@ -164,21 +149,11 @@ export function useCategoryMutations(categories: Category[], setCategories: (cat
   };
 
   const deleteCategory = async (id: string) => {
-    if (!isAdmin) {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session || !isAdmin) {
       toast({
         title: "Unauthorized",
         description: "You must be an admin to perform this action",
-        variant: "destructive",
-      });
-      navigate("/login");
-      return false;
-    }
-
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      toast({
-        title: "Authentication Required",
-        description: "Please log in to perform this action",
         variant: "destructive",
       });
       navigate("/login");
