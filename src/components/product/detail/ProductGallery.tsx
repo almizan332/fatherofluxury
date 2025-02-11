@@ -14,13 +14,13 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
 
   const allMedia = getAllMedia(product);
-  console.log('Media array:', allMedia); // Debug log
+  console.log('Media array:', allMedia);
 
   return (
     <div className="space-y-2">
       {/* Main Image */}
       <div 
-        className="aspect-square relative rounded-lg overflow-hidden bg-white cursor-pointer group"
+        className="aspect-square relative rounded-lg overflow-hidden bg-gray-900 cursor-pointer group"
         onClick={() => setIsGalleryOpen(true)}
       >
         {allMedia[selectedMediaIndex]?.type === 'video' ? (
@@ -36,7 +36,7 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
             <img
               src={allMedia[selectedMediaIndex].url}
               alt={`${product.name} - View ${selectedMediaIndex + 1}`}
-              className="max-w-full max-h-full object-contain"
+              className="w-full h-full object-contain"
               onError={(e) => {
                 console.error('Image load error:', e);
                 const img = e.target as HTMLImageElement;
@@ -55,7 +55,7 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
             onClick={() => {
               setSelectedMediaIndex(index);
             }}
-            className={`aspect-square relative rounded-lg overflow-hidden bg-white ${
+            className={`aspect-square relative rounded-lg overflow-hidden bg-gray-900 ${
               selectedMediaIndex === index ? 'ring-2 ring-primary' : ''
             }`}
           >
@@ -76,7 +76,7 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
                 <img
                   src={media.url}
                   alt={`${product.name} thumbnail ${index + 1}`}
-                  className="max-w-full max-h-full object-contain"
+                  className="w-full h-full object-cover"
                   onError={(e) => {
                     console.error('Thumbnail load error:', e);
                     const img = e.target as HTMLImageElement;
@@ -106,18 +106,31 @@ export const getAllMedia = (product: Product): MediaType[] => {
 
   const getPublicUrl = (path: string) => {
     if (!path) return '';
+    
+    // If the path is already a full URL, return it as is
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return path;
+    }
+
     // Remove the 'blob:' prefix if it exists
-    const cleanPath = path.replace('blob:', '');
+    const cleanPath = path.replace(/^blob:/, '');
+    
     // Remove any leading slashes
     const trimmedPath = cleanPath.replace(/^\/+/, '');
-    // Get the public URL
-    return `${window.location.origin}/${trimmedPath}`;
+
+    // Get the public URL from Supabase storage
+    const { data } = supabase.storage
+      .from('products')
+      .getPublicUrl(trimmedPath);
+
+    console.log('Generated public URL:', data.publicUrl); // Debug log
+    return data.publicUrl;
   };
 
   // Handle preview image
   if (product.preview_image) {
     const url = getPublicUrl(product.preview_image);
-    console.log('Preview image URL:', url); // Debug log
+    console.log('Preview image URL:', url);
     media.push({ type: 'image', url });
   }
 
@@ -125,7 +138,7 @@ export const getAllMedia = (product: Product): MediaType[] => {
   if (product.gallery_images && Array.isArray(product.gallery_images)) {
     product.gallery_images.forEach(imageUrl => {
       const url = getPublicUrl(imageUrl);
-      console.log('Gallery image URL:', url); // Debug log
+      console.log('Gallery image URL:', url);
       media.push({ type: 'image', url });
     });
   }
@@ -134,7 +147,7 @@ export const getAllMedia = (product: Product): MediaType[] => {
   if (product.video_urls && Array.isArray(product.video_urls)) {
     product.video_urls.forEach(videoUrl => {
       const url = getPublicUrl(videoUrl);
-      console.log('Video URL:', url); // Debug log
+      console.log('Video URL:', url);
       media.push({ type: 'video', url });
     });
   }
