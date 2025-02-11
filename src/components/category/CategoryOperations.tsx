@@ -18,14 +18,7 @@ export function CategoryOperations({ categories, setCategories, onSuccess }: Cat
   });
 
   const { selectedImage, setSelectedImage, handleImageUpload } = useImageUpload();
-  const { addCategory, updateCategory, deleteCategory, isAdmin } = useCategoryMutations(categories, setCategories);
-
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const imageUrl = await handleImageUpload(e);
-    if (imageUrl) {
-      setNewCategory(prev => ({ ...prev, image_url: imageUrl }));
-    }
-  };
+  const { addCategory, updateCategory, deleteCategory, deleteAllCategories, isAdmin } = useCategoryMutations(categories, setCategories);
 
   const handleAddCategory = async () => {
     const success = await addCategory(newCategory);
@@ -56,14 +49,22 @@ export function CategoryOperations({ categories, setCategories, onSuccess }: Cat
     }
   };
 
+  const handleDeleteAllCategories = async () => {
+    const success = await deleteAllCategories();
+    if (success && onSuccess) {
+      onSuccess();
+    }
+  };
+
   return {
     newCategory,
     setNewCategory,
     selectedImage,
-    handleImageUpload: handleImageChange,
+    handleImageUpload,
     handleAddCategory,
     handleUpdateCategory,
     handleDeleteCategory,
+    handleDeleteAllCategories,
     isAdmin,
   };
 }

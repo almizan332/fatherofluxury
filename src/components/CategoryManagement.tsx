@@ -6,6 +6,9 @@ import CategoryActions from "./category/CategoryActions";
 import { useCategories } from "@/hooks/useCategories";
 import { CategoryOperations } from "./category/CategoryOperations";
 import { Category } from "./category/types";
+import { Button } from "./ui/button";
+import { Trash2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog";
 
 const CategoryManagement = () => {
   const { categories, setCategories, isLoading, fetchCategories } = useCategories();
@@ -19,6 +22,7 @@ const CategoryManagement = () => {
     handleAddCategory,
     handleUpdateCategory,
     handleDeleteCategory,
+    handleDeleteAllCategories,
     isAdmin,
   } = CategoryOperations({ 
     categories, 
@@ -53,10 +57,35 @@ const CategoryManagement = () => {
             Create and manage your product categories
           </p>
         </div>
-        <CategoryActions 
-          isAdmin={isAdmin} 
-          onAddClick={() => setDialogOpen(true)} 
-        />
+        <div className="flex gap-2 items-center">
+          <CategoryActions 
+            isAdmin={isAdmin} 
+            onAddClick={() => setDialogOpen(true)} 
+          />
+          {isAdmin && categories.length > 0 && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="icon">
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete All Categories</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete all categories and their associated products. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDeleteAllCategories} className="bg-red-600 hover:bg-red-700">
+                    Delete All
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">

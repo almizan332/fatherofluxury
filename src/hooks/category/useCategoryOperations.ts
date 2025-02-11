@@ -122,17 +122,26 @@ export function useCategoryOperations(categories: Category[], setCategories: (ca
     }
 
     try {
-      const { error } = await supabase
+      // First, delete all products in this category
+      const { error: productsError } = await supabase
+        .from('products')
+        .delete()
+        .eq('category_id', id);
+
+      if (productsError) throw productsError;
+
+      // Then delete the category
+      const { error: categoryError } = await supabase
         .from('categories')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (categoryError) throw categoryError;
 
       setCategories(categories.filter((cat) => cat.id !== id));
       toast({
         title: "Success",
-        description: "Category deleted successfully",
+        description: "Category and associated products deleted successfully",
       });
       return true;
     } catch (error: any) {
@@ -146,9 +155,50 @@ export function useCategoryOperations(categories: Category[], setCategories: (ca
     }
   };
 
+  const deleteAllCategories = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session || session.user?.email !== 'homeincome08@gmail.com') {
+      return handleAuthError();
+    }
+
+    try {
+      // First, delete all products
+      const { error: productsError } = await supabase
+        .from('products')
+        .delete()
+        .neq('id', '');  // This deletes all products
+
+      if (productsError) throw productsError;
+
+      // Then delete all categories
+      const { error: categoriesError } = await supabase
+        .from('categories')
+        .delete()
+        .neq('id', '');  // This deletes all categories
+
+      if (categoriesError) throw categoriesError;
+
+      setCategories([]);
+      toast({
+        title: "Success",
+        description: "All categories and products have been deleted",
+      });
+      return true;
+    } catch (error: any) {
+      console.error('Error deleting all categories:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete all categories",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
   return {
     addCategory,
     updateCategory,
     deleteCategory,
+    deleteAllCategories,
   };
 }
