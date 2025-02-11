@@ -13,10 +13,13 @@ export function useCategories() {
     try {
       const { data, error } = await supabase
         .from('categories')
-        .select('*')
+        .select('id, name, image_url, gradient, product_count, created_at, updated_at')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
 
       setCategories(data || []);
     } catch (error: any) {
@@ -44,8 +47,8 @@ export function useCategories() {
             schema: 'public',
             table: 'categories'
           },
-          () => {
-            console.log('Categories updated, refreshing...');
+          (payload) => {
+            console.log('Categories changed:', payload);
             fetchCategories();
           }
         )
