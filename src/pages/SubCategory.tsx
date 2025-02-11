@@ -29,10 +29,12 @@ const SubCategory = () => {
   const { toast } = useToast();
   
   const products = generateProducts(60, category || 'default');
-  const sortedProducts = [...products].sort((a, b) => b.dateAdded.getTime() - a.dateAdded.getTime());
+  const sortedProducts = [...products].sort((a, b) => 
+    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
   
   const filteredProducts = sortedProducts.filter(product => 
-    product.title.toLowerCase().includes(searchQuery.toLowerCase())
+    product.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
   
   const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);

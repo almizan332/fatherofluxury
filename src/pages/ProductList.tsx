@@ -181,9 +181,9 @@ const ProductList = () => {
       const productData = {
         name: newProduct.name,
         category_id: newProduct.category_id,
-        description: newProduct.description,
-        preview_image: newProduct.preview_image,
-        gallery_images: newProduct.gallery_images,
+        description: newProduct.description || '',
+        preview_image: newProduct.preview_image || '',
+        gallery_images: newProduct.gallery_images || [],
       };
 
       if (editingProduct) {
@@ -201,7 +201,7 @@ const ProductList = () => {
       } else {
         const { error } = await supabase
           .from('products')
-          .insert(productData);
+          .insert([productData]);
 
         if (error) throw error;
 
@@ -210,12 +210,13 @@ const ProductList = () => {
           description: "The new product has been added successfully",
         });
       }
-      
+
       setNewProduct({
         name: "",
         description: "",
         preview_image: "",
         gallery_images: [],
+        category_id: "",
       });
       setPreviewImageFile(null);
       setGalleryImageFiles([]);
