@@ -54,7 +54,7 @@ const ProductList = () => {
     galleryImages: [],
   });
 
-  // Add categories state - now with correct types
+  // Add categories state
   const [categories] = useState<Category[]>([
     {
       id: "1",
@@ -124,7 +124,7 @@ const ProductList = () => {
             }
           }
 
-          setProducts(productsData);
+          setProducts((prevProducts) => [...prevProducts, ...productsData]);
           toast({
             title: "File processed successfully",
             description: `Imported ${productsData.length} products`,
@@ -226,7 +226,7 @@ const ProductList = () => {
           description: "The product has been updated successfully",
         });
       } else {
-        setProducts([...products, productToSave]);
+        setProducts((prevProducts) => [...prevProducts, productToSave]);
         toast({
           title: "Product added",
           description: "The new product has been added successfully",
@@ -477,3 +477,4 @@ const ProductList = () => {
 };
 
 export default ProductList;
+
