@@ -1,4 +1,3 @@
-
 import { Card } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
@@ -14,7 +13,6 @@ import {
   Files, 
   Boxes,
   Search,
-  MessageSquare,
   Mail,
   UserCog,
   ListPlus,
@@ -253,16 +251,6 @@ const Dashboard = () => {
                     </SidebarMenuItem>
                   ))}
                 </SidebarMenu>
-                <div className="px-3 mt-4">
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start"
-                    onClick={() => window.open('#', '_blank')}
-                  >
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    Messages
-                  </Button>
-                </div>
               </SidebarGroupContent>
             </SidebarGroup>
           </SidebarContent>
