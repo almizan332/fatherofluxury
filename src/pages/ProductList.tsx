@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, FileSpreadsheet, Download, Trash2, Edit } from "lucide-react";
 import { productExcelHeaders, sampleExcelData } from "@/utils/excelTemplate";
@@ -18,7 +17,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Category } from "@/components/category/types";
 import { Product } from "@/types/product";
 import { supabase } from "@/integrations/supabase/client";
-import ProductFormDialog from "./ProductFormDialog";
+import ProductFormDialog from "@/components/product/ProductFormDialog";
 
 const ProductList = () => {
   const [products, setProducts] = useState<Product[]>([]);
