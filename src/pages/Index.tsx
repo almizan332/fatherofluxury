@@ -18,15 +18,8 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { useToast } from "@/components/ui/use-toast";
-
-interface Product {
-  name: string;
-  description: string;
-  category: string;
-  previewImage: string;
-  dateAdded?: Date;
-  id?: number;
-}
+import { supabase } from "@/integrations/supabase/client";
+import { Product } from "@/types/product";
 
 const ITEMS_PER_PAGE = 120;
 
@@ -36,51 +29,43 @@ const Index = () => {
   const { toast } = useToast();
   
   useEffect(() => {
-    // Get products from localStorage
-    const storedProducts = localStorage.getItem('products');
-    console.log('Stored products:', storedProducts); // Debug log
-    
-    if (storedProducts) {
-      try {
-        const parsedProducts = JSON.parse(storedProducts).map((product: Product) => ({
-          ...product,
-          dateAdded: new Date(product.dateAdded || Date.now())
-        }));
-        console.log('Parsed products:', parsedProducts); // Debug log
-        setProducts(parsedProducts);
-        
-        if (parsedProducts.length === 0) {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*, categories(name)')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data) {
+        setProducts(data);
+        if (data.length === 0) {
           toast({
             title: "No products found",
             description: "There are currently no products to display.",
             duration: 3000,
           });
         }
-      } catch (error) {
-        console.error('Error parsing products:', error);
-        toast({
-          title: "Error",
-          description: "There was an error loading the products.",
-          variant: "destructive",
-        });
       }
-    } else {
-      console.log('No products found in localStorage'); // Debug log
+    } catch (error: any) {
+      console.error('Error fetching products:', error);
       toast({
-        title: "No products found",
-        description: "There are currently no products to display.",
-        duration: 3000,
+        title: "Error",
+        description: "There was an error loading the products.",
+        variant: "destructive",
       });
     }
-  }, []);
-
-  const sortedProducts = [...products].sort((a, b) => 
-    (b.dateAdded?.getTime() || 0) - (a.dateAdded?.getTime() || 0)
-  );
+  };
   
-  const totalPages = Math.ceil(sortedProducts.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
   
-  const paginatedProducts = sortedProducts.slice(
+  const paginatedProducts = products.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
@@ -100,12 +85,12 @@ const Index = () => {
             animate={{ opacity: 1, y: 0 }}
             className="text-xl sm:text-2xl md:text-3xl font-bold mb-6 gradient-text"
           >
-            Latest Products ({sortedProducts.length} products)
+            Latest Products ({products.length} products)
           </motion.h1>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
             {paginatedProducts.map((product, index) => (
-              <Link to={`/product/${product.id}`} key={index}>
+              <Link to={`/product/${product.id}`} key={product.id}>
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -117,7 +102,7 @@ const Index = () => {
                     <CardContent className="p-0">
                       <div className="aspect-square relative">
                         <img
-                          src={product.previewImage || 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80'}
+                          src={product.preview_image || 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80'}
                           alt={product.name}
                           className="w-full h-full object-cover"
                           loading="lazy"
@@ -127,7 +112,7 @@ const Index = () => {
                         <h3 className="text-sm font-medium text-gray-200 line-clamp-2">{product.name}</h3>
                         <div className="flex justify-between items-center mt-2">
                           <p className="text-xs text-gray-400">
-                            {new Date(product.dateAdded || Date.now()).toLocaleDateString()}
+                            {new Date(product.created_at).toLocaleDateString()}
                           </p>
                           <Button variant="ghost" size="sm" className="text-xs">
                             View Details
@@ -141,7 +126,7 @@ const Index = () => {
             ))}
           </div>
 
-          {sortedProducts.length > ITEMS_PER_PAGE && (
+          {products.length > ITEMS_PER_PAGE && (
             <div className="mt-8 mb-12 overflow-x-auto">
               <Pagination>
                 <PaginationContent className="flex-wrap justify-center gap-1">
