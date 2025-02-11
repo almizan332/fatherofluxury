@@ -111,10 +111,10 @@ export const getAllMedia = (product: Product): MediaType[] => {
   // Convert blob URLs to proper URLs
   const convertBlobUrl = (url: string) => {
     if (url.startsWith('blob:')) {
-      // Extract the path after the domain
-      const urlParts = url.split('lovableproject.com/');
-      if (urlParts.length > 1) {
-        return urlParts[1];
+      // Extract the UUID part from the blob URL
+      const matches = url.match(/\/([a-f0-9-]+)$/i);
+      if (matches && matches[1]) {
+        return matches[1];
       }
     }
     return url;
