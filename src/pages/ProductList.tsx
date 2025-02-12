@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -46,6 +47,7 @@ const ProductList = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchProducts();

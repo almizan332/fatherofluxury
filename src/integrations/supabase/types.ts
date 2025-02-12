@@ -97,6 +97,7 @@ export type Database = {
           id: string
           name: string
           preview_image: string | null
+          related_products: string[] | null
           updated_at: string
           video_urls: string[] | null
         }
@@ -112,6 +113,7 @@ export type Database = {
           id?: string
           name: string
           preview_image?: string | null
+          related_products?: string[] | null
           updated_at?: string
           video_urls?: string[] | null
         }
@@ -127,6 +129,7 @@ export type Database = {
           id?: string
           name?: string
           preview_image?: string | null
+          related_products?: string[] | null
           updated_at?: string
           video_urls?: string[] | null
         }
