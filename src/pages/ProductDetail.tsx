@@ -48,14 +48,27 @@ const ProductDetail = () => {
         console.log('UUID lookup result:', productData, error);
       } else {
         console.log('Attempting name-based lookup for:', id);
-        const decodedName = decodeURIComponent(id!.replace(/-/g, ' '));
+        const decodedName = decodeURIComponent(id!).replace(/-/g, ' ');
         console.log('Decoded name:', decodedName);
         
-        const result = await supabase
+        // First try exact match
+        let result = await supabase
           .from('products')
           .select('*, categories(name)')
           .ilike('name', decodedName)
           .maybeSingle();
+        
+        if (!result.data) {
+          // If no exact match, try removing special characters and do a partial match
+          const cleanName = decodedName.replace(/[^\w\s]/g, '').trim();
+          console.log('Trying partial match with cleaned name:', cleanName);
+          
+          result = await supabase
+            .from('products')
+            .select('*, categories(name)')
+            .ilike('name', `%${cleanName}%`)
+            .maybeSingle();
+        }
         
         productData = result.data;
         error = result.error;
