@@ -41,7 +41,7 @@ const SubCategory = () => {
       const { data: categoryData, error: categoryError } = await supabase
         .from('categories')
         .select('id')
-        .ilike('name', category || '')
+        .ilike('name', decodeURIComponent(category || ''))
         .single();
 
       if (categoryError) throw categoryError;
