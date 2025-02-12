@@ -11,14 +11,10 @@ import { Category } from "@/components/category/types";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ProductBasicInfo from "./form/ProductBasicInfo";
-import ProductImages from "./form/ProductImages";
-import ProductLinks from "./form/ProductLinks";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import ImageUploadField from "./form/ImageUploadField";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 
 interface ProductFormDialogProps {
   product?: Product;
@@ -78,6 +74,7 @@ const ProductFormDialog = ({ product, categories, onSuccess, onClose }: ProductF
     }
 
     try {
+      // Only include non-empty affiliate links
       const productData = {
         name: newProduct.name,
         category_id: newProduct.category_id,
@@ -96,6 +93,7 @@ const ProductFormDialog = ({ product, categories, onSuccess, onClose }: ProductF
           .eq('id', product.id);
 
         if (error) throw error;
+
         toast({
           title: "Product updated",
           description: "The product has been updated successfully",
@@ -106,6 +104,7 @@ const ProductFormDialog = ({ product, categories, onSuccess, onClose }: ProductF
           .insert([productData]);
 
         if (error) throw error;
+
         toast({
           title: "Product added",
           description: "The new product has been added successfully",
@@ -124,45 +123,76 @@ const ProductFormDialog = ({ product, categories, onSuccess, onClose }: ProductF
   };
 
   return (
-    <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+    <DialogContent className="sm:max-w-[600px]">
       <DialogHeader>
         <DialogTitle>
           {product ? "Edit Product" : "Add New Product"}
         </DialogTitle>
       </DialogHeader>
+      <div className="grid gap-4 py-4">
+        <ProductBasicInfo
+          product={newProduct}
+          categories={categories}
+          onProductChange={handleProductChange}
+        />
+        
+        <Separator className="my-2" />
+        
+        <div className="space-y-4">
+          <Label className="text-base">Affiliate Links</Label>
+          <div className="grid gap-3">
+            <div>
+              <Label htmlFor="flylink">Flylink URL</Label>
+              <Input
+                id="flylink"
+                placeholder="Enter Flylink URL (optional)"
+                value={newProduct.flylink_url || ''}
+                onChange={(e) => handleProductChange({ flylink_url: e.target.value || null })}
+                className="mt-1"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="alibaba">Alibaba URL</Label>
+              <Input
+                id="alibaba"
+                placeholder="Enter Alibaba URL (optional)"
+                value={newProduct.alibaba_url || ''}
+                onChange={(e) => handleProductChange({ alibaba_url: e.target.value || null })}
+                className="mt-1"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="dhgate">DHgate URL</Label>
+              <Input
+                id="dhgate"
+                placeholder="Enter DHgate URL (optional)"
+                value={newProduct.dhgate_url || ''}
+                onChange={(e) => handleProductChange({ dhgate_url: e.target.value || null })}
+                className="mt-1"
+              />
+            </div>
+          </div>
+        </div>
 
-      <Tabs defaultValue="basic" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="basic">Basic Info</TabsTrigger>
-          <TabsTrigger value="images">Images</TabsTrigger>
-          <TabsTrigger value="links">Links</TabsTrigger>
-        </TabsList>
+        <Separator className="my-2" />
 
-        <TabsContent value="basic" className="space-y-4 mt-4">
-          <ProductBasicInfo
-            product={newProduct}
-            categories={categories}
-            onProductChange={handleProductChange}
-          />
-        </TabsContent>
-
-        <TabsContent value="images" className="space-y-4 mt-4">
-          <ProductImages
-            product={newProduct}
-            onPreviewImageUpload={handlePreviewImageUpload}
-            onGalleryImagesUpload={handleGalleryImagesUpload}
-          />
-        </TabsContent>
-
-        <TabsContent value="links" className="space-y-4 mt-4">
-          <ProductLinks
-            product={newProduct}
-            onProductChange={handleProductChange}
-          />
-        </TabsContent>
-      </Tabs>
-
-      <div className="flex justify-end gap-2 mt-4">
+        <ImageUploadField
+          id="previewImage"
+          label="Preview Image"
+          value={newProduct.preview_image}
+          onChange={handlePreviewImageUpload}
+        />
+        <ImageUploadField
+          id="galleryImages"
+          label="Gallery Images"
+          multiple
+          value={newProduct.gallery_images}
+          onChange={handleGalleryImagesUpload}
+        />
+      </div>
+      <div className="flex justify-end gap-2">
         <Button variant="outline" onClick={onClose}>
           Cancel
         </Button>
