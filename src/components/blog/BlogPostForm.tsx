@@ -4,6 +4,9 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
+import ImageUploadField from "@/components/product/form/ImageUploadField";
+import { useImageUpload } from "@/hooks/category/useImageUpload";
+import { useToast } from "@/hooks/use-toast";
 
 interface BlogPost {
   id?: string;
@@ -11,8 +14,6 @@ interface BlogPost {
   excerpt: string;
   content: string;
   image: string;
-  category: string;
-  read_time: string;
   seo_title: string;
   seo_description: string;
   seo_keywords: string;
@@ -25,17 +26,28 @@ interface BlogPostFormProps {
 }
 
 const BlogPostForm = ({ initialData, onSave, onCancel }: BlogPostFormProps) => {
+  const { handleImageUpload } = useImageUpload();
+  const { toast } = useToast();
   const [formData, setFormData] = useState<Omit<BlogPost, 'id'>>({
     title: initialData?.title || "",
     excerpt: initialData?.excerpt || "",
     content: initialData?.content || "",
     image: initialData?.image || "",
-    category: initialData?.category || "",
-    read_time: initialData?.read_time || "",
     seo_title: initialData?.seo_title || "",
     seo_description: initialData?.seo_description || "",
     seo_keywords: initialData?.seo_keywords || ""
   });
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const imageUrl = await handleImageUpload(e);
+    if (imageUrl) {
+      setFormData({ ...formData, image: imageUrl });
+      toast({
+        title: "Success",
+        description: "Image uploaded successfully",
+      });
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,35 +88,12 @@ const BlogPostForm = ({ initialData, onSave, onCancel }: BlogPostFormProps) => {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="image">Image URL</Label>
-          <Input
-            id="image"
+          <ImageUploadField
+            id="blogImage"
+            label="Blog Image"
             value={formData.image}
-            onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-            required
+            onChange={handleImageChange}
           />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="category">Category</Label>
-            <Input
-              id="category"
-              value={formData.category}
-              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="read_time">Read Time</Label>
-            <Input
-              id="read_time"
-              value={formData.read_time}
-              onChange={(e) => setFormData({ ...formData, read_time: e.target.value })}
-              required
-            />
-          </div>
         </div>
 
         <div className="space-y-2">
