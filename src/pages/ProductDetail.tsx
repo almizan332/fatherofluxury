@@ -33,20 +33,19 @@ const ProductDetail = () => {
     try {
       setIsLoading(true);
       let productData = null;
-      let error = null;
 
       // First try UUID lookup
       if (isUUID(id!)) {
         console.log('Attempting UUID lookup for:', id);
-        const result = await supabase
+        const { data, error } = await supabase
           .from('products')
           .select('*, categories(name)')
           .eq('id', id)
-          .single();
+          .maybeSingle();
         
-        productData = result.data;
-        error = result.error;
-        console.log('UUID lookup result:', productData, error);
+        if (error) throw error;
+        productData = data;
+        console.log('UUID lookup result:', productData);
       }
 
       // If UUID lookup fails or id is not UUID, try name-based lookup
@@ -56,30 +55,32 @@ const ProductDetail = () => {
         console.log('Decoded name:', decodedName);
         
         // First try exact match
-        let result = await supabase
+        const { data, error } = await supabase
           .from('products')
           .select('*, categories(name)')
           .ilike('name', decodedName)
-          .single();
+          .maybeSingle();
         
-        if (!result.data) {
+        if (error) throw error;
+        productData = data;
+        
+        if (!productData) {
           // If no exact match, try removing special characters and do a partial match
           const cleanName = decodedName.replace(/[^\w\s]/g, '').trim();
           console.log('Trying partial match with cleaned name:', cleanName);
           
-          result = await supabase
+          const { data: partialData, error: partialError } = await supabase
             .from('products')
             .select('*, categories(name)')
             .ilike('name', `%${cleanName}%`)
-            .single();
+            .maybeSingle();
+          
+          if (partialError) throw partialError;
+          productData = partialData;
         }
         
-        productData = result.data;
-        error = result.error;
-        console.log('Name-based lookup result:', productData, error);
+        console.log('Name-based lookup result:', productData);
       }
-
-      if (error) throw error;
 
       if (productData) {
         console.log('Found product:', productData);
@@ -97,7 +98,7 @@ const ProductDetail = () => {
           setRelatedProducts(relatedData || []);
         }
       } else {
-        console.log('Product not found after lookup');
+        console.log('Product not found after all lookups');
         toast({
           title: "Product not found",
           description: "The requested product could not be found.",
@@ -152,13 +153,13 @@ const ProductDetail = () => {
         <div className="max-w-7xl mx-auto">
           <div className="mb-4">
             <nav className="text-sm text-gray-400">
-              <Link to="/">Home</Link> / <Link to="/categories">Categories</Link> / {product?.name}
+              <Link to="/">Home</Link> / <Link to="/categories">Categories</Link> / {product.name}
             </nav>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <ProductGallery product={product!} />
-            <ProductInfo product={product!} />
+            <ProductGallery product={product} />
+            <ProductInfo product={product} />
           </div>
 
           <RelatedProducts products={relatedProducts} />
