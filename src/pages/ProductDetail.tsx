@@ -60,25 +60,28 @@ const ProductDetail = () => {
         const decodedName = decodeURIComponent(id!).replace(/-/g, ' ');
         console.log('Decoded name:', decodedName);
         
-        // Try display_id based lookup only for small numbers
-        const match = decodedName.match(/\d+/);
-        if (match) {
-          const numericId = parseInt(match[0]);
-          if (!isNaN(numericId) && numericId <= 2147483647) { // Max PostgreSQL integer value
-            console.log('Attempting display_id lookup with:', numericId);
-            const { data: displayIdData, error: displayIdError } = await supabase
-              .from('products')
-              .select(`
-                *,
-                categories (
-                  name
-                )
-              `)
-              .eq('display_id', numericId)
-              .maybeSingle();
-            
-            if (!displayIdError && displayIdData) {
-              productData = displayIdData;
+        // Skip numeric lookup if the string contains a decimal point (likely a price)
+        if (!decodedName.includes('.')) {
+          // Try display_id based lookup only for small numbers
+          const match = decodedName.match(/\d+/);
+          if (match) {
+            const numericId = parseInt(match[0]);
+            if (!isNaN(numericId) && numericId <= 2147483647) { // Max PostgreSQL integer value
+              console.log('Attempting display_id lookup with:', numericId);
+              const { data: displayIdData, error: displayIdError } = await supabase
+                .from('products')
+                .select(`
+                  *,
+                  categories (
+                    name
+                  )
+                `)
+                .eq('display_id', numericId)
+                .maybeSingle();
+              
+              if (!displayIdError && displayIdData) {
+                productData = displayIdData;
+              }
             }
           }
         }
