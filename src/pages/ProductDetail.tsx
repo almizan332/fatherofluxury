@@ -56,30 +56,36 @@ const ProductDetail = () => {
       // If UUID lookup fails or id is not UUID, try name-based lookup
       if (!productData) {
         console.log('Attempting name-based lookup for:', id);
+        // Replace URL-encoded characters and hyphens with spaces
         const decodedName = decodeURIComponent(id!).replace(/-/g, ' ');
         console.log('Decoded name:', decodedName);
         
-        // Try exact match first
-        const { data, error } = await supabase
-          .from('products')
-          .select(`
-            *,
-            categories (
-              name
-            )
-          `)
-          .ilike('name', decodedName)
-          .maybeSingle();
-        
-        if (error) throw error;
-        productData = data;
-        
-        // If exact match fails, try partial match
-        if (!productData) {
-          const cleanName = decodedName.replace(/[^\w\s]/g, '').trim();
-          console.log('Trying partial match with cleaned name:', cleanName);
+        // Try display_id based lookup first (if it's a number)
+        const numericId = parseInt(decodedName.replace(/\D/g, ''));
+        if (!isNaN(numericId)) {
+          const { data: displayIdData, error: displayIdError } = await supabase
+            .from('products')
+            .select(`
+              *,
+              categories (
+                name
+              )
+            `)
+            .eq('display_id', numericId)
+            .maybeSingle();
           
-          const { data: partialData, error: partialError } = await supabase
+          if (!displayIdError && displayIdData) {
+            productData = displayIdData;
+          }
+        }
+
+        // If display_id lookup fails, try name-based lookup
+        if (!productData) {
+          // Remove special characters and extra spaces
+          const cleanName = decodedName.replace(/[^\w\s-]/g, '').trim();
+          console.log('Trying match with cleaned name:', cleanName);
+          
+          const { data: nameData, error: nameError } = await supabase
             .from('products')
             .select(`
               *,
@@ -88,10 +94,12 @@ const ProductDetail = () => {
               )
             `)
             .ilike('name', `%${cleanName}%`)
+            .order('created_at', { ascending: false })
+            .limit(1)
             .maybeSingle();
           
-          if (partialError) throw partialError;
-          productData = partialData;
+          if (nameError) throw nameError;
+          productData = nameData;
         }
       }
 
