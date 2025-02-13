@@ -39,7 +39,12 @@ const ProductDetail = () => {
         console.log('Attempting UUID lookup for:', id);
         const { data, error } = await supabase
           .from('products')
-          .select('*, categories(name)')
+          .select(`
+            *,
+            categories (
+              name
+            )
+          `)
           .eq('id', id)
           .maybeSingle();
         
@@ -54,38 +59,46 @@ const ProductDetail = () => {
         const decodedName = decodeURIComponent(id!).replace(/-/g, ' ');
         console.log('Decoded name:', decodedName);
         
-        // First try exact match
         const { data, error } = await supabase
           .from('products')
-          .select('*, categories(name)')
-          .ilike('name', decodedName)
+          .select(`
+            *,
+            categories (
+              name
+            )
+          `)
+          .textSearch('name', decodedName)
           .maybeSingle();
         
         if (error) throw error;
         productData = data;
         
+        // If text search fails, try partial match
         if (!productData) {
-          // If no exact match, try removing special characters and do a partial match
           const cleanName = decodedName.replace(/[^\w\s]/g, '').trim();
           console.log('Trying partial match with cleaned name:', cleanName);
           
           const { data: partialData, error: partialError } = await supabase
             .from('products')
-            .select('*, categories(name)')
+            .select(`
+              *,
+              categories (
+                name
+              )
+            `)
             .ilike('name', `%${cleanName}%`)
             .maybeSingle();
           
           if (partialError) throw partialError;
           productData = partialData;
         }
-        
-        console.log('Name-based lookup result:', productData);
       }
 
       if (productData) {
         console.log('Found product:', productData);
         setProduct(productData);
         
+        // Fetch related products from the same category
         if (productData.category_id) {
           const { data: relatedData, error: relatedError } = await supabase
             .from('products')
@@ -153,7 +166,14 @@ const ProductDetail = () => {
         <div className="max-w-7xl mx-auto">
           <div className="mb-4">
             <nav className="text-sm text-gray-400">
-              <Link to="/">Home</Link> / <Link to="/categories">Categories</Link> / {product.name}
+              <Link to="/">Home</Link> / 
+              <Link to="/categories" className="mx-1">Categories</Link> /
+              {product.categories && (
+                <Link to={`/category/${product.categories.name}`} className="mx-1">
+                  {product.categories.name}
+                </Link>
+              )} / 
+              <span className="ml-1">{product.name}</span>
             </nav>
           </div>
 
@@ -162,7 +182,9 @@ const ProductDetail = () => {
             <ProductInfo product={product} />
           </div>
 
-          <RelatedProducts products={relatedProducts} />
+          {relatedProducts.length > 0 && (
+            <RelatedProducts products={relatedProducts} />
+          )}
         </div>
       </main>
       <Footer />
