@@ -59,6 +59,7 @@ const ProductDetail = () => {
         const decodedName = decodeURIComponent(id!).replace(/-/g, ' ');
         console.log('Decoded name:', decodedName);
         
+        // Try exact match first
         const { data, error } = await supabase
           .from('products')
           .select(`
@@ -67,13 +68,13 @@ const ProductDetail = () => {
               name
             )
           `)
-          .textSearch('name', decodedName)
+          .ilike('name', decodedName)
           .maybeSingle();
         
         if (error) throw error;
         productData = data;
         
-        // If text search fails, try partial match
+        // If exact match fails, try partial match
         if (!productData) {
           const cleanName = decodedName.replace(/[^\w\s]/g, '').trim();
           console.log('Trying partial match with cleaned name:', cleanName);
