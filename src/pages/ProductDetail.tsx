@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Product } from "@/types/product";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { ProductGallery } from "@/components/product/detail/ProductGallery";
 import { ProductInfo } from "@/components/product/detail/ProductInfo";
 import { RelatedProducts } from "@/components/product/detail/RelatedProducts";
@@ -35,18 +35,22 @@ const ProductDetail = () => {
       let productData = null;
       let error = null;
 
+      // First try UUID lookup
       if (isUUID(id!)) {
         console.log('Attempting UUID lookup for:', id);
         const result = await supabase
           .from('products')
           .select('*, categories(name)')
           .eq('id', id)
-          .maybeSingle();
+          .single();
         
         productData = result.data;
         error = result.error;
         console.log('UUID lookup result:', productData, error);
-      } else {
+      }
+
+      // If UUID lookup fails or id is not UUID, try name-based lookup
+      if (!productData) {
         console.log('Attempting name-based lookup for:', id);
         const decodedName = decodeURIComponent(id!).replace(/-/g, ' ');
         console.log('Decoded name:', decodedName);
@@ -56,7 +60,7 @@ const ProductDetail = () => {
           .from('products')
           .select('*, categories(name)')
           .ilike('name', decodedName)
-          .maybeSingle();
+          .single();
         
         if (!result.data) {
           // If no exact match, try removing special characters and do a partial match
@@ -67,7 +71,7 @@ const ProductDetail = () => {
             .from('products')
             .select('*, categories(name)')
             .ilike('name', `%${cleanName}%`)
-            .maybeSingle();
+            .single();
         }
         
         productData = result.data;
@@ -148,13 +152,13 @@ const ProductDetail = () => {
         <div className="max-w-7xl mx-auto">
           <div className="mb-4">
             <nav className="text-sm text-gray-400">
-              <Link to="/">Home</Link> / <Link to="/categories">Categories</Link> / {product.name}
+              <Link to="/">Home</Link> / <Link to="/categories">Categories</Link> / {product?.name}
             </nav>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <ProductGallery product={product} />
-            <ProductInfo product={product} />
+            <ProductGallery product={product!} />
+            <ProductInfo product={product!} />
           </div>
 
           <RelatedProducts products={relatedProducts} />
