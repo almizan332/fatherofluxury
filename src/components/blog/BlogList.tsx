@@ -95,12 +95,6 @@ const BlogList = ({ posts, onCreatePost, onEdit, onDelete }: BlogListProps) => {
                   <ArrowUpDown className="h-4 w-4" />
                 </div>
               </TableHead>
-              <TableHead onClick={() => handleSort("category")} className="cursor-pointer">
-                <div className="flex items-center gap-1">
-                  SLUG
-                  <ArrowUpDown className="h-4 w-4" />
-                </div>
-              </TableHead>
               <TableHead>IMAGE</TableHead>
               <TableHead className="text-right">ACTION</TableHead>
             </TableRow>
@@ -110,7 +104,6 @@ const BlogList = ({ posts, onCreatePost, onEdit, onDelete }: BlogListProps) => {
               <TableRow key={post.id}>
                 <TableCell>{index + 1}</TableCell>
                 <TableCell className="font-medium">{post.title}</TableCell>
-                <TableCell>{post.category}</TableCell>
                 <TableCell>
                   <img
                     src={post.image}

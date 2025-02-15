@@ -4,24 +4,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { BlogPost } from "@/hooks/blog/useBlogPosts";
 
 interface BlogPostCardProps {
-  post: {
-    id: string;
-    title: string;
-    excerpt: string;
-    content: string;
-    image: string;
-    category: string;
-    read_time: string;
-    seo_title: string;
-    seo_description: string;
-    seo_keywords: string;
-    created_at: string;
-  };
+  post: BlogPost;
   isSelected?: boolean;
   onSelect?: () => void;
-  onEdit: (post: BlogPostCardProps['post']) => void;
+  onEdit: (post: BlogPost) => void;
   onDelete: (id: string) => void;
   isAdmin: boolean;
 }
@@ -74,10 +63,6 @@ const BlogPostCard = ({ post, isSelected, onSelect, onEdit, onDelete, isAdmin }:
             )}
           </div>
           <div className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-blue-400">{post.category}</span>
-              <span className="text-xs text-gray-400">{post.read_time}</span>
-            </div>
             <h2 className="text-xl font-semibold mb-2">{post.title}</h2>
             <p className="text-gray-400 text-sm mb-4">{post.excerpt}</p>
             <div className="text-xs text-gray-500">

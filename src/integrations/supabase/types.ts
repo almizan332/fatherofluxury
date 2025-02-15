@@ -11,13 +11,11 @@ export type Database = {
     Tables: {
       blog_posts: {
         Row: {
-          category: string
           content: string
           created_at: string
           excerpt: string
           id: string
           image: string
-          read_time: string
           seo_description: string
           seo_keywords: string
           seo_title: string
@@ -25,13 +23,11 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          category: string
           content: string
           created_at?: string
           excerpt: string
           id?: string
           image: string
-          read_time: string
           seo_description: string
           seo_keywords: string
           seo_title: string
@@ -39,13 +35,11 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          category?: string
           content?: string
           created_at?: string
           excerpt?: string
           id?: string
           image?: string
-          read_time?: string
           seo_description?: string
           seo_keywords?: string
           seo_title?: string
