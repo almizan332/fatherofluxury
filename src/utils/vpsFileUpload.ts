@@ -5,7 +5,8 @@ export const uploadFileToVPS = async (file: File) => {
   if (!file) throw new Error("No file provided");
 
   const fileExt = file.name.split('.').pop();
-  const fileName = `${Math.random().toString(36).substring(7)}.${fileExt}`;
+  // Added timestamp to make filename more unique
+  const fileName = `${Math.random().toString(36).substring(7)}_${Date.now()}.${fileExt}`;
   
   // Upload to temp location in Supabase first
   const { data, error } = await supabase.storage
