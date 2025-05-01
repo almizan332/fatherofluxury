@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,15 +18,24 @@ const Login = () => {
   const [isOTPSent, setIsOTPSent] = useState(false);
   const [otp, setOTP] = useState("");
   const [formData, setFormData] = useState({
-    email: "",
+    email: "homeincome08@gmail.com",
     password: ""
   });
+
+  // Check if already logged in
+  useEffect(() => {
+    if (sessionStorage.getItem('isAdminLoggedIn') === 'true') {
+      navigate('/dashboard');
+    }
+  }, [navigate]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     // Default credentials check
-    if (formData.email === "homeincome08@gmail.com" && formData.password === "almizankhan") {
+    if (formData.email === "homeincome08@gmail.com" && formData.password === "AL__mizan960390") {
+      // Store login state in session storage
+      sessionStorage.setItem('isAdminLoggedIn', 'true');
       toast.success("Login successful!");
       navigate("/dashboard");
     } else {

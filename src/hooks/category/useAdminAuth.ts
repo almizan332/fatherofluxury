@@ -10,12 +10,15 @@ export function useAdminAuth() {
   useEffect(() => {
     const checkAdminStatus = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      const user = session?.user;
-      const isAdminUser = user?.email === 'homeincome08@gmail.com';
+      
+      // Check if logged in via session or via custom credentials
+      const isLoggedIn = Boolean(session?.user) || sessionStorage.getItem('isAdminLoggedIn') === 'true';
+      const isAdminUser = session?.user?.email === 'homeincome08@gmail.com' || isLoggedIn;
+      
       setIsAdmin(isAdminUser);
 
       if (!isAdminUser && window.location.pathname.includes('/dashboard')) {
-        navigate('/login');
+        navigate('/almizan');
       }
     };
 
@@ -23,11 +26,15 @@ export function useAdminAuth() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event, session?.user?.email);
-      const isAdminUser = session?.user?.email === 'homeincome08@gmail.com';
+      
+      // Check if logged in via session or via custom credentials
+      const isLoggedIn = Boolean(session?.user) || sessionStorage.getItem('isAdminLoggedIn') === 'true';
+      const isAdminUser = session?.user?.email === 'homeincome08@gmail.com' || isLoggedIn;
+      
       setIsAdmin(isAdminUser);
       
       if (!isAdminUser && window.location.pathname.includes('/dashboard')) {
-        navigate('/login');
+        navigate('/almizan');
       }
     });
 

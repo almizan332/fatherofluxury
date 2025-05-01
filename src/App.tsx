@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import Categories from "./pages/Categories";
 import SubCategory from "./pages/SubCategory";
@@ -37,7 +37,8 @@ function App() {
               <Route path="/blog" element={<Blog />} />
               <Route path="/blog/:id" element={<BlogPost />} />
               <Route path="/product/:id" element={<ProductDetail />} />
-              <Route path="/login" element={<Login />} />
+              <Route path="/almizan" element={<Login />} />
+              <Route path="/login" element={<Navigate to="/almizan" replace />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/dashboard/categories" element={<ProductCategories />} />
               <Route path="/dashboard/products" element={<ProductList />} />
