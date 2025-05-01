@@ -2,9 +2,7 @@
 import { Link, useParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Product } from "@/types/product";
+import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { ProductGallery } from "@/components/product/detail/ProductGallery";
 import { ProductInfo } from "@/components/product/detail/ProductInfo";
