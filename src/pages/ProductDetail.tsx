@@ -9,142 +9,23 @@ import { useToast } from "@/hooks/use-toast";
 import { ProductGallery } from "@/components/product/detail/ProductGallery";
 import { ProductInfo } from "@/components/product/detail/ProductInfo";
 import { RelatedProducts } from "@/components/product/detail/RelatedProducts";
-
-const isUUID = (str: string) => {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  return uuidRegex.test(str);
-};
+import { useProductDetail } from "@/hooks/useProductDetail";
 
 const ProductDetail = () => {
   const { id } = useParams();
-  const [product, setProduct] = useState<Product | null>(null);
-  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const { product, relatedProducts, isLoading, error } = useProductDetail(id);
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(true);
 
+  // Show error toast if there was an error loading
   useEffect(() => {
-    if (id) {
-      console.log('Fetching product with ID:', id);
-      fetchProduct();
-    }
-  }, [id]);
-
-  const fetchProduct = async () => {
-    try {
-      setIsLoading(true);
-      let productData = null;
-
-      // First try UUID lookup
-      if (isUUID(id!)) {
-        console.log('Attempting UUID lookup for:', id);
-        const { data, error } = await supabase
-          .from('products')
-          .select(`
-            *,
-            categories (
-              name
-            )
-          `)
-          .eq('id', id)
-          .maybeSingle();
-        
-        if (error) throw error;
-        productData = data;
-        console.log('UUID lookup result:', productData);
-      }
-
-      // If UUID lookup fails or id is not UUID, try name-based lookup
-      if (!productData) {
-        console.log('Attempting name-based lookup for:', id);
-        // Replace URL-encoded characters and hyphens with spaces
-        const decodedName = decodeURIComponent(id!).replace(/-/g, ' ');
-        console.log('Decoded name:', decodedName);
-        
-        // Skip numeric lookup if the string contains a decimal point (likely a price)
-        if (!decodedName.includes('.')) {
-          // Try display_id based lookup only for small numbers
-          const match = decodedName.match(/\d+/);
-          if (match) {
-            const numericId = parseInt(match[0]);
-            if (!isNaN(numericId) && numericId <= 2147483647) { // Max PostgreSQL integer value
-              console.log('Attempting display_id lookup with:', numericId);
-              const { data: displayIdData, error: displayIdError } = await supabase
-                .from('products')
-                .select(`
-                  *,
-                  categories (
-                    name
-                  )
-                `)
-                .eq('display_id', numericId)
-                .maybeSingle();
-              
-              if (!displayIdError && displayIdData) {
-                productData = displayIdData;
-              }
-            }
-          }
-        }
-
-        // If display_id lookup fails or isn't attempted, try name-based lookup
-        if (!productData) {
-          // Remove special characters and extra spaces
-          const cleanName = decodedName.replace(/[^\w\s-]/g, '').trim();
-          console.log('Trying match with cleaned name:', cleanName);
-          
-          const { data: nameData, error: nameError } = await supabase
-            .from('products')
-            .select(`
-              *,
-              categories (
-                name
-              )
-            `)
-            .ilike('name', `%${cleanName}%`)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-          
-          if (nameError) throw nameError;
-          productData = nameData;
-        }
-      }
-
-      if (productData) {
-        console.log('Found product:', productData);
-        setProduct(productData);
-        
-        // Fetch related products from the same category
-        if (productData.category_id) {
-          const { data: relatedData, error: relatedError } = await supabase
-            .from('products')
-            .select('*')
-            .eq('category_id', productData.category_id)
-            .neq('id', productData.id)
-            .limit(6);
-
-          if (relatedError) throw relatedError;
-          setRelatedProducts(relatedData || []);
-        }
-      } else {
-        console.log('Product not found after all lookups');
-        toast({
-          title: "Product not found",
-          description: "The requested product could not be found.",
-          variant: "destructive",
-        });
-      }
-    } catch (error: any) {
-      console.error('Error fetching product:', error);
+    if (error) {
       toast({
         title: "Error",
         description: "Failed to load product details",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [error, toast]);
 
   if (isLoading) {
     return (
@@ -193,7 +74,7 @@ const ProductDetail = () => {
             </nav>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
             <ProductGallery product={product} />
             <ProductInfo product={product} />
           </div>

@@ -1,5 +1,5 @@
 
-import { X, ArrowLeft, ArrowRight, ExternalLink } from "lucide-react";
+import { X, ArrowLeft, ArrowRight, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -47,8 +47,9 @@ export const MediaGalleryDialog = ({
           <button
             onClick={() => navigateGallery('prev')}
             className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-10"
+            aria-label="Previous image"
           >
-            <ArrowLeft className="h-8 w-8 text-white" />
+            <ChevronLeft className="h-8 w-8 text-white" />
           </button>
 
           {/* Media Display */}
@@ -80,15 +81,29 @@ export const MediaGalleryDialog = ({
               </div>
             )}
 
+            {/* Size chart or additional details */}
+            {selectedIndex === 0 && (
+              <div className="mb-6">
+                <h3 className="font-medium mb-2">Details:</h3>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  <li>• Upper material: Denim</li>
+                  <li>• Insole material: Cowhide</li>
+                  <li>• Rubber antiskid sole</li>
+                  <li>• Size: 34-41</li>
+                  <li>• Code number: 103257</li>
+                </ul>
+              </div>
+            )}
+
             <div className="space-y-3">
-              {product.flylink_url && (
+              {product.dhgate_url && (
                 <Button 
-                  className="w-full bg-blue-500 hover:bg-blue-600" 
+                  className="w-full bg-green-500 hover:bg-green-600" 
                   size="lg"
-                  onClick={() => window.open(product.flylink_url, '_blank')}
+                  onClick={() => window.open(product.dhgate_url, '_blank')}
                 >
                   <ExternalLink className="mr-2 h-4 w-4" />
-                  Buy on Flylink
+                  Buy on DHgate
                 </Button>
               )}
               
@@ -103,14 +118,14 @@ export const MediaGalleryDialog = ({
                 </Button>
               )}
               
-              {product.dhgate_url && (
+              {product.flylink_url && (
                 <Button 
-                  className="w-full bg-green-500 hover:bg-green-600" 
+                  className="w-full bg-blue-500 hover:bg-blue-600" 
                   size="lg"
-                  onClick={() => window.open(product.dhgate_url, '_blank')}
+                  onClick={() => window.open(product.flylink_url, '_blank')}
                 >
                   <ExternalLink className="mr-2 h-4 w-4" />
-                  Buy on DHgate
+                  Buy on Flylink
                 </Button>
               )}
             </div>
@@ -120,9 +135,24 @@ export const MediaGalleryDialog = ({
           <button
             onClick={() => navigateGallery('next')}
             className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-10"
+            aria-label="Next image"
           >
-            <ArrowRight className="h-8 w-8 text-white" />
+            <ChevronRight className="h-8 w-8 text-white" />
           </button>
+        </div>
+
+        {/* Thumbnail Navigation */}
+        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 px-4">
+          {allMedia.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setSelectedIndex(index)}
+              className={`w-2 h-2 rounded-full ${
+                selectedIndex === index ? 'bg-white' : 'bg-white/50'
+              }`}
+              aria-label={`View image ${index + 1}`}
+            />
+          ))}
         </div>
       </DialogContent>
     </Dialog>

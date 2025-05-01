@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Product } from "@/types/product";
 import { MediaGalleryDialog } from "./MediaGalleryDialog";
 import { MediaType } from "@/types/product";
+import { ZoomIn } from "lucide-react";
 
 interface ProductGalleryProps {
   product: Product;
@@ -17,7 +18,7 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
   return (
     <div className="space-y-4">
       <div 
-        className="aspect-square relative rounded-lg overflow-hidden bg-gray-900 cursor-pointer group"
+        className="aspect-square relative rounded-lg overflow-hidden bg-white border border-gray-200 cursor-pointer group"
         onClick={() => setIsGalleryOpen(true)}
       >
         {allMedia[selectedMediaIndex]?.type === 'video' ? (
@@ -36,22 +37,30 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
               className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-              <div className="text-white text-lg font-medium">Click to view gallery</div>
+              <div className="bg-white/80 rounded-full p-3">
+                <ZoomIn className="h-6 w-6 text-gray-800" />
+              </div>
             </div>
+
+            {/* Product Code Overlay - Only shown on first image */}
+            {selectedMediaIndex === 0 && product.name.includes("LV") && (
+              <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded-md text-sm font-medium">
+                103257-2
+              </div>
+            )}
           </>
         )}
       </div>
 
       <div className="grid grid-cols-5 gap-2">
-        {allMedia.map((media, index) => (
+        {allMedia.slice(0, 10).map((media, index) => (
           <div
             key={index}
             onClick={() => {
               setSelectedMediaIndex(index);
-              setIsGalleryOpen(true);
             }}
-            className={`aspect-square relative rounded-lg overflow-hidden cursor-pointer group ${
-              selectedMediaIndex === index ? 'ring-2 ring-primary' : ''
+            className={`aspect-square relative rounded-lg overflow-hidden cursor-pointer group border ${
+              selectedMediaIndex === index ? 'border-primary ring-2 ring-primary' : 'border-gray-200'
             }`}
           >
             {media.type === 'video' ? (
@@ -74,11 +83,20 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity" />
+                
+                {/* Show product code on thumbnails if applicable */}
+                {product.name.includes("LV") && media.url.includes("103257") && (
+                  <div className="absolute bottom-1 right-1 bg-black/70 text-white px-1 rounded text-xs">
+                    103257
+                  </div>
+                )}
               </>
             )}
           </div>
         ))}
       </div>
+
+      <h2 className="text-xl font-bold mt-6 pt-4 border-t border-gray-200">Photos & Videos</h2>
 
       <MediaGalleryDialog
         isOpen={isGalleryOpen}
