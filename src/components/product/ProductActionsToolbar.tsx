@@ -63,6 +63,12 @@ export const ProductActionsToolbar = ({
       // For each product in the parsed file
       let successCount = 0;
       for (const product of parsedProducts) {
+        // Skip products without a name (required field)
+        if (!product.name) {
+          console.error("Skipping product without a name:", product);
+          continue;
+        }
+
         // Find category ID if the category is provided
         if (product.category_id === undefined && (product as any).category) {
           const categoryName = (product as any).category;
@@ -84,9 +90,19 @@ export const ProductActionsToolbar = ({
         }
 
         // Insert product into the database
-        const { data, error } = await supabase
+        // We know product.name exists because we checked above
+        const { error } = await supabase
           .from('products')
-          .insert([product]);
+          .insert({
+            name: product.name,
+            description: product.description,
+            preview_image: product.preview_image,
+            gallery_images: product.gallery_images as string[] | undefined,
+            category_id: product.category_id,
+            flylink_url: product.flylink_url,
+            alibaba_url: product.alibaba_url,
+            dhgate_url: product.dhgate_url,
+          });
 
         if (error) {
           console.error("Error inserting product:", error);
