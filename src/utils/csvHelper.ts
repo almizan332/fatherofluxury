@@ -1,4 +1,3 @@
-
 import { Product } from "@/types/product";
 
 export const parseCSVFile = async (file: File): Promise<Partial<Product>[]> => {
@@ -32,8 +31,41 @@ export const parseCSVFile = async (file: File): Promise<Partial<Product>[]> => {
                   product.preview_image = value;
                   break;
                 case 'Gallery Image URLs (comma separated)':
-                  // Use semicolons as separators for gallery images since commas are used for CSV fields
-                  product.gallery_images = value ? value.split(';').map(url => url.trim()).filter(url => url.length > 0) : [];
+                  // Parse gallery images from different possible formats:
+                  // 1. URLs separated by semicolons
+                  // 2. URLs separated by newlines (converted to semicolons)
+                  // 3. URLs wrapped in quotes and separated by commas
+                  
+                  if (!value) {
+                    product.gallery_images = [];
+                    return;
+                  }
+                  
+                  // First, try to unwrap from quotes if present
+                  let galleryData = value;
+                  if (galleryData.startsWith('"') && galleryData.endsWith('"')) {
+                    galleryData = galleryData.slice(1, -1);
+                  }
+                  
+                  // Then split by separators: semicolons, newlines, or commas
+                  let galleryImages: string[] = [];
+                  
+                  // Try to split by semicolons first
+                  if (galleryData.includes(';')) {
+                    galleryImages = galleryData.split(';');
+                  } 
+                  // Then try newlines (which would have been converted to spaces in CSV)
+                  else if (galleryData.includes(' ')) {
+                    galleryImages = galleryData.split(/\s+/);
+                  }
+                  // Otherwise, just use the value as a single image URL
+                  else {
+                    galleryImages = [galleryData];
+                  }
+                  
+                  product.gallery_images = galleryImages
+                    .map(url => url.trim())
+                    .filter(url => url.length > 0 && url.startsWith('http'));
                   break;
                 case 'Flylink URL':
                   if (value) product.flylink_url = value;
@@ -43,6 +75,10 @@ export const parseCSVFile = async (file: File): Promise<Partial<Product>[]> => {
                   break;
                 case 'DHgate URL':
                   if (value) product.dhgate_url = value;
+                  break;
+                case 'Category':
+                  // This will be handled elsewhere by mapping to category_id
+                  (product as any).category = value;
                   break;
               }
             });
@@ -67,7 +103,24 @@ export const validateProducts = (products: Partial<Product>[]): string[] => {
     if (!product.name) {
       errors.push(`Row ${index + 2}: Product name is required`);
     }
+    
+    // Validate gallery images format
+    if (product.gallery_images && Array.isArray(product.gallery_images)) {
+      product.gallery_images.forEach((url, imgIndex) => {
+        if (typeof url !== 'string' || !url.startsWith('http')) {
+          errors.push(`Row ${index + 2}: Invalid gallery image URL at position ${imgIndex + 1}`);
+        }
+      });
+    }
   });
   
   return errors;
+};
+
+// Helper function to prepare gallery images for CSV export
+export const formatGalleryImagesForCSV = (images: string[] | undefined): string => {
+  if (!images || images.length === 0) return '';
+  
+  // Format with semicolons for CSV export
+  return images.join(';');
 };

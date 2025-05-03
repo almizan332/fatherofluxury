@@ -13,6 +13,7 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
   const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
 
+  // Normalize gallery images - handle potential string format issues
   const allMedia = getAllMedia(product);
 
   return (
@@ -112,12 +113,43 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
 
 export const getAllMedia = (product: Product): MediaType[] => {
   const media = [];
-  if (product.preview_image) media.push({ type: 'image', url: product.preview_image });
-  if (product.gallery_images) {
-    product.gallery_images.forEach(url => media.push({ type: 'image', url }));
+  
+  // Add the preview image first
+  if (product.preview_image) {
+    media.push({ type: 'image', url: normalizeImageUrl(product.preview_image) });
   }
-  if (product.video_urls) {
-    product.video_urls.forEach(url => media.push({ type: 'video', url }));
+  
+  // Add gallery images
+  if (product.gallery_images && Array.isArray(product.gallery_images)) {
+    product.gallery_images.forEach(url => {
+      if (url) {
+        // Handle quoted strings and normalize URL
+        media.push({ type: 'image', url: normalizeImageUrl(url) });
+      }
+    });
   }
+  
+  // Add videos
+  if (product.video_urls && Array.isArray(product.video_urls)) {
+    product.video_urls.forEach(url => {
+      if (url) {
+        media.push({ type: 'video', url });
+      }
+    });
+  }
+  
   return media;
+};
+
+// Helper function to normalize image URLs (remove quotes if present)
+const normalizeImageUrl = (url: string): string => {
+  if (!url) return '';
+  
+  // Remove surrounding quotes if present
+  if ((url.startsWith('"') && url.endsWith('"')) || 
+      (url.startsWith("'") && url.endsWith("'"))) {
+    return url.slice(1, -1);
+  }
+  
+  return url;
 };
