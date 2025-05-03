@@ -63,8 +63,9 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
         )}
       </div>
 
-      <div className="grid grid-cols-5 gap-2">
-        {allMedia.slice(0, 10).map((media, index) => (
+      {/* Thumbnail grid - Updated to show up to 100 images instead of 10 */}
+      <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 max-h-[400px] overflow-y-auto p-2">
+        {allMedia.slice(0, 100).map((media, index) => (
           <div
             key={index}
             onClick={() => {
