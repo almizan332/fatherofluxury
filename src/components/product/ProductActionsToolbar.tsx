@@ -11,6 +11,9 @@ import ProductFormDialog from "./ProductFormDialog";
 import { Category } from "@/components/category/types";
 import { useToast } from "@/hooks/use-toast";
 import { productExcelHeaders, sampleExcelData } from "@/utils/excelTemplate";
+import { parseCSVFile, validateProducts } from "@/utils/csvHelper";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface ProductActionsToolbarProps {
   selectedProducts: string[];
@@ -35,10 +38,82 @@ export const ProductActionsToolbar = ({
     const file = event.target.files?.[0];
     if (!file) return;
 
-    toast({
-      title: "CSV upload not implemented",
-      description: "This feature will be implemented soon",
-    });
+    try {
+      toast({
+        title: "Processing CSV file",
+        description: "Your file is being processed...",
+      });
+
+      // Parse the CSV file
+      const parsedProducts = await parseCSVFile(file);
+      
+      // Validate the products
+      const validationErrors = validateProducts(parsedProducts);
+      
+      if (validationErrors.length > 0) {
+        toast({
+          title: "Validation errors",
+          description: `${validationErrors.length} errors found. Please fix them and try again.`,
+          variant: "destructive",
+        });
+        console.error("Validation errors:", validationErrors);
+        return;
+      }
+
+      // For each product in the parsed file
+      let successCount = 0;
+      for (const product of parsedProducts) {
+        // Find category ID if the category is provided
+        if (product.category_id === undefined && (product as any).category) {
+          const categoryName = (product as any).category;
+          const matchingCategory = categories.find(c => 
+            c.name.toLowerCase() === categoryName.toLowerCase()
+          );
+          
+          if (matchingCategory) {
+            product.category_id = matchingCategory.id;
+          }
+        }
+
+        // Convert gallery images from string to array if needed
+        if (typeof product.gallery_images === 'string') {
+          product.gallery_images = (product.gallery_images as unknown as string)
+            .split(';')
+            .map(url => url.trim())
+            .filter(url => url.length > 0);
+        }
+
+        // Insert product into the database
+        const { data, error } = await supabase
+          .from('products')
+          .insert([product]);
+
+        if (error) {
+          console.error("Error inserting product:", error);
+        } else {
+          successCount++;
+        }
+      }
+
+      // Clean up input value to allow re-uploading the same file
+      event.target.value = '';
+      
+      // Show success toast and refresh products
+      toast({
+        title: "Products uploaded",
+        description: `${successCount} products were successfully imported.`,
+      });
+      
+      // Refresh the product list
+      onProductSave();
+      
+    } catch (error: any) {
+      toast({
+        title: "Error uploading file",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   const downloadExcelTemplate = (e: React.MouseEvent) => {
@@ -47,6 +122,9 @@ export const ProductActionsToolbar = ({
       productExcelHeaders.join(','),
       ...sampleExcelData.map(row => [
         row['Product Name'],
+        row['Flylink URL'],
+        row['Alibaba URL'],
+        row['DHgate URL'],
         row['Category'],
         row['Description'],
         row['Preview Image URL'],
