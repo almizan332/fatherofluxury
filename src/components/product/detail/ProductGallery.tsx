@@ -155,7 +155,3 @@ export const getAllMedia = (product: Product): MediaType[] => {
   // If no media was found, add an empty array to prevent undefined errors
   return media;
 };
-
-function sanitizeImageUrl(url: string): string {
-  return url.replace(/['"]/g, '');
-}
