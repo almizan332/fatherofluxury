@@ -19,7 +19,7 @@ export const sampleExcelData = [
     'Category': 'Bags',
     'Description': 'LV Bag 1:1 Good Quality Size: 26x19cm Material: Artificial leather',
     'Preview Image URL': 'https://example.com/images/lv-bag.jpg',
-    'Gallery Image URLs (comma separated)': 'https://example.com/images/lv-1.jpg;https://example.com/images/lv-2.jpg;https://example.com/images/lv-3.jpg'
+    'Gallery Image URLs (comma separated)': 'https://example.com/images/lv-1.jpg;https://example.com/images/lv-2.jpg'
   },
   {
     'Product Name': 'CC Wallet',

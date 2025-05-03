@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { 
@@ -10,7 +11,7 @@ import ProductFormDialog from "./ProductFormDialog";
 import { Category } from "@/components/category/types";
 import { useToast } from "@/hooks/use-toast";
 import { productExcelHeaders, sampleExcelData } from "@/utils/excelTemplate";
-import { parseCSVFile, validateProducts, formatGalleryImagesForCSV } from "@/utils/csvHelper";
+import { parseCSVFile, validateProducts } from "@/utils/csvHelper";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -80,14 +81,23 @@ export const ProductActionsToolbar = ({
           }
         }
 
+        // Convert gallery images from string to array if needed
+        if (typeof product.gallery_images === 'string') {
+          product.gallery_images = (product.gallery_images as unknown as string)
+            .split(';')
+            .map(url => url.trim())
+            .filter(url => url.length > 0);
+        }
+
         // Insert product into the database
+        // We know product.name exists because we checked above
         const { error } = await supabase
           .from('products')
           .insert({
             name: product.name,
             description: product.description,
             preview_image: product.preview_image,
-            gallery_images: product.gallery_images,
+            gallery_images: product.gallery_images as string[] | undefined,
             category_id: product.category_id,
             flylink_url: product.flylink_url,
             alibaba_url: product.alibaba_url,
@@ -134,7 +144,7 @@ export const ProductActionsToolbar = ({
         row['Category'],
         row['Description'],
         row['Preview Image URL'],
-        `"${formatGalleryImagesForCSV(row['Gallery Image URLs (comma separated)'].split(';'))}"` // Quote the gallery URLs
+        row['Gallery Image URLs (comma separated)']
       ].join(','))
     ];
 
@@ -151,7 +161,7 @@ export const ProductActionsToolbar = ({
 
     toast({
       title: "Template downloaded",
-      description: "You can now fill in the template and import it back. For gallery images, separate multiple URLs with semicolons.",
+      description: "You can now fill in the template and import it back",
     });
   };
 
