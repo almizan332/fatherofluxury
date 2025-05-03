@@ -32,7 +32,8 @@ export const parseCSVFile = async (file: File): Promise<Partial<Product>[]> => {
                   product.preview_image = value;
                   break;
                 case 'Gallery Image URLs (comma separated)':
-                  product.gallery_images = value ? value.split(';').map(url => url.trim()) : [];
+                  // Use semicolons as separators for gallery images since commas are used for CSV fields
+                  product.gallery_images = value ? value.split(';').map(url => url.trim()).filter(url => url.length > 0) : [];
                   break;
                 case 'Flylink URL':
                   if (value) product.flylink_url = value;
