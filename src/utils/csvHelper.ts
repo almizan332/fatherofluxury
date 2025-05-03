@@ -1,4 +1,3 @@
-
 import { Product } from "@/types/product";
 
 export const parseCSVFile = async (file: File): Promise<Partial<Product>[]> => {
@@ -32,8 +31,26 @@ export const parseCSVFile = async (file: File): Promise<Partial<Product>[]> => {
                   product.preview_image = value;
                   break;
                 case 'Gallery Image URLs (comma separated)':
-                  // Use semicolons as separators for gallery images since commas are used for CSV fields
-                  product.gallery_images = value ? value.split(';').map(url => url.trim()).filter(url => url.length > 0) : [];
+                  // For gallery images, handle different separator formats
+                  // This field might contain semicolons, newlines, or be a single URL
+                  if (value) {
+                    if (value.includes(';')) {
+                      // If the value contains semicolons, split by them
+                      product.gallery_images = value.split(';')
+                        .map(url => url.trim())
+                        .filter(url => url.length > 0);
+                    } else if (value.includes('\n')) {
+                      // If the value contains newlines, split by them
+                      product.gallery_images = value.split('\n')
+                        .map(url => url.trim())
+                        .filter(url => url.length > 0);
+                    } else {
+                      // Otherwise, treat as a single URL or comma-separated list
+                      product.gallery_images = [value];
+                    }
+                  } else {
+                    product.gallery_images = [];
+                  }
                   break;
                 case 'Flylink URL':
                   if (value) product.flylink_url = value;

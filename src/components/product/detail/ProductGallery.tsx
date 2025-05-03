@@ -9,6 +9,12 @@ interface ProductGalleryProps {
   product: Product;
 }
 
+// Helper function to sanitize gallery image URLs
+const sanitizeImageUrl = (url: string): string => {
+  // Remove any quotes that might be in the URL
+  return url.replace(/['"]/g, '');
+};
+
 export const ProductGallery = ({ product }: ProductGalleryProps) => {
   const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
@@ -21,7 +27,7 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
         className="aspect-square relative rounded-lg overflow-hidden bg-white border border-gray-200 cursor-pointer group"
         onClick={() => setIsGalleryOpen(true)}
       >
-        {allMedia[selectedMediaIndex]?.type === 'video' ? (
+        {allMedia.length > 0 && allMedia[selectedMediaIndex]?.type === 'video' ? (
           <video
             src={allMedia[selectedMediaIndex].url}
             className="w-full h-full object-contain"
@@ -29,7 +35,7 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
             autoPlay
             playsInline
           />
-        ) : (
+        ) : allMedia.length > 0 ? (
           <>
             <img
               src={allMedia[selectedMediaIndex].url}
@@ -49,6 +55,11 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
               </div>
             )}
           </>
+        ) : (
+          // Fallback when no images are available
+          <div className="w-full h-full flex items-center justify-center bg-gray-100">
+            <p className="text-gray-500">No image available</p>
+          </div>
         )}
       </div>
 
@@ -111,13 +122,40 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
 };
 
 export const getAllMedia = (product: Product): MediaType[] => {
-  const media = [];
-  if (product.preview_image) media.push({ type: 'image', url: product.preview_image });
-  if (product.gallery_images) {
-    product.gallery_images.forEach(url => media.push({ type: 'image', url }));
+  const media: MediaType[] = [];
+  
+  // Add preview image if available
+  if (product.preview_image) {
+    media.push({ 
+      type: 'image', 
+      url: sanitizeImageUrl(product.preview_image)
+    });
   }
-  if (product.video_urls) {
-    product.video_urls.forEach(url => media.push({ type: 'video', url }));
+  
+  // Add gallery images if available
+  if (product.gallery_images && Array.isArray(product.gallery_images)) {
+    product.gallery_images.forEach(url => {
+      if (url) {
+        // Clean up the URL (remove any quotes)
+        const cleanUrl = sanitizeImageUrl(url);
+        media.push({ type: 'image', url: cleanUrl });
+      }
+    });
   }
+  
+  // Add videos if available
+  if (product.video_urls && Array.isArray(product.video_urls)) {
+    product.video_urls.forEach(url => {
+      if (url) {
+        media.push({ type: 'video', url });
+      }
+    });
+  }
+  
+  // If no media was found, add an empty array to prevent undefined errors
   return media;
 };
+
+function sanitizeImageUrl(url: string): string {
+  return url.replace(/['"]/g, '');
+}
