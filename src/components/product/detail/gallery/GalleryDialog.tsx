@@ -75,17 +75,18 @@ export const GalleryDialog = ({
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-screen-xl h-[95vh] p-0 bg-black/95">
+        {/* Custom close button with improved visibility */}
         <GalleryCloseButton onOpenChange={onOpenChange} />
         
-        <div className="grid grid-cols-1 md:grid-cols-3 h-full">
-          {/* Left Navigation Button */}
-          <GalleryNavigation 
-            direction="prev" 
-            onClick={() => navigateGallery('prev')} 
-          />
-
+        <div className="grid grid-cols-1 md:grid-cols-3 h-full relative">
           {/* Media Display */}
-          <div className="col-span-2 w-full h-full flex items-center justify-center p-8 overflow-hidden">
+          <div className="col-span-2 w-full h-full flex items-center justify-center p-8 overflow-hidden relative">
+            {/* Left Navigation Button - Always visible */}
+            <GalleryNavigation 
+              direction="prev" 
+              onClick={() => navigateGallery('prev')} 
+            />
+
             <GalleryMediaDisplay 
               media={allMedia[selectedIndex]} 
               productName={product.name} 
@@ -93,6 +94,12 @@ export const GalleryDialog = ({
               isZoomed={isZoomed}
               zoomLevel={zoomLevel}
               handleZoom={handleZoom}
+            />
+
+            {/* Right Navigation Button - Always visible */}
+            <GalleryNavigation 
+              direction="next" 
+              onClick={() => navigateGallery('next')} 
             />
 
             {/* Zoom controls */}
@@ -109,12 +116,6 @@ export const GalleryDialog = ({
             selectedIndex={selectedIndex}
             totalCount={allMedia.length}
             setSelectedIndex={setSelectedIndex}
-          />
-
-          {/* Right Navigation Button */}
-          <GalleryNavigation 
-            direction="next" 
-            onClick={() => navigateGallery('next')} 
           />
         </div>
 
