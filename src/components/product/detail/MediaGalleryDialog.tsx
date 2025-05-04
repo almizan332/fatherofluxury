@@ -1,9 +1,8 @@
 
-import { X, ArrowLeft, ArrowRight, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   Dialog,
   DialogContent,
-  DialogClose,
 } from "@/components/ui/dialog";
 import { MediaType } from "@/types/product";
 import { Button } from "@/components/ui/button";
@@ -55,13 +54,34 @@ export const MediaGalleryDialog = ({
     setIsZoomed(value[0] > 1);
   };
 
+  // Handle keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!isOpen) return;
+      
+      if (e.key === 'Escape') {
+        onOpenChange(false);
+      } else if (e.key === 'ArrowLeft') {
+        navigateGallery('prev');
+      } else if (e.key === 'ArrowRight') {
+        navigateGallery('next');
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onOpenChange]);
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-screen-xl h-[95vh] p-0 bg-black/95">
-        <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground z-50">
-          <X className="h-8 w-8 text-white" />
+        <button 
+          onClick={() => onOpenChange(false)}
+          className="absolute right-4 top-4 rounded-full bg-white/10 hover:bg-white/20 p-2 z-50 transition-all"
+        >
+          <X className="h-6 w-6 text-white" />
           <span className="sr-only">Close</span>
-        </DialogClose>
+        </button>
         
         <div className="grid grid-cols-1 md:grid-cols-3 h-full">
           {/* Left Navigation Button */}
