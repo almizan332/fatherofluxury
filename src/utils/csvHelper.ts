@@ -1,3 +1,4 @@
+
 import { Product } from "@/types/product";
 
 export const parseCSVFile = async (file: File): Promise<Partial<Product>[]> => {
@@ -31,23 +32,12 @@ export const parseCSVFile = async (file: File): Promise<Partial<Product>[]> => {
                   product.preview_image = value;
                   break;
                 case 'Gallery Image URLs (comma separated)':
-                  // For gallery images, handle different separator formats
-                  // This field might contain semicolons, newlines, or be a single URL
+                  // Handle gallery images with semicolon separators
                   if (value) {
-                    if (value.includes(';')) {
-                      // If the value contains semicolons, split by them
-                      product.gallery_images = value.split(';')
-                        .map(url => url.trim())
-                        .filter(url => url.length > 0);
-                    } else if (value.includes('\n')) {
-                      // If the value contains newlines, split by them
-                      product.gallery_images = value.split('\n')
-                        .map(url => url.trim())
-                        .filter(url => url.length > 0);
-                    } else {
-                      // Otherwise, treat as a single URL or comma-separated list
-                      product.gallery_images = [value];
-                    }
+                    // Split by semicolons to get individual URLs
+                    product.gallery_images = value.split(';')
+                      .map(url => url.trim())
+                      .filter(url => url.length > 0);
                   } else {
                     product.gallery_images = [];
                   }
@@ -60,6 +50,9 @@ export const parseCSVFile = async (file: File): Promise<Partial<Product>[]> => {
                   break;
                 case 'DHgate URL':
                   if (value) product.dhgate_url = value;
+                  break;
+                case 'Category':
+                  if (value) (product as any).category = value;
                   break;
               }
             });
