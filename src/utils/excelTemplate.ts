@@ -24,7 +24,7 @@ export const sampleExcelData = [
   {
     'Product Name': 'CC Wallet',
     'Flylink URL': 'https://flylink.com/cc-wallet',
-    'Alibaba URL': 'https://alibaba.com/cc-wallet',
+    'Alibaba URL': '',
     'DHgate URL': 'https://dhgate.com/cc-wallet',
     'Category': 'Wallets',
     'Description': 'CC Wallet Premium Quality Size: 19x10cm Material: Genuine leather',

@@ -9,13 +9,14 @@ const TemplateDownload = () => {
 
   const downloadExcelTemplate = (e: React.MouseEvent) => {
     e.preventDefault();
+    // Create CSV content with headers and sample data
     const csvRows = [
       productExcelHeaders.join(','),
       ...sampleExcelData.map(row => [
         row['Product Name'],
-        row['Flylink URL'],
-        row['Alibaba URL'],
-        row['DHgate URL'],
+        row['Flylink URL'] || '', // Include empty strings for empty URLs
+        row['Alibaba URL'] || '',
+        row['DHgate URL'] || '',
         row['Category'],
         row['Description'],
         row['Preview Image URL'],
@@ -36,7 +37,7 @@ const TemplateDownload = () => {
 
     toast({
       title: "Template downloaded",
-      description: "You can now fill in the template and import it back",
+      description: "You can now fill in the template and import it back. Note: You can leave affiliate URLs blank if not needed.",
     });
   };
 

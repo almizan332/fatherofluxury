@@ -14,12 +14,14 @@ interface ImportCSVProps {
 
 const ImportCSV = ({ categories, onProductSave }: ImportCSVProps) => {
   const { toast } = useToast();
+  const [isImporting, setIsImporting] = useState(false);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     try {
+      setIsImporting(true);
       toast({
         title: "Processing CSV file",
         description: "Your file is being processed...",
@@ -62,25 +64,32 @@ const ImportCSV = ({ categories, onProductSave }: ImportCSVProps) => {
           }
         }
 
-        // Debug logging for gallery images
+        // Debug logging for product details
         console.log('Product before insert:', {
           name: product.name,
-          gallery_images: product.gallery_images
+          gallery_images: product.gallery_images,
+          flylink_url: product.flylink_url,
+          alibaba_url: product.alibaba_url,
+          dhgate_url: product.dhgate_url
         });
+
+        // Prepare product data for insertion
+        const productData = {
+          name: product.name,
+          description: product.description || '',
+          preview_image: product.preview_image || '',
+          gallery_images: product.gallery_images || [],
+          category_id: product.category_id,
+          // Only include non-empty URL fields
+          ...(product.flylink_url ? { flylink_url: product.flylink_url } : {}),
+          ...(product.alibaba_url ? { alibaba_url: product.alibaba_url } : {}),
+          ...(product.dhgate_url ? { dhgate_url: product.dhgate_url } : {}),
+        };
 
         // Insert product into the database
         const { error } = await supabase
           .from('products')
-          .insert({
-            name: product.name,
-            description: product.description,
-            preview_image: product.preview_image,
-            gallery_images: product.gallery_images || [],
-            category_id: product.category_id,
-            flylink_url: product.flylink_url,
-            alibaba_url: product.alibaba_url,
-            dhgate_url: product.dhgate_url,
-          });
+          .insert([productData]);
 
         if (error) {
           console.error("Error inserting product:", error);
@@ -107,6 +116,8 @@ const ImportCSV = ({ categories, onProductSave }: ImportCSVProps) => {
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setIsImporting(false);
     }
   };
 
@@ -118,9 +129,9 @@ const ImportCSV = ({ categories, onProductSave }: ImportCSVProps) => {
         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
         onChange={handleFileUpload}
       />
-      <Button variant="outline" className="bg-white/50">
+      <Button variant="outline" className="bg-white/50" disabled={isImporting}>
         <FileSpreadsheet className="h-4 w-4 mr-2" />
-        Import CSV
+        {isImporting ? "Importing..." : "Import CSV"}
       </Button>
     </div>
   );
