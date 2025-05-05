@@ -34,10 +34,9 @@ export const parseCSVFile = async (file: File): Promise<Partial<Product>[]> => {
                 case 'Gallery Image URLs (comma separated)':
                   // Handle gallery images with semicolon separators
                   if (value) {
-                    // Split by semicolons to get individual URLs
                     product.gallery_images = value.split(';')
                       .map(url => url.trim())
-                      .filter(url => url.length > 0);
+                      .filter(url => url && url.length > 0);
                   } else {
                     product.gallery_images = [];
                   }

@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { 
@@ -79,6 +80,12 @@ export const ProductActionsToolbar = ({
           }
         }
 
+        // Debug logging for gallery images
+        console.log('Product before insert:', {
+          name: product.name,
+          gallery_images: product.gallery_images
+        });
+
         // Insert product into the database
         const { error } = await supabase
           .from('products')
@@ -86,7 +93,7 @@ export const ProductActionsToolbar = ({
             name: product.name,
             description: product.description,
             preview_image: product.preview_image,
-            gallery_images: product.gallery_images,
+            gallery_images: product.gallery_images || [],
             category_id: product.category_id,
             flylink_url: product.flylink_url,
             alibaba_url: product.alibaba_url,
