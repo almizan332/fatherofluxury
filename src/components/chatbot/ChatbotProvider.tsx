@@ -9,6 +9,13 @@ interface ChatbotContextType {
   disableChatbot: () => void;
 }
 
+interface ChatbotSettings {
+  enabled: boolean;
+  welcome_message: string;
+  theme_color: string;
+  position: string;
+}
+
 const ChatbotContext = createContext<ChatbotContextType>({
   isEnabled: true,
   enableChatbot: () => {},
@@ -28,8 +35,9 @@ export const ChatbotProvider = ({ children }: ChatbotProviderProps) => {
   useEffect(() => {
     const fetchChatbotSettings = async () => {
       try {
-        const { data, error } = await supabase
-          .from('chatbot_settings')
+        // Using 'any' cast here to bypass TypeScript issue until types are regenerated
+        const { data, error } = await (supabase
+          .from('chatbot_settings') as any)
           .select('enabled')
           .eq('id', 'default')
           .single();
@@ -61,7 +69,7 @@ export const ChatbotProvider = ({ children }: ChatbotProviderProps) => {
           table: 'chatbot_settings',
           filter: 'id=eq.default'
         },
-        (payload) => {
+        (payload: any) => {
           setIsEnabled(payload.new.enabled);
         }
       )

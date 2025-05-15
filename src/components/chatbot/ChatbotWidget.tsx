@@ -6,10 +6,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import ChatbotUI from "./ChatbotUI";
 import { supabase } from "@/integrations/supabase/client";
 
+interface ChatbotSettings {
+  enabled: boolean;
+  welcome_message: string;
+  theme_color: string;
+  position: string;
+}
+
 const ChatbotWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [chatbotSettings, setChatbotSettings] = useState({
+  const [chatbotSettings, setChatbotSettings] = useState<ChatbotSettings>({
     enabled: true,
     welcome_message: "Hello! How can I help you today?",
     theme_color: "#8B5CF6",
@@ -19,8 +26,9 @@ const ChatbotWidget = () => {
   useEffect(() => {
     const fetchChatbotSettings = async () => {
       try {
-        const { data, error } = await supabase
-          .from('chatbot_settings')
+        // Using 'any' cast here to bypass TypeScript issue until types are regenerated
+        const { data, error } = await (supabase
+          .from('chatbot_settings') as any)
           .select('*')
           .eq('id', 'default')
           .single();

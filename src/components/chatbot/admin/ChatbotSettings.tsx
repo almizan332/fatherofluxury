@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,19 +11,34 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload, FileText, Trash2, RefreshCw, Save } from "lucide-react";
 
+interface ChatbotSettings {
+  enabled: boolean;
+  welcome_message: string;
+  theme_color: string;
+  position: string;
+  last_retrained?: string;
+}
+
+interface TrainingFile {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+}
+
 interface ChatbotSettingsProps {}
 
 const ChatbotSettings = ({}: ChatbotSettingsProps) => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [apiKey, setApiKey] = useState("");
-  const [settings, setSettings] = useState({
+  const [settings, setSettings] = useState<ChatbotSettings>({
     enabled: true,
     welcome_message: "Hello! How can I help you today?",
     theme_color: "#8B5CF6",
     position: "bottom-right"
   });
-  const [trainingFiles, setTrainingFiles] = useState<Array<{ id: string, name: string, type: string, size: number }>>([]);
+  const [trainingFiles, setTrainingFiles] = useState<TrainingFile[]>([]);
   const [trainingUrls, setTrainingUrls] = useState<string[]>([]);
   const [newUrl, setNewUrl] = useState("");
 
@@ -33,8 +47,8 @@ const ChatbotSettings = ({}: ChatbotSettingsProps) => {
       setIsLoading(true);
       try {
         // Fetch chatbot settings
-        const { data: settingsData, error: settingsError } = await supabase
-          .from('chatbot_settings')
+        const { data: settingsData, error: settingsError } = await (supabase
+          .from('chatbot_settings') as any)
           .select('*')
           .eq('id', 'default')
           .single();
@@ -53,14 +67,14 @@ const ChatbotSettings = ({}: ChatbotSettingsProps) => {
         }
         
         // Fetch training files
-        const { data: filesData, error: filesError } = await supabase
-          .from('chatbot_training_files')
+        const { data: filesData, error: filesError } = await (supabase
+          .from('chatbot_training_files') as any)
           .select('*')
           .order('created_at', { ascending: false });
           
         if (filesError) throw filesError;
         if (filesData) {
-          setTrainingFiles(filesData.map(file => ({
+          setTrainingFiles(filesData.map((file: any) => ({
             id: file.id,
             name: file.file_name,
             type: file.file_type,
@@ -69,22 +83,26 @@ const ChatbotSettings = ({}: ChatbotSettingsProps) => {
         }
         
         // Fetch training URLs
-        const { data: urlsData, error: urlsError } = await supabase
-          .from('chatbot_training_urls')
+        const { data: urlsData, error: urlsError } = await (supabase
+          .from('chatbot_training_urls') as any)
           .select('*')
           .order('created_at', { ascending: false });
           
         if (urlsError) throw urlsError;
         if (urlsData) {
-          setTrainingUrls(urlsData.map(url => url.url));
+          setTrainingUrls(urlsData.map((url: any) => url.url));
         }
         
         // Get DeepSeek API key
-        const { data: { value: deepSeekApiKey } } = await supabase
-          .functions.invoke("get-secret", { body: { name: "DEEPSEEK_API_KEY" } });
-        
-        if (deepSeekApiKey) {
-          setApiKey(deepSeekApiKey);
+        try {
+          const { data: { value: deepSeekApiKey } } = await supabase
+            .functions.invoke("get-secret", { body: { name: "DEEPSEEK_API_KEY" } });
+          
+          if (deepSeekApiKey) {
+            setApiKey(deepSeekApiKey);
+          }
+        } catch (error) {
+          console.error("Error fetching API key:", error);
         }
         
       } catch (error) {
@@ -105,8 +123,8 @@ const ChatbotSettings = ({}: ChatbotSettingsProps) => {
   const handleSaveSettings = async () => {
     setIsLoading(true);
     try {
-      const { error } = await supabase
-        .from('chatbot_settings')
+      const { error } = await (supabase
+        .from('chatbot_settings') as any)
         .upsert({
           id: 'default',
           enabled: settings.enabled,
@@ -158,8 +176,8 @@ const ChatbotSettings = ({}: ChatbotSettingsProps) => {
       if (uploadError) throw uploadError;
       
       // Save file metadata
-      const { error: metadataError } = await supabase
-        .from('chatbot_training_files')
+      const { error: metadataError } = await (supabase
+        .from('chatbot_training_files') as any)
         .insert({
           file_name: file.name,
           file_path: uploadData.path,
@@ -176,19 +194,23 @@ const ChatbotSettings = ({}: ChatbotSettingsProps) => {
       });
       
       // Trigger file processing via edge function
-      await supabase.functions.invoke("process-training-file", {
-        body: { filePath: uploadData.path }
-      });
+      try {
+        await supabase.functions.invoke("process-training-file", {
+          body: { filePath: uploadData.path }
+        });
+      } catch (error) {
+        console.error("Error processing file:", error);
+      }
       
       // Refresh file list
-      const { data: refreshData, error: refreshError } = await supabase
-        .from('chatbot_training_files')
+      const { data: refreshData, error: refreshError } = await (supabase
+        .from('chatbot_training_files') as any)
         .select('*')
         .order('created_at', { ascending: false });
         
       if (refreshError) throw refreshError;
       if (refreshData) {
-        setTrainingFiles(refreshData.map(file => ({
+        setTrainingFiles(refreshData.map((file: any) => ({
           id: file.id,
           name: file.file_name,
           type: file.file_type,
@@ -213,8 +235,8 @@ const ChatbotSettings = ({}: ChatbotSettingsProps) => {
     
     setIsLoading(true);
     try {
-      const { error } = await supabase
-        .from('chatbot_training_urls')
+      const { error } = await (supabase
+        .from('chatbot_training_urls') as any)
         .insert({ url: newUrl.trim(), status: 'pending' });
         
       if (error) throw error;
@@ -228,9 +250,13 @@ const ChatbotSettings = ({}: ChatbotSettingsProps) => {
       });
       
       // Trigger URL processing
-      await supabase.functions.invoke("crawl-training-url", {
-        body: { url: newUrl.trim() }
-      });
+      try {
+        await supabase.functions.invoke("crawl-training-url", {
+          body: { url: newUrl.trim() }
+        });
+      } catch (error) {
+        console.error("Error processing URL:", error);
+      }
     } catch (error) {
       console.error("Error adding URL:", error);
       toast({
@@ -249,8 +275,8 @@ const ChatbotSettings = ({}: ChatbotSettingsProps) => {
       const fileToDelete = trainingFiles.find(file => file.id === id);
       if (!fileToDelete) return;
       
-      const { error } = await supabase
-        .from('chatbot_training_files')
+      const { error } = await (supabase
+        .from('chatbot_training_files') as any)
         .delete()
         .eq('id', id);
         
@@ -277,8 +303,8 @@ const ChatbotSettings = ({}: ChatbotSettingsProps) => {
   const handleDeleteUrl = async (url: string) => {
     setIsLoading(true);
     try {
-      const { error } = await supabase
-        .from('chatbot_training_urls')
+      const { error } = await (supabase
+        .from('chatbot_training_urls') as any)
         .delete()
         .eq('url', url);
         
