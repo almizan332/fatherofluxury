@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { Send, X, Minimize, Volume2, RefreshCw, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -61,13 +60,21 @@ const ChatbotUI = ({ onClose, onMinimize }: ChatbotUIProps) => {
         body: { query: userInput },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase function error:", error);
+        throw new Error(`Error invoking function: ${error.message}`);
+      }
+
+      if (!data || !data.response) {
+        console.error("Invalid response format:", data);
+        throw new Error("Received an invalid response format");
+      }
 
       // Add assistant response
       const assistantMessage: Message = {
         id: `assistant-${Date.now()}`,
         role: "assistant",
-        content: data.response || "I'm sorry, I couldn't process your request.",
+        content: data.response,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, assistantMessage]);
@@ -75,7 +82,7 @@ const ChatbotUI = ({ onClose, onMinimize }: ChatbotUIProps) => {
       console.error("Error getting chatbot response:", error);
       toast({
         title: "Error",
-        description: "Failed to get response from chatbot",
+        description: "Failed to get response from chatbot. Please try again later.",
         variant: "destructive",
       });
       
