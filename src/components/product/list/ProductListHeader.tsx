@@ -2,7 +2,6 @@
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2, Download, FileSpreadsheet } from "lucide-react";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import { ProductFormDialogProps } from "../ProductFormDialog";
 
 interface ProductListHeaderProps {
   selectedProducts: string[];
