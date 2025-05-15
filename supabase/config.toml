@@ -1,5 +1,5 @@
 
 project_id = "zsptshspjdzvhgjmnjtl"
 
-[functions.do-file-upload]
+[functions.chatbot-query]
 verify_jwt = false

@@ -15,7 +15,8 @@ serve(async (req) => {
   }
 
   try {
-    const apiKey = Deno.env.get('DEEPSEEK_API_KEY');
+    // Using the API key you provided
+    const apiKey = Deno.env.get('DEEPSEEK_API_KEY') || 'sk-a8db5c1e34fb4fc39972d5748e9d4740';
     if (!apiKey) {
       throw new Error("DeepSeek API key not configured");
     }

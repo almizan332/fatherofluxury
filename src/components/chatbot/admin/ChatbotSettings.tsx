@@ -141,6 +141,11 @@ const ChatbotSettings = ({}: ChatbotSettingsProps) => {
         await supabase.functions.invoke("set-secret", {
           body: { name: "DEEPSEEK_API_KEY", value: apiKey }
         });
+        
+        toast({
+          title: "API Key Saved",
+          description: "DeepSeek API key has been saved successfully"
+        });
       }
       
       toast({
