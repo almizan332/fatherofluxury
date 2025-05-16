@@ -45,25 +45,13 @@ const ChatbotTrainingPrompts = () => {
   const fetchPrompts = async () => {
     setIsLoading(true);
     try {
-      // Using a more type-safe approach with explicit casting
-      const { data, error } = await supabase
-        .from('chatbot_custom_prompts')
+      const { data, error } = await (supabase
+        .from('chatbot_custom_prompts') as any)
         .select('*')
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      
-      // Ensure the data matches our CustomPrompt interface
-      const typedPrompts: CustomPrompt[] = (data || []).map(item => ({
-        id: item.id,
-        role: item.role as 'system' | 'example' | 'rule',
-        title: item.title,
-        content: item.content,
-        status: item.status,
-        created_at: item.created_at
-      }));
-      
-      setPrompts(typedPrompts);
+      setPrompts(data || []);
     } catch (error) {
       console.error("Error fetching custom prompts:", error);
       toast({
@@ -88,8 +76,8 @@ const ChatbotTrainingPrompts = () => {
 
     setIsLoading(true);
     try {
-      const { error } = await supabase
-        .from('chatbot_custom_prompts')
+      const { error } = await (supabase
+        .from('chatbot_custom_prompts') as any)
         .insert({
           role: newPrompt.role,
           title: newPrompt.title,
@@ -127,8 +115,8 @@ const ChatbotTrainingPrompts = () => {
   const handleDeletePrompt = async (id: string) => {
     setIsLoading(true);
     try {
-      const { error } = await supabase
-        .from('chatbot_custom_prompts')
+      const { error } = await (supabase
+        .from('chatbot_custom_prompts') as any)
         .delete()
         .eq('id', id);
         
@@ -164,8 +152,8 @@ const ChatbotTrainingPrompts = () => {
 
     setIsLoading(true);
     try {
-      const { error } = await supabase
-        .from('chatbot_training_content')
+      const { error } = await (supabase
+        .from('chatbot_training_content') as any)
         .insert({
           title: contentTitle,
           content: manualContent,

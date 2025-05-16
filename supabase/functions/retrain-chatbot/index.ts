@@ -46,23 +46,7 @@ serve(async (req) => {
         
       if (promptsError) throw promptsError;
       
-      // Get file-based training data
-      const { data: trainingFiles, error: filesError } = await supabaseClient
-        .from('chatbot_training_files')
-        .select('id, file_name, file_path')
-        .eq('status', 'completed');
-        
-      if (filesError) throw filesError;
-      
-      // Get URL-based training data
-      const { data: trainingUrls, error: urlsError } = await supabaseClient
-        .from('chatbot_training_urls')
-        .select('id, url')
-        .eq('status', 'completed');
-        
-      if (urlsError) throw urlsError;
-      
-      console.log(`Collected ${trainingContent?.length || 0} content items, ${customPrompts?.length || 0} custom prompts, ${trainingFiles?.length || 0} training files, and ${trainingUrls?.length || 0} training URLs`);
+      console.log(`Collected ${trainingContent?.length || 0} content items and ${customPrompts?.length || 0} custom prompts`);
       
       // In a real implementation, this would:
       // 1. Process all training materials into a format suitable for training
