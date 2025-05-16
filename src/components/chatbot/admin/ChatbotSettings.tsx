@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload, FileText, Trash2, RefreshCw, Save } from "lucide-react";
+import ChatbotTrainingPrompts from "./ChatbotTrainingPrompts";
 
 interface ChatbotSettings {
   enabled: boolean;
@@ -24,6 +26,7 @@ interface TrainingFile {
   name: string;
   type: string;
   size: number;
+  status?: string;
 }
 
 interface ChatbotSettingsProps {}
@@ -39,7 +42,7 @@ const ChatbotSettings = ({}: ChatbotSettingsProps) => {
     position: "bottom-right"
   });
   const [trainingFiles, setTrainingFiles] = useState<TrainingFile[]>([]);
-  const [trainingUrls, setTrainingUrls] = useState<string[]>([]);
+  const [trainingUrls, setTrainingUrls] = useState<{url: string, status: string}[]>([]);
   const [newUrl, setNewUrl] = useState("");
 
   useEffect(() => {
@@ -78,7 +81,8 @@ const ChatbotSettings = ({}: ChatbotSettingsProps) => {
             id: file.id,
             name: file.file_name,
             type: file.file_type,
-            size: file.file_size
+            size: file.file_size,
+            status: file.status
           })));
         }
         
@@ -90,7 +94,10 @@ const ChatbotSettings = ({}: ChatbotSettingsProps) => {
           
         if (urlsError) throw urlsError;
         if (urlsData) {
-          setTrainingUrls(urlsData.map((url: any) => url.url));
+          setTrainingUrls(urlsData.map((url: any) => ({
+            url: url.url,
+            status: url.status
+          })));
         }
         
         // Get DeepSeek API key
@@ -118,6 +125,48 @@ const ChatbotSettings = ({}: ChatbotSettingsProps) => {
     };
     
     fetchSettings();
+    
+    // Set up realtime subscription for URL status updates
+    const channel = supabase
+      .channel('chatbot-urls-changes')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'chatbot_training_urls' },
+        (payload) => {
+          setTrainingUrls(current => 
+            current.map(item => 
+              item.url === payload.new.url 
+                ? { ...item, status: payload.new.status } 
+                : item
+            )
+          );
+        }
+      )
+      .subscribe();
+      
+    // Set up realtime subscription for file status updates
+    const fileChannel = supabase
+      .channel('chatbot-files-changes')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'chatbot_training_files' },
+        (payload) => {
+          setTrainingFiles(current => 
+            current.map(item => 
+              item.id === payload.new.id 
+                ? { ...item, status: payload.new.status } 
+                : item
+            )
+          );
+        }
+      )
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(channel);
+      supabase.removeChannel(fileChannel);
+    };
+    
   }, [toast]);
 
   const handleSaveSettings = async () => {
@@ -219,7 +268,8 @@ const ChatbotSettings = ({}: ChatbotSettingsProps) => {
           id: file.id,
           name: file.file_name,
           type: file.file_type,
-          size: file.file_size
+          size: file.file_size,
+          status: file.status
         })));
       }
     } catch (error) {
@@ -246,7 +296,7 @@ const ChatbotSettings = ({}: ChatbotSettingsProps) => {
         
       if (error) throw error;
       
-      setTrainingUrls([...trainingUrls, newUrl.trim()]);
+      setTrainingUrls([...trainingUrls, { url: newUrl.trim(), status: 'pending' }]);
       setNewUrl("");
       
       toast({
@@ -315,7 +365,7 @@ const ChatbotSettings = ({}: ChatbotSettingsProps) => {
         
       if (error) throw error;
       
-      setTrainingUrls(trainingUrls.filter(u => u !== url));
+      setTrainingUrls(trainingUrls.filter(u => u.url !== url));
       
       toast({
         title: "URL deleted",
@@ -356,14 +406,29 @@ const ChatbotSettings = ({}: ChatbotSettingsProps) => {
     }
   };
 
+  // Status badge helper
+  const StatusBadge = ({ status }: { status: string }) => {
+    let bgColor = "bg-gray-100 text-gray-800";
+    if (status === 'completed') bgColor = "bg-green-100 text-green-800";
+    if (status === 'processing') bgColor = "bg-blue-100 text-blue-800";
+    if (status === 'error') bgColor = "bg-red-100 text-red-800";
+    
+    return (
+      <span className={`text-xs px-2 py-0.5 rounded-full ${bgColor}`}>
+        {status}
+      </span>
+    );
+  };
+
   return (
     <Card className="p-6">
       <h2 className="text-2xl font-semibold mb-6">Chatbot Configuration</h2>
       
       <Tabs defaultValue="settings" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-6">
+        <TabsList className="grid w-full grid-cols-4 mb-6">
           <TabsTrigger value="settings">General Settings</TabsTrigger>
           <TabsTrigger value="training">Training Data</TabsTrigger>
+          <TabsTrigger value="prompts">Prompts & Rules</TabsTrigger>
           <TabsTrigger value="integration">API Integration</TabsTrigger>
         </TabsList>
         
@@ -495,9 +560,12 @@ const ChatbotSettings = ({}: ChatbotSettingsProps) => {
                     <div className="flex items-center">
                       <FileText className="h-5 w-5 mr-2 text-blue-500" />
                       <div>
-                        <p className="font-medium">{file.name}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium">{file.name}</p>
+                          {file.status && <StatusBadge status={file.status} />}
+                        </div>
                         <p className="text-xs text-muted-foreground">
-                          {file.type.split('/')[1]} · {(file.size / 1024).toFixed(1)} KB
+                          {file.type?.split('/')[1]} · {(file.size / 1024).toFixed(1)} KB
                         </p>
                       </div>
                     </div>
@@ -523,7 +591,7 @@ const ChatbotSettings = ({}: ChatbotSettingsProps) => {
           <div>
             <h3 className="text-lg font-medium mb-4">Add Website URLs</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Add website URLs for the chatbot to crawl and learn from.
+              Add website URLs for the chatbot to crawl and learn from. The system will extract and process the content.
             </p>
             
             <div className="flex gap-2">
@@ -546,17 +614,22 @@ const ChatbotSettings = ({}: ChatbotSettingsProps) => {
               <h4 className="font-medium mb-2">Training URLs</h4>
               {trainingUrls.length > 0 ? (
                 <div className="space-y-2">
-                  {trainingUrls.map((url) => (
+                  {trainingUrls.map((item) => (
                     <div 
-                      key={url} 
+                      key={item.url} 
                       className="flex items-center justify-between p-3 rounded-md border"
                     >
-                      <p className="text-sm truncate flex-1">{url}</p>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="text-sm truncate">{item.url}</p>
+                          <StatusBadge status={item.status || 'pending'} />
+                        </div>
+                      </div>
                       <Button
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-destructive"
-                        onClick={() => handleDeleteUrl(url)}
+                        onClick={() => handleDeleteUrl(item.url)}
                         disabled={isLoading}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -581,6 +654,10 @@ const ChatbotSettings = ({}: ChatbotSettingsProps) => {
             <RefreshCw className="mr-2 h-4 w-4" />
             Retrain Chatbot
           </Button>
+        </TabsContent>
+
+        <TabsContent value="prompts">
+          <ChatbotTrainingPrompts />
         </TabsContent>
         
         <TabsContent value="integration" className="space-y-4">

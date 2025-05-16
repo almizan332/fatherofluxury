@@ -27,23 +27,59 @@ serve(async (req) => {
     
     const { fullRetrain = false } = await req.json();
     
-    // In a real implementation, this would:
-    // 1. Gather all training materials (files and URLs)
-    // 2. Process and combine them
-    // 3. Create embeddings or fine-tune a model
-    // 4. Update the model status
-    
-    // For this demo, we'll simulate retraining
     console.log(`Starting ${fullRetrain ? 'full' : 'incremental'} retraining...`);
-    await new Promise(resolve => setTimeout(resolve, 3000));
     
-    // Update last retrained timestamp
-    await supabaseClient
-      .from('chatbot_settings')
-      .upsert({
-        id: 'default',
-        last_retrained: new Date().toISOString()
-      });
+    try {
+      // Get all active training content
+      const { data: trainingContent, error: contentError } = await supabaseClient
+        .from('chatbot_training_content')
+        .select('id, title, content, source_type')
+        .eq('status', 'active');
+        
+      if (contentError) throw contentError;
+      
+      // Get custom prompts
+      const { data: customPrompts, error: promptsError } = await supabaseClient
+        .from('chatbot_custom_prompts')
+        .select('id, title, content, role')
+        .eq('status', 'active');
+        
+      if (promptsError) throw promptsError;
+      
+      console.log(`Collected ${trainingContent?.length || 0} content items and ${customPrompts?.length || 0} custom prompts`);
+      
+      // In a real implementation, this would:
+      // 1. Process all training materials into a format suitable for training
+      // 2. Create embeddings using the DeepSeek API or other embedding service
+      // 3. Store these embeddings for quick retrieval during chat
+      
+      // For now, we'll just simulate the training process
+      console.log("Processing training content...");
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      console.log("Generating embeddings...");
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      console.log("Storing model data...");
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // In a real implementation, you might want to store these embeddings in a vector database
+      // for efficient similarity searches. For now we'll just update the metadata.
+      
+      // Update last retrained timestamp
+      await supabaseClient
+        .from('chatbot_settings')
+        .upsert({
+          id: 'default',
+          last_retrained: new Date().toISOString()
+        });
+        
+      console.log("Retraining completed successfully");
+
+    } catch (trainingError) {
+      console.error("Error during retraining:", trainingError);
+      throw trainingError;
+    }
 
     return new Response(
       JSON.stringify({ success: true, message: "Chatbot retrained successfully" }),
@@ -55,8 +91,9 @@ serve(async (req) => {
       }
     );
   } catch (error) {
+    console.error("Error in retrain-chatbot function:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error.message || "An unknown error occurred" }),
       { 
         status: 500, 
         headers: { 

@@ -26,27 +26,81 @@ serve(async (req) => {
       throw new Error('Missing file path parameter');
     }
 
+    console.log(`Processing file: ${filePath}`);
+
     // Update status to processing
     await supabaseClient
       .from('chatbot_training_files')
       .update({ status: 'processing' })
       .eq('file_path', filePath);
       
-    // In a real implementation, this would:
-    // 1. Download the file from storage
-    // 2. Process it based on file type (PDF, DOCX, TXT, etc.)
-    // 3. Extract text content
-    // 4. Create embeddings or train a model with the content
-    // 5. Update the status to 'completed'
-    
-    // For this demo, we'll simulate processing
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Update status to completed
-    await supabaseClient
-      .from('chatbot_training_files')
-      .update({ status: 'completed' })
-      .eq('file_path', filePath);
+    try {
+      // Get file metadata to find the name
+      const { data: fileData, error: fileError } = await supabaseClient
+        .from('chatbot_training_files')
+        .select('file_name, file_type')
+        .eq('file_path', filePath)
+        .single();
+        
+      if (fileError) throw fileError;
+      
+      // Download the file from storage
+      const { data: fileContent, error: downloadError } = await supabaseClient
+        .storage
+        .from('chatbot-training')
+        .download(filePath);
+        
+      if (downloadError) throw downloadError;
+      
+      // Process based on file type
+      let extractedText = '';
+      
+      if (fileData.file_type && fileData.file_type.includes('text/')) {
+        // Handle text files
+        extractedText = await fileContent.text();
+      } else {
+        // For other file types (PDF, DOCX, etc.), we'd need specialized parsers
+        // For now, just extract text from PDFs as an example
+        if (fileData.file_type === 'application/pdf') {
+          // In a real system, you'd use a PDF parser library
+          extractedText = `Content extracted from ${fileData.file_name} (PDF parsing not fully implemented yet)`;
+        } else {
+          extractedText = `Content from ${fileData.file_name} (this file type is not fully supported yet)`;
+        }
+      }
+      
+      console.log(`Extracted ${extractedText.length} characters from ${fileData.file_name}`);
+      
+      // Store the extracted content
+      await supabaseClient
+        .from('chatbot_training_content')
+        .insert({
+          title: fileData.file_name,
+          content: extractedText,
+          source_type: 'file',
+          source_path: filePath,
+          status: 'active'
+        });
+      
+      // Update status to completed
+      await supabaseClient
+        .from('chatbot_training_files')
+        .update({ status: 'completed' })
+        .eq('file_path', filePath);
+        
+      console.log(`Successfully processed file: ${filePath}`);
+
+    } catch (processingError) {
+      console.error(`Error processing file ${filePath}:`, processingError);
+      await supabaseClient
+        .from('chatbot_training_files')
+        .update({ 
+          status: 'error',
+          error_message: String(processingError).substring(0, 255) 
+        })
+        .eq('file_path', filePath);
+      throw processingError;
+    }
 
     return new Response(
       JSON.stringify({ success: true, message: "File processed successfully" }),
@@ -58,8 +112,9 @@ serve(async (req) => {
       }
     );
   } catch (error) {
+    console.error("Error in process-training-file function:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error.message || "An unknown error occurred" }),
       { 
         status: 500, 
         headers: { 

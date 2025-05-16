@@ -2,6 +2,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.38/deno-dom-wasm.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -32,22 +33,83 @@ serve(async (req) => {
       .update({ status: 'processing' })
       .eq('url', url);
       
-    // In a real implementation, this would:
-    // 1. Fetch the webpage
-    // 2. Parse the HTML
-    // 3. Extract text content
-    // 4. Follow links within the same domain
-    // 5. Create embeddings or train a model with the content
-    // 6. Update the status to 'completed'
+    console.log(`Starting to crawl URL: ${url}`);
     
-    // For this demo, we'll simulate crawling
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Update status to completed
-    await supabaseClient
-      .from('chatbot_training_urls')
-      .update({ status: 'completed' })
-      .eq('url', url);
+    try {
+      // Actually fetch and process the webpage
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch URL: ${response.status} ${response.statusText}`);
+      }
+      
+      const html = await response.text();
+      console.log(`Successfully fetched HTML content (${html.length} bytes)`);
+      
+      // Parse the HTML to extract text content
+      const parser = new DOMParser();
+      const document = parser.parseFromString(html, "text/html");
+      
+      if (!document) {
+        throw new Error("Failed to parse HTML document");
+      }
+      
+      // Extract text from relevant elements (ignoring scripts, styles, etc.)
+      const bodyElement = document.querySelector("body");
+      if (!bodyElement) {
+        throw new Error("Could not find body element in the document");
+      }
+      
+      // Remove script and style tags first
+      bodyElement.querySelectorAll("script, style, noscript, iframe, svg").forEach(el => el.remove());
+      
+      // Get text content from paragraphs, headings, lists, etc.
+      const textElements = bodyElement.querySelectorAll("p, h1, h2, h3, h4, h5, h6, li, td, th, div, span, a");
+      let textContent = "";
+      
+      textElements.forEach(el => {
+        const text = el.textContent.trim();
+        if (text) {
+          textContent += text + "\n";
+        }
+      });
+      
+      // Clean up the extracted text
+      textContent = textContent
+        .replace(/\s+/g, " ")
+        .replace(/\n+/g, "\n")
+        .trim();
+      
+      console.log(`Extracted ${textContent.length} characters of text content`);
+      
+      // Store the extracted content
+      await supabaseClient
+        .from('chatbot_training_content')
+        .insert({
+          url,
+          content: textContent,
+          source_type: 'webpage',
+          status: 'active'
+        });
+      
+      // Update status to completed
+      await supabaseClient
+        .from('chatbot_training_urls')
+        .update({ status: 'completed' })
+        .eq('url', url);
+      
+      console.log(`Completed processing URL: ${url}`);
+
+    } catch (crawlError) {
+      console.error(`Error crawling URL ${url}:`, crawlError);
+      await supabaseClient
+        .from('chatbot_training_urls')
+        .update({ 
+          status: 'error',
+          error_message: String(crawlError).substring(0, 255)
+        })
+        .eq('url', url);
+      throw crawlError;
+    }
 
     return new Response(
       JSON.stringify({ success: true, message: "URL crawled successfully" }),
@@ -59,8 +121,9 @@ serve(async (req) => {
       }
     );
   } catch (error) {
+    console.error("Error in crawl-training-url function:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error.message || "An unknown error occurred" }),
       { 
         status: 500, 
         headers: { 

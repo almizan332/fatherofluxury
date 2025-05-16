@@ -27,20 +27,21 @@ serve(async (req) => {
       throw new Error("Invalid query parameter");
     }
     
-    // Create Supabase client to query products if image search is requested
+    // Create Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') as string;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') as string;
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error("Supabase credentials not configured");
+    }
+    
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
+    // For image searches
     let productResults = null;
     if (imageUrl) {
       console.log("Image search requested with URL:", imageUrl);
       try {
-        const supabaseUrl = Deno.env.get('SUPABASE_URL') as string;
-        const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') as string;
-        
-        if (!supabaseUrl || !supabaseServiceKey) {
-          throw new Error("Supabase credentials not configured");
-        }
-        
-        const supabase = createClient(supabaseUrl, supabaseServiceKey);
-        
         // Here we would ideally use AI image analysis to find similar products
         // For this demo, we'll just fetch some products to simulate the functionality
         const { data: products, error: productsError } = await supabase
@@ -59,12 +60,72 @@ serve(async (req) => {
     
     console.log("Processing query:", query);
     
-    // Prepare system message based on search type
+    // Get training content to add context
+    const { data: trainingContent, error: contentError } = await supabase
+      .from('chatbot_training_content')
+      .select('content')
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(5);
+      
+    if (contentError) {
+      console.error("Error fetching training content:", contentError);
+    }
+    
+    // Get custom prompts
+    const { data: customPrompts, error: promptsError } = await supabase
+      .from('chatbot_custom_prompts')
+      .select('content, role')
+      .eq('status', 'active');
+      
+    if (promptsError) {
+      console.error("Error fetching custom prompts:", promptsError);
+    }
+    
+    // Prepare system message and context
     let systemMessage = 'You are a helpful assistant that provides accurate and concise information based on the training data. If you don\'t know the answer, say so clearly without making up information.';
     
     if (imageUrl) {
       systemMessage = 'You are a helpful shopping assistant that helps find products based on images. Be concise and specific when describing products.';
     }
+    
+    // Add bot rules/limits from custom prompts if available
+    const systemPrompts = customPrompts?.filter(prompt => prompt.role === 'system') || [];
+    if (systemPrompts.length > 0) {
+      systemMessage += '\n\n' + systemPrompts.map(p => p.content).join('\n\n');
+    }
+    
+    // Prepare messages array for the API
+    const messages = [
+      {
+        role: 'system',
+        content: systemMessage
+      }
+    ];
+    
+    // Add context from training content if available
+    if (trainingContent && trainingContent.length > 0) {
+      let context = "Here is some information that might be relevant:\n\n";
+      trainingContent.forEach(item => {
+        // Limit context size to avoid token limits
+        if (context.length < 4000) {
+          context += item.content.substring(0, 800) + "\n\n";
+        }
+      });
+      
+      messages.push({
+        role: 'system',
+        content: context
+      });
+    }
+    
+    // Add user message
+    messages.push({
+      role: 'user',
+      content: productResults ? 
+        `The user uploaded an image and wants to find similar products. Here are some potential matches from our store: ${JSON.stringify(productResults)}. Please respond with a helpful message about these products that might match their image search.` :
+        query
+    });
     
     // Call DeepSeek API
     const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
@@ -75,18 +136,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: 'deepseek-chat',
-        messages: [
-          {
-            role: 'system',
-            content: systemMessage
-          },
-          {
-            role: 'user',
-            content: productResults ? 
-              `The user uploaded an image and wants to find similar products. Here are some potential matches from our store: ${JSON.stringify(productResults)}. Please respond with a helpful message about these products that might match their image search.` :
-              query
-          }
-        ],
+        messages: messages,
         max_tokens: 1000,
         temperature: 0.7,
       }),
