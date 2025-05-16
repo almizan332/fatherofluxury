@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { Sidebar, SidebarContent, SidebarProvider } from "@/components/ui/sidebar";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -8,7 +8,6 @@ import ChatbotSettings from "@/components/chatbot/admin/ChatbotSettings";
 import ChatbotTrainingPrompts from "@/components/chatbot/admin/ChatbotTrainingPrompts";
 import { useAdminAuth } from "@/hooks/category/useAdminAuth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
 
 const ChatbotManagement = () => {
   const { isAdmin } = useAdminAuth();
@@ -29,7 +28,11 @@ const ChatbotManagement = () => {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
-        <DashboardSidebar />
+        <Sidebar>
+          <SidebarContent>
+            {/* Sidebar content will be inherited from Dashboard */}
+          </SidebarContent>
+        </Sidebar>
 
         <div className="flex-1 p-6">
           <div className="flex items-center justify-between mb-6">
