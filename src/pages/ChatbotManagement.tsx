@@ -5,11 +5,14 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import ChatbotSettings from "@/components/chatbot/admin/ChatbotSettings";
+import ChatbotTrainingPrompts from "@/components/chatbot/admin/ChatbotTrainingPrompts";
 import { useAdminAuth } from "@/hooks/category/useAdminAuth";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const ChatbotManagement = () => {
   const { isAdmin } = useAdminAuth();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("settings");
 
   if (!isAdmin) {
     navigate('/almizan');
@@ -39,7 +42,18 @@ const ChatbotManagement = () => {
             </div>
           </div>
 
-          <ChatbotSettings />
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+            <TabsList>
+              <TabsTrigger value="settings">General Settings</TabsTrigger>
+              <TabsTrigger value="training">Training & Prompts</TabsTrigger>
+            </TabsList>
+            <TabsContent value="settings">
+              <ChatbotSettings />
+            </TabsContent>
+            <TabsContent value="training">
+              <ChatbotTrainingPrompts />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </SidebarProvider>

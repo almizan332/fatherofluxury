@@ -45,10 +45,11 @@ const ChatbotTrainingPrompts = () => {
   const fetchPrompts = async () => {
     setIsLoading(true);
     try {
+      // Using 'any' type casting to bypass TypeScript issue with newly created tables
       const { data, error } = await (supabase
-        .from('chatbot_custom_prompts') as any)
+        .from('chatbot_custom_prompts' as any)
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false }));
       
       if (error) throw error;
       setPrompts(data || []);
@@ -76,14 +77,15 @@ const ChatbotTrainingPrompts = () => {
 
     setIsLoading(true);
     try {
+      // Using 'any' type casting to bypass TypeScript issue with newly created tables
       const { error } = await (supabase
-        .from('chatbot_custom_prompts') as any)
+        .from('chatbot_custom_prompts' as any)
         .insert({
           role: newPrompt.role,
           title: newPrompt.title,
           content: newPrompt.content,
           status: 'active'
-        });
+        }));
         
       if (error) throw error;
       
@@ -115,10 +117,11 @@ const ChatbotTrainingPrompts = () => {
   const handleDeletePrompt = async (id: string) => {
     setIsLoading(true);
     try {
+      // Using 'any' type casting to bypass TypeScript issue with newly created tables
       const { error } = await (supabase
-        .from('chatbot_custom_prompts') as any)
+        .from('chatbot_custom_prompts' as any)
         .delete()
-        .eq('id', id);
+        .eq('id', id));
         
       if (error) throw error;
       
@@ -152,14 +155,15 @@ const ChatbotTrainingPrompts = () => {
 
     setIsLoading(true);
     try {
+      // Using 'any' type casting to bypass TypeScript issue with newly created tables
       const { error } = await (supabase
-        .from('chatbot_training_content') as any)
+        .from('chatbot_training_content' as any)
         .insert({
           title: contentTitle,
           content: manualContent,
           source_type: 'manual',
           status: 'active'
-        });
+        }));
         
       if (error) throw error;
       
