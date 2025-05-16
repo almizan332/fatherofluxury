@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sidebar, SidebarContent, SidebarProvider } from "@/components/ui/sidebar";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,8 +14,14 @@ const ChatbotManagement = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("settings");
 
+  useEffect(() => {
+    if (!isAdmin) {
+      navigate('/almizan');
+    }
+  }, [isAdmin, navigate]);
+
+  // Return early if not admin, the redirect will happen in the useEffect
   if (!isAdmin) {
-    navigate('/almizan');
     return null;
   }
 

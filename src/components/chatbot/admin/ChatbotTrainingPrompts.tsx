@@ -45,14 +45,25 @@ const ChatbotTrainingPrompts = () => {
   const fetchPrompts = async () => {
     setIsLoading(true);
     try {
-      // Using 'any' type casting to bypass TypeScript issue with newly created tables
-      const { data, error } = await (supabase
-        .from('chatbot_custom_prompts' as any)
+      // Using a more type-safe approach with explicit casting
+      const { data, error } = await supabase
+        .from('chatbot_custom_prompts')
         .select('*')
-        .order('created_at', { ascending: false }));
+        .order('created_at', { ascending: false });
       
       if (error) throw error;
-      setPrompts(data || []);
+      
+      // Ensure the data matches our CustomPrompt interface
+      const typedPrompts: CustomPrompt[] = (data || []).map(item => ({
+        id: item.id,
+        role: item.role as 'system' | 'example' | 'rule',
+        title: item.title,
+        content: item.content,
+        status: item.status,
+        created_at: item.created_at
+      }));
+      
+      setPrompts(typedPrompts);
     } catch (error) {
       console.error("Error fetching custom prompts:", error);
       toast({
@@ -77,15 +88,14 @@ const ChatbotTrainingPrompts = () => {
 
     setIsLoading(true);
     try {
-      // Using 'any' type casting to bypass TypeScript issue with newly created tables
-      const { error } = await (supabase
-        .from('chatbot_custom_prompts' as any)
+      const { error } = await supabase
+        .from('chatbot_custom_prompts')
         .insert({
           role: newPrompt.role,
           title: newPrompt.title,
           content: newPrompt.content,
           status: 'active'
-        }));
+        });
         
       if (error) throw error;
       
@@ -117,11 +127,10 @@ const ChatbotTrainingPrompts = () => {
   const handleDeletePrompt = async (id: string) => {
     setIsLoading(true);
     try {
-      // Using 'any' type casting to bypass TypeScript issue with newly created tables
-      const { error } = await (supabase
-        .from('chatbot_custom_prompts' as any)
+      const { error } = await supabase
+        .from('chatbot_custom_prompts')
         .delete()
-        .eq('id', id));
+        .eq('id', id);
         
       if (error) throw error;
       
@@ -155,15 +164,14 @@ const ChatbotTrainingPrompts = () => {
 
     setIsLoading(true);
     try {
-      // Using 'any' type casting to bypass TypeScript issue with newly created tables
-      const { error } = await (supabase
-        .from('chatbot_training_content' as any)
+      const { error } = await supabase
+        .from('chatbot_training_content')
         .insert({
           title: contentTitle,
           content: manualContent,
           source_type: 'manual',
           status: 'active'
-        }));
+        });
         
       if (error) throw error;
       
