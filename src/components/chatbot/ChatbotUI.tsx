@@ -1,5 +1,6 @@
+
 import { useState, useRef, useEffect } from "react";
-import { Send, X, Minimize, Volume2, RefreshCw, Download } from "lucide-react";
+import { Send, X, Minimize, Volume2, RefreshCw, Download, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar } from "@/components/ui/avatar";
@@ -11,6 +12,7 @@ type Message = {
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
+  image?: string;
 };
 
 interface ChatbotUIProps {
@@ -29,7 +31,10 @@ const ChatbotUI = ({ onClose, onMinimize }: ChatbotUIProps) => {
   ]);
   const [userInput, setUserInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const scrollToBottom = () => {
@@ -40,7 +45,103 @@ const ChatbotUI = ({ onClose, onMinimize }: ChatbotUIProps) => {
     scrollToBottom();
   }, [messages]);
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+      
+      // Create image preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleImageSearch = async () => {
+    if (!selectedImage) return;
+
+    setIsLoading(true);
+    
+    try {
+      // Add user message with image
+      const userMessage: Message = {
+        id: `user-${Date.now()}`,
+        role: "user",
+        content: userInput || "Find products like this image",
+        timestamp: new Date(),
+        image: previewImage || undefined
+      };
+      setMessages((prev) => [...prev, userMessage]);
+      
+      // Upload the image temporarily to get a URL
+      const fileName = `temp-search-${Date.now()}.${selectedImage.name.split('.').pop()}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('temp_uploads')
+        .upload(`public/${fileName}`, selectedImage);
+        
+      if (uploadError) {
+        throw new Error(`Error uploading image: ${uploadError.message}`);
+      }
+      
+      // Get the public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('temp_uploads')
+        .getPublicUrl(`public/${fileName}`);
+      
+      // Call the chatbot query function with image URL
+      const { data, error } = await supabase.functions.invoke("chatbot-query", {
+        body: { 
+          query: userInput || "Find products like this image",
+          imageUrl: publicUrl
+        },
+      });
+
+      if (error) {
+        throw new Error(`Error invoking function: ${error.message}`);
+      }
+
+      // Add assistant response
+      const assistantMessage: Message = {
+        id: `assistant-${Date.now()}`,
+        role: "assistant",
+        content: data.response || "I couldn't find any matching products.",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, assistantMessage]);
+      
+      // Reset after search
+      setUserInput("");
+      setSelectedImage(null);
+      setPreviewImage(null);
+    } catch (error: any) {
+      console.error("Error processing image search:", error);
+      
+      toast({
+        title: "Error",
+        description: "Failed to search with image. Please try again later.",
+        variant: "destructive",
+      });
+      
+      // Add error message from assistant
+      const errorMessage: Message = {
+        id: `error-${Date.now()}`,
+        role: "assistant",
+        content: "I'm sorry, I encountered an error processing your image. Please try again later.",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSendMessage = async () => {
+    if (selectedImage) {
+      return handleImageSearch();
+    }
+    
     if (!userInput.trim()) return;
 
     // Add user message to chat
@@ -115,6 +216,20 @@ const ChatbotUI = ({ onClose, onMinimize }: ChatbotUIProps) => {
         timestamp: new Date(),
       },
     ]);
+    setSelectedImage(null);
+    setPreviewImage(null);
+  };
+
+  const triggerImageUpload = () => {
+    imageInputRef.current?.click();
+  };
+
+  const removeSelectedImage = () => {
+    setSelectedImage(null);
+    setPreviewImage(null);
+    if (imageInputRef.current) {
+      imageInputRef.current.value = '';
+    }
   };
 
   return (
@@ -163,6 +278,15 @@ const ChatbotUI = ({ onClose, onMinimize }: ChatbotUIProps) => {
                   : "bg-secondary/50"
               }`}
             >
+              {message.image && (
+                <div className="mb-2">
+                  <img 
+                    src={message.image} 
+                    alt="User uploaded" 
+                    className="rounded-md max-h-[150px] object-cover" 
+                  />
+                </div>
+              )}
               <p className="whitespace-pre-wrap">{message.content}</p>
               <div
                 className={`text-xs mt-1 ${
@@ -207,19 +331,61 @@ const ChatbotUI = ({ onClose, onMinimize }: ChatbotUIProps) => {
         </div>
       </div>
 
+      {/* Image preview if selected */}
+      {previewImage && (
+        <div className="px-3 pt-3 flex items-center">
+          <div className="relative">
+            <img 
+              src={previewImage} 
+              alt="Preview" 
+              className="h-16 w-16 object-cover rounded-md border border-gray-200" 
+            />
+            <Button
+              variant="secondary"
+              size="icon"
+              className="absolute -top-2 -right-2 h-5 w-5 rounded-full"
+              onClick={removeSelectedImage}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
+          <div className="ml-2 text-sm text-gray-600">
+            <p>Ask about this image or click send</p>
+          </div>
+        </div>
+      )}
+
+      {/* Hidden file input */}
+      <input
+        type="file"
+        ref={imageInputRef}
+        className="hidden"
+        accept="image/*"
+        onChange={handleImageSelect}
+      />
+
       {/* Message input */}
       <div className="p-3 border-t border-gray-200">
         <div className="flex items-end space-x-2">
+          <Button 
+            onClick={triggerImageUpload} 
+            variant="outline"
+            size="icon"
+            className="h-[60px]"
+            title="Upload image for search"
+          >
+            <Image className="h-5 w-5" />
+          </Button>
           <Textarea
             value={userInput}
             onChange={(e) => setUserInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Type your message..."
+            placeholder={selectedImage ? "Ask about this image or press send..." : "Type your message..."}
             className="min-h-[60px] resize-none"
           />
           <Button 
             onClick={handleSendMessage} 
-            disabled={isLoading || !userInput.trim()} 
+            disabled={isLoading || (!userInput.trim() && !selectedImage)} 
             size="icon"
             className="h-[60px] bg-primary hover:bg-primary/90"
           >

@@ -21,13 +21,50 @@ serve(async (req) => {
       throw new Error("DeepSeek API key not configured");
     }
 
-    const { query } = await req.json();
+    const { query, imageUrl } = await req.json();
     
     if (!query || typeof query !== 'string') {
       throw new Error("Invalid query parameter");
     }
     
+    // Create Supabase client to query products if image search is requested
+    let productResults = null;
+    if (imageUrl) {
+      console.log("Image search requested with URL:", imageUrl);
+      try {
+        const supabaseUrl = Deno.env.get('SUPABASE_URL') as string;
+        const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') as string;
+        
+        if (!supabaseUrl || !supabaseServiceKey) {
+          throw new Error("Supabase credentials not configured");
+        }
+        
+        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+        
+        // Here we would ideally use AI image analysis to find similar products
+        // For this demo, we'll just fetch some products to simulate the functionality
+        const { data: products, error: productsError } = await supabase
+          .from('products')
+          .select('id, name, preview_image, description')
+          .limit(3);
+          
+        if (productsError) throw productsError;
+        
+        productResults = products;
+        console.log("Found products:", productResults.length);
+      } catch (err) {
+        console.error("Error searching products by image:", err);
+      }
+    }
+    
     console.log("Processing query:", query);
+    
+    // Prepare system message based on search type
+    let systemMessage = 'You are a helpful assistant that provides accurate and concise information based on the training data. If you don\'t know the answer, say so clearly without making up information.';
+    
+    if (imageUrl) {
+      systemMessage = 'You are a helpful shopping assistant that helps find products based on images. Be concise and specific when describing products.';
+    }
     
     // Call DeepSeek API
     const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
@@ -41,11 +78,13 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'You are a helpful assistant that provides accurate and concise information based on the training data. If you don\'t know the answer, say so clearly without making up information.'
+            content: systemMessage
           },
           {
             role: 'user',
-            content: query
+            content: productResults ? 
+              `The user uploaded an image and wants to find similar products. Here are some potential matches from our store: ${JSON.stringify(productResults)}. Please respond with a helpful message about these products that might match their image search.` :
+              query
           }
         ],
         max_tokens: 1000,
@@ -68,9 +107,20 @@ serve(async (req) => {
     
     console.log("Received response from DeepSeek API");
     
+    // For image searches, add links to the products
+    let responseContent = data.choices[0].message.content || "Sorry, I'm not able to process your request right now.";
+    
+    if (productResults && productResults.length > 0) {
+      responseContent += "\n\nHere are links to the products I found:";
+      productResults.forEach((product: any, index: number) => {
+        responseContent += `\n${index + 1}. [${product.name}](/product/${product.id})`;
+      });
+    }
+    
     return new Response(
       JSON.stringify({ 
-        response: data.choices[0].message.content || "Sorry, I'm not able to process your request right now." 
+        response: responseContent,
+        products: productResults
       }),
       { 
         headers: { 
