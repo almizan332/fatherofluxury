@@ -1,8 +1,8 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useSearchParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useToast } from "@/components/ui/use-toast";
@@ -16,13 +16,23 @@ const ITEMS_PER_PAGE = 20;
 
 const SubCategory = () => {
   const { category } = useParams();
+  const [searchParams] = useSearchParams();
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const { products, loading } = useSubCategoryProducts(category);
   const { toast } = useToast();
 
+  // Get search query from URL parameters
+  useEffect(() => {
+    const urlSearchQuery = searchParams.get('search');
+    if (urlSearchQuery) {
+      setSearchQuery(urlSearchQuery);
+    }
+  }, [searchParams]);
+
   const filteredProducts = products.filter(product =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase())
+    product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    product.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
@@ -50,33 +60,47 @@ const SubCategory = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const displayCategory = category === 'all' ? 'All' : category;
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       <ScrollArea className="flex-grow">
-        <main className="container mx-auto px-4 py-12">
+        <main className="container mx-auto px-2 sm:px-4 py-6 sm:py-12">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="space-y-8"
+            className="space-y-6 sm:space-y-8"
           >
             <SubCategorySearch
               searchQuery={searchQuery}
               onSearchChange={handleSearch}
               productCount={filteredProducts.length}
-              categoryName={category}
+              categoryName={displayCategory}
             />
 
             {loading ? (
               <div className="text-center py-12">
-                <p className="text-muted-foreground">Loading products...</p>
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+                <p className="text-muted-foreground mt-4">Loading products...</p>
               </div>
             ) : filteredProducts.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-muted-foreground">No products found matching your search.</p>
+                <p className="text-muted-foreground">
+                  {searchQuery ? `No products found matching "${searchQuery}"` : "No products found in this category."}
+                </p>
+                {searchQuery && (
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setSearchQuery("")}
+                    className="mt-4"
+                  >
+                    Clear Search
+                  </Button>
+                )}
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
                 {paginatedProducts.map((product, index) => (
                   <Link to={`/product/${product.id}`} key={product.id}>
                     <motion.div
@@ -86,8 +110,8 @@ const SubCategory = () => {
                       whileHover={{ scale: 1.02 }}
                       className="transform transition-all duration-300"
                     >
-                      <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer bg-gray-900/50 border-gray-800">
-                        <CardContent className="p-0">
+                      <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer bg-gray-900/50 border-gray-800 h-full">
+                        <CardContent className="p-0 h-full flex flex-col">
                           <div className="aspect-square relative">
                             <img
                               src={product.preview_image || 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80'}
@@ -96,14 +120,14 @@ const SubCategory = () => {
                               loading="lazy"
                             />
                           </div>
-                          <div className="p-3">
-                            <h3 className="text-sm font-medium text-gray-200 line-clamp-2">{product.name}</h3>
-                            <div className="flex justify-between items-center mt-2">
+                          <div className="p-2 sm:p-3 flex-1 flex flex-col justify-between">
+                            <h3 className="text-xs sm:text-sm font-medium text-gray-200 line-clamp-2 mb-2">{product.name}</h3>
+                            <div className="flex justify-between items-center">
                               <p className="text-xs text-gray-400">
                                 {new Date(product.created_at).toLocaleDateString()}
                               </p>
-                              <Button variant="ghost" size="sm" className="text-xs">
-                                View Details
+                              <Button variant="ghost" size="sm" className="text-xs h-6 px-2">
+                                View
                               </Button>
                             </div>
                           </div>
