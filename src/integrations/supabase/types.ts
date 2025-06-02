@@ -99,6 +99,36 @@ export type Database = {
         }
         Relationships: []
       }
+      chatbot_custom_prompts: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          role: string
+          status: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          role?: string
+          status?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          role?: string
+          status?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       chatbot_settings: {
         Row: {
           created_at: string | null
@@ -129,6 +159,36 @@ export type Database = {
           theme_color?: string | null
           updated_at?: string | null
           welcome_message?: string | null
+        }
+        Relationships: []
+      }
+      chatbot_training_content: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          source_type: string
+          status: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          source_type: string
+          status?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          source_type?: string
+          status?: string
+          title?: string
+          updated_at?: string | null
         }
         Relationships: []
       }

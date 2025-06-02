@@ -1,6 +1,6 @@
 
 import { useState, useRef, useEffect } from "react";
-import { Send, X, Minimize, Volume2, RefreshCw, Download, Image } from "lucide-react";
+import { Send, X, Minimize, Volume2, RefreshCw, Download, Image, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar } from "@/components/ui/avatar";
@@ -25,7 +25,7 @@ const ChatbotUI = ({ onClose, onMinimize }: ChatbotUIProps) => {
     {
       id: "welcome",
       role: "assistant",
-      content: "Hello! How can I help you today?",
+      content: "Welcome to **Father of Luxury**! 🌟\n\nI'm here to help you discover our premium collection. Let me know how I can assist you with **Father of Luxury** products!\n\nVisit us at **fatheroluxury.com** for the complete experience.",
       timestamp: new Date(),
     },
   ]);
@@ -212,7 +212,7 @@ const ChatbotUI = ({ onClose, onMinimize }: ChatbotUIProps) => {
       {
         id: "welcome",
         role: "assistant",
-        content: "Hello! How can I help you today?",
+        content: "Welcome to **Father of Luxury**! 🌟\n\nI'm here to help you discover our premium collection. Let me know how I can assist you with **Father of Luxury** products!\n\nVisit us at **fatheroluxury.com** for the complete experience.",
         timestamp: new Date(),
       },
     ]);
@@ -232,22 +232,59 @@ const ChatbotUI = ({ onClose, onMinimize }: ChatbotUIProps) => {
     }
   };
 
+  const renderMessage = (content: string) => {
+    // Convert **text** to bold and handle links
+    const parts = content.split(/(\*\*[^*]+\*\*|fatheroluxury\.com)/g);
+    
+    return parts.map((part, index) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return (
+          <strong key={index} className="font-semibold text-amber-600">
+            {part.slice(2, -2)}
+          </strong>
+        );
+      } else if (part === 'fatheroluxury.com') {
+        return (
+          <a 
+            key={index} 
+            href={`https://${part}`} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:text-blue-800 underline font-medium transition-colors"
+          >
+            {part}
+          </a>
+        );
+      }
+      return <span key={index}>{part}</span>;
+    });
+  };
+
   return (
-    <div className="flex flex-col rounded-lg overflow-hidden shadow-xl bg-white border border-gray-200 w-full max-w-md h-[500px]">
-      {/* Chatbot header */}
-      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-3 flex justify-between items-center">
-        <div className="flex items-center">
-          <Avatar className="h-8 w-8">
-            <div className="bg-primary text-white flex items-center justify-center h-full rounded-full text-sm font-semibold">AI</div>
-          </Avatar>
-          <h3 className="ml-2 text-white font-medium">Premium Assistant</h3>
+    <div className="flex flex-col rounded-2xl overflow-hidden shadow-2xl bg-white border border-gray-100 w-full max-w-md h-[600px] backdrop-blur-sm">
+      {/* Modern header with gradient */}
+      <div className="bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500 px-6 py-4 flex justify-between items-center relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-amber-400/20 to-yellow-400/20 animate-gradient-background"></div>
+        <div className="flex items-center relative z-10">
+          <div className="relative">
+            <Avatar className="h-10 w-10 ring-2 ring-white/30">
+              <div className="bg-white text-amber-600 flex items-center justify-center h-full rounded-full text-sm font-bold shadow-inner">
+                <Sparkles className="h-5 w-5" />
+              </div>
+            </Avatar>
+            <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white animate-pulse"></div>
+          </div>
+          <div className="ml-3">
+            <h3 className="text-white font-bold text-sm tracking-wide">Father of Luxury</h3>
+            <p className="text-amber-100 text-xs font-medium">Premium Assistant</p>
+          </div>
         </div>
-        <div className="flex space-x-2">
+        <div className="flex space-x-2 relative z-10">
           <Button 
             variant="ghost" 
             size="icon" 
             onClick={onMinimize}
-            className="h-6 w-6 text-white hover:bg-white/20"
+            className="h-8 w-8 text-white hover:bg-white/20 rounded-full transition-all duration-200"
           >
             <Minimize className="h-4 w-4" />
           </Button>
@@ -255,42 +292,44 @@ const ChatbotUI = ({ onClose, onMinimize }: ChatbotUIProps) => {
             variant="ghost" 
             size="icon" 
             onClick={onClose}
-            className="h-6 w-6 text-white hover:bg-white/20"
+            className="h-8 w-8 text-white hover:bg-white/20 rounded-full transition-all duration-200"
           >
             <X className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
-      {/* Chat messages */}
-      <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+      {/* Chat messages with improved styling */}
+      <div className="flex-1 overflow-y-auto p-6 bg-gradient-to-b from-gray-50/50 to-white space-y-4">
         {messages.map((message) => (
           <div
             key={message.id}
-            className={`mb-4 ${
-              message.role === "user" ? "flex justify-end" : "flex justify-start"
+            className={`flex ${
+              message.role === "user" ? "justify-end" : "justify-start"
             }`}
           >
             <div
-              className={`max-w-[80%] rounded-lg p-3 ${
+              className={`max-w-[85%] rounded-2xl p-4 shadow-sm transition-all duration-200 hover:shadow-md ${
                 message.role === "user"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary/50"
+                  ? "bg-gradient-to-r from-amber-500 to-yellow-500 text-white ml-8"
+                  : "bg-white border border-gray-100 text-gray-800 mr-8"
               }`}
             >
               {message.image && (
-                <div className="mb-2">
+                <div className="mb-3">
                   <img 
                     src={message.image} 
                     alt="User uploaded" 
-                    className="rounded-md max-h-[150px] object-cover" 
+                    className="rounded-xl max-h-[150px] object-cover w-full shadow-sm" 
                   />
                 </div>
               )}
-              <p className="whitespace-pre-wrap">{message.content}</p>
+              <div className="whitespace-pre-wrap leading-relaxed text-sm">
+                {renderMessage(message.content)}
+              </div>
               <div
-                className={`text-xs mt-1 ${
-                  message.role === "user" ? "text-primary-foreground/70" : "text-muted-foreground"
+                className={`text-xs mt-2 ${
+                  message.role === "user" ? "text-amber-100" : "text-gray-500"
                 }`}
               >
                 {message.timestamp.toLocaleTimeString([], {
@@ -304,53 +343,58 @@ const ChatbotUI = ({ onClose, onMinimize }: ChatbotUIProps) => {
         <div ref={messagesEndRef} />
 
         {isLoading && (
-          <div className="flex justify-start mb-4">
-            <div className="bg-secondary/50 rounded-lg p-3">
+          <div className="flex justify-start">
+            <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm mr-8">
               <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
-                <div className="w-2 h-2 rounded-full bg-primary animate-pulse delay-150"></div>
-                <div className="w-2 h-2 rounded-full bg-primary animate-pulse delay-300"></div>
+                <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
+                <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse delay-150"></div>
+                <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse delay-300"></div>
+                <span className="text-xs text-gray-500 ml-2">Typing...</span>
               </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* Quick actions */}
-      <div className="flex justify-center py-2 bg-gray-50 border-t border-gray-200">
-        <div className="flex space-x-3">
-          <Button variant="outline" size="icon" title="Clear chat" onClick={clearChat}>
-            <RefreshCw className="h-4 w-4" />
+      {/* Modern quick actions */}
+      <div className="flex justify-center py-3 bg-gray-50/80 border-t border-gray-100">
+        <div className="flex space-x-2">
+          <Button variant="ghost" size="sm" title="Clear chat" onClick={clearChat} className="h-8 px-3 text-xs rounded-full hover:bg-white transition-colors">
+            <RefreshCw className="h-3 w-3 mr-1" />
+            Clear
           </Button>
-          <Button variant="outline" size="icon" title="Read message aloud">
-            <Volume2 className="h-4 w-4" />
+          <Button variant="ghost" size="sm" title="Read message aloud" className="h-8 px-3 text-xs rounded-full hover:bg-white transition-colors">
+            <Volume2 className="h-3 w-3 mr-1" />
+            Audio
           </Button>
-          <Button variant="outline" size="icon" title="Download conversation">
-            <Download className="h-4 w-4" />
+          <Button variant="ghost" size="sm" title="Download conversation" className="h-8 px-3 text-xs rounded-full hover:bg-white transition-colors">
+            <Download className="h-3 w-3 mr-1" />
+            Save
           </Button>
         </div>
       </div>
 
-      {/* Image preview if selected */}
+      {/* Image preview with modern styling */}
       {previewImage && (
-        <div className="px-3 pt-3 flex items-center">
+        <div className="px-4 pt-4 flex items-center bg-gray-50/80">
           <div className="relative">
             <img 
               src={previewImage} 
               alt="Preview" 
-              className="h-16 w-16 object-cover rounded-md border border-gray-200" 
+              className="h-16 w-16 object-cover rounded-xl border-2 border-amber-200 shadow-sm" 
             />
             <Button
               variant="secondary"
               size="icon"
-              className="absolute -top-2 -right-2 h-5 w-5 rounded-full"
+              className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 hover:bg-red-600 text-white border-2 border-white shadow-sm"
               onClick={removeSelectedImage}
             >
               <X className="h-3 w-3" />
             </Button>
           </div>
-          <div className="ml-2 text-sm text-gray-600">
-            <p>Ask about this image or click send</p>
+          <div className="ml-3 text-sm text-gray-600">
+            <p className="font-medium">Image attached</p>
+            <p className="text-xs text-gray-500">Ask about this image or send message</p>
           </div>
         </div>
       )}
@@ -364,30 +408,32 @@ const ChatbotUI = ({ onClose, onMinimize }: ChatbotUIProps) => {
         onChange={handleImageSelect}
       />
 
-      {/* Message input */}
-      <div className="p-3 border-t border-gray-200">
-        <div className="flex items-end space-x-2">
+      {/* Modern message input */}
+      <div className="p-4 border-t border-gray-100 bg-white">
+        <div className="flex items-end space-x-3">
           <Button 
             onClick={triggerImageUpload} 
             variant="outline"
             size="icon"
-            className="h-[60px]"
+            className="h-12 w-12 rounded-full border-amber-200 hover:border-amber-300 hover:bg-amber-50 transition-all duration-200"
             title="Upload image for search"
           >
-            <Image className="h-5 w-5" />
+            <Image className="h-5 w-5 text-amber-600" />
           </Button>
-          <Textarea
-            value={userInput}
-            onChange={(e) => setUserInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={selectedImage ? "Ask about this image or press send..." : "Type your message..."}
-            className="min-h-[60px] resize-none"
-          />
+          <div className="flex-1 relative">
+            <Textarea
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={selectedImage ? "Ask about this image..." : "Type your message about luxury products..."}
+              className="min-h-12 max-h-32 resize-none rounded-2xl border-gray-200 focus:border-amber-300 focus:ring-amber-200 pr-4 py-3 text-sm"
+            />
+          </div>
           <Button 
             onClick={handleSendMessage} 
             disabled={isLoading || (!userInput.trim() && !selectedImage)} 
             size="icon"
-            className="h-[60px] bg-primary hover:bg-primary/90"
+            className="h-12 w-12 rounded-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50"
           >
             <Send className="h-5 w-5" />
           </Button>
