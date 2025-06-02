@@ -30,10 +30,16 @@ const SubCategory = () => {
     }
   }, [searchParams]);
 
-  const filteredProducts = products.filter(product =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    product.description?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter products based on search query
+  const filteredProducts = products.filter(product => {
+    if (!searchQuery.trim()) return true;
+    
+    const searchTerm = searchQuery.toLowerCase();
+    return (
+      product.name.toLowerCase().includes(searchTerm) ||
+      product.description?.toLowerCase().includes(searchTerm)
+    );
+  });
 
   const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
   const paginatedProducts = filteredProducts.slice(
@@ -46,12 +52,20 @@ const SubCategory = () => {
     setSearchQuery(query);
     setCurrentPage(1);
 
-    if (query && filteredProducts.length === 0) {
-      toast({
-        title: "No products found",
-        description: "Try a different search term",
-        variant: "destructive",
-      });
+    // Show toast when no results found for search
+    if (query && query.length > 2) {
+      const results = products.filter(product =>
+        product.name.toLowerCase().includes(query.toLowerCase()) ||
+        product.description?.toLowerCase().includes(query.toLowerCase())
+      );
+      
+      if (results.length === 0) {
+        toast({
+          title: "No products found",
+          description: `No products found matching "${query}"`,
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -61,6 +75,9 @@ const SubCategory = () => {
   };
 
   const displayCategory = category === 'all' ? 'All' : category;
+  const displayTitle = searchQuery 
+    ? `Search Results for "${searchQuery}"` 
+    : `${displayCategory} Products`;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -76,7 +93,7 @@ const SubCategory = () => {
               searchQuery={searchQuery}
               onSearchChange={handleSearch}
               productCount={filteredProducts.length}
-              categoryName={displayCategory}
+              categoryName={searchQuery ? `Search: "${searchQuery}"` : displayCategory}
             />
 
             {loading ? (
