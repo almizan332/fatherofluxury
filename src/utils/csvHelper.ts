@@ -7,66 +7,91 @@ export const parseCSVFile = async (file: File): Promise<Partial<Product>[]> => {
     reader.onload = async (event) => {
       try {
         const text = event.target?.result as string;
-        const rows = text.split('\n');
-        const headers = rows[0].split(',').map(header => header.trim());
+        const lines = text.split('\n').filter(line => line.trim());
         
+        if (lines.length < 2) {
+          throw new Error('CSV file must have at least a header row and one data row');
+        }
+
+        // Parse CSV with proper handling of quoted fields
+        const parseCSVLine = (line: string): string[] => {
+          const result: string[] = [];
+          let current = '';
+          let inQuotes = false;
+          
+          for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            const nextChar = line[i + 1];
+            
+            if (char === '"') {
+              if (inQuotes && nextChar === '"') {
+                current += '"';
+                i++; // Skip next quote
+              } else {
+                inQuotes = !inQuotes;
+              }
+            } else if (char === ',' && !inQuotes) {
+              result.push(current.trim());
+              current = '';
+            } else {
+              current += char;
+            }
+          }
+          result.push(current.trim());
+          return result;
+        };
+
+        const headers = parseCSVLine(lines[0]).map(header => header.replace(/"/g, '').trim());
         console.log("CSV headers:", headers);
         
-        const products: Partial<Product>[] = rows
-          .slice(1) // Skip header row
-          .filter(row => row.trim()) // Skip empty rows
-          .map((row, rowIndex) => {
-            const values = row.split(',').map(value => value.trim());
-            const product: Partial<Product> = {};
+        const products: Partial<Product>[] = [];
+        
+        for (let i = 1; i < lines.length; i++) {
+          const values = parseCSVLine(lines[i]);
+          const product: Partial<Product> = {};
+          
+          headers.forEach((header, index) => {
+            const value = values[index] ? values[index].replace(/"/g, '').trim() : '';
             
-            headers.forEach((header, index) => {
-              const value = values[index];
-              
-              // Skip empty values except for URLs which can be optional
-              if ((!value || value === '') && 
-                  !header.includes('URL')) return;
-              
-              switch(header) {
-                case 'Product Name':
-                  product.name = value;
-                  break;
-                case 'Description':
-                  product.description = value;
-                  break;
-                case 'Preview Image URL':
-                  product.preview_image = value;
-                  break;
-                case 'Gallery Image URLs (comma separated)':
-                  // Handle gallery images with semicolon separators
-                  if (value) {
-                    product.gallery_images = value.split(';')
-                      .map(url => url.trim())
-                      .filter(url => url && url.length > 0);
-                    console.log(`Row ${rowIndex + 2} Gallery images:`, product.gallery_images);
-                  } else {
-                    product.gallery_images = [];
-                  }
-                  break;
-                case 'Flylink URL':
-                  // Only set if not empty
-                  if (value && value.trim()) product.flylink_url = value.trim();
-                  break;
-                case 'Alibaba URL':
-                  // Only set if not empty
-                  if (value && value.trim()) product.alibaba_url = value.trim();
-                  break;
-                case 'DHgate URL':
-                  // Only set if not empty
-                  if (value && value.trim()) product.dhgate_url = value.trim();
-                  break;
-                case 'Category':
-                  if (value) (product as any).category = value;
-                  break;
-              }
-            });
-            
-            return product;
+            switch(header) {
+              case 'Product Name':
+                if (value) product.name = value;
+                break;
+              case 'Description':
+                if (value) product.description = value;
+                break;
+              case 'Preview Image URL':
+                if (value) product.preview_image = value;
+                break;
+              case 'Gallery Image URLs (semicolon separated)':
+                if (value) {
+                  product.gallery_images = value.split(';')
+                    .map(url => url.trim())
+                    .filter(url => url && url.length > 0);
+                } else {
+                  product.gallery_images = [];
+                }
+                break;
+              case 'Flylink URL':
+                if (value) product.flylink_url = value;
+                break;
+              case 'Alibaba URL':
+                if (value) product.alibaba_url = value;
+                break;
+              case 'DHgate URL':
+                if (value) product.dhgate_url = value;
+                break;
+              case 'Category':
+                if (value) (product as any).category = value;
+                break;
+            }
           });
+          
+          // Only add product if it has a name
+          if (product.name) {
+            products.push(product);
+          }
+        }
         
         console.log("Parsed products:", products);
         resolve(products);
@@ -84,8 +109,14 @@ export const validateProducts = (products: Partial<Product>[]): string[] => {
   const errors: string[] = [];
   
   products.forEach((product, index) => {
-    if (!product.name) {
-      errors.push(`Row ${index + 2}: Product name is required`);
+    const rowNumber = index + 2; // +2 because we start from row 2 (after header)
+    
+    if (!product.name || product.name.trim() === '') {
+      errors.push(`Row ${rowNumber}: Product name is required`);
+    }
+    
+    if (product.name && product.name.length > 255) {
+      errors.push(`Row ${rowNumber}: Product name too long (max 255 characters)`);
     }
   });
   

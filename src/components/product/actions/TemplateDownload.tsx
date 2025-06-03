@@ -9,18 +9,27 @@ const TemplateDownload = () => {
 
   const downloadExcelTemplate = (e: React.MouseEvent) => {
     e.preventDefault();
-    // Create CSV content with headers and sample data
+    
+    // Create CSV content with proper escaping
+    const escapeCSVField = (field: string) => {
+      if (field.includes(',') || field.includes('"') || field.includes('\n')) {
+        return `"${field.replace(/"/g, '""')}"`;
+      }
+      return field;
+    };
+    
+    // Create CSV rows
     const csvRows = [
-      productExcelHeaders.join(','),
+      productExcelHeaders.map(escapeCSVField).join(','),
       ...sampleExcelData.map(row => [
-        row['Product Name'],
-        row['Flylink URL'] || '', // Include empty strings for empty URLs
-        row['Alibaba URL'] || '',
-        row['DHgate URL'] || '',
-        row['Category'],
-        row['Description'],
-        row['Preview Image URL'],
-        row['Gallery Image URLs (comma separated)']
+        escapeCSVField(row['Product Name']),
+        escapeCSVField(row['Flylink URL'] || ''),
+        escapeCSVField(row['Alibaba URL'] || ''),
+        escapeCSVField(row['DHgate URL'] || ''),
+        escapeCSVField(row['Category']),
+        escapeCSVField(row['Description']),
+        escapeCSVField(row['Preview Image URL']),
+        escapeCSVField(row['Gallery Image URLs (semicolon separated)'])
       ].join(','))
     ];
 
@@ -37,7 +46,7 @@ const TemplateDownload = () => {
 
     toast({
       title: "Template downloaded",
-      description: "You can now fill in the template and import it back. Note: You can leave affiliate URLs blank if not needed.",
+      description: "Fill in the template and import it back. Note: URLs can be left empty if not needed. Use semicolons (;) to separate multiple gallery image URLs.",
     });
   };
 
