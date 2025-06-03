@@ -30,14 +30,18 @@ const ProductListHeader = ({
           </p>
         )}
       </div>
-      <div className="flex gap-2">
-        <Button onClick={onDownloadTemplate}>
+      <div className="flex gap-2 flex-wrap">
+        <Button variant="outline" onClick={onDownloadTemplate}>
           <Download className="h-4 w-4 mr-2" />
           Download Template
         </Button>
         
         {selectedProducts.length > 0 && (
-          <Button variant="destructive" onClick={onDeleteSelected}>
+          <Button 
+            variant="destructive" 
+            onClick={onDeleteSelected}
+            className="bg-red-600 hover:bg-red-700"
+          >
             <Trash2 className="h-4 w-4 mr-2" />
             Delete Selected ({selectedProducts.length})
           </Button>
@@ -45,7 +49,7 @@ const ProductListHeader = ({
         
         <Dialog open={isDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={onOpenAddDialog}>
+            <Button onClick={onOpenAddDialog} className="bg-green-600 hover:bg-green-700">
               <Plus className="h-4 w-4 mr-2" />
               Add Product
             </Button>
@@ -59,7 +63,7 @@ const ProductListHeader = ({
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             onChange={onFileUploadChange}
           />
-          <Button variant="outline">
+          <Button variant="outline" className="bg-blue-50 hover:bg-blue-100">
             <FileSpreadsheet className="h-4 w-4 mr-2" />
             Import from CSV
           </Button>

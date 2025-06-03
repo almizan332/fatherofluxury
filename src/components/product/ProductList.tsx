@@ -10,9 +10,15 @@ import ProductListHeader from "./list/ProductListHeader";
 import ProductListTable from "./list/ProductListTable";
 import EmptyProductState from "./list/EmptyProductState";
 import { productExcelHeaders, sampleExcelData } from "@/utils/excelTemplate";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+
+const PRODUCTS_PER_PAGE = 200;
 
 const ProductList = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -35,14 +41,22 @@ const ProductList = () => {
     };
   }, []);
 
+  useEffect(() => {
+    // Update paginated products when page changes or all products change
+    const startIndex = (currentPage - 1) * PRODUCTS_PER_PAGE;
+    const endIndex = startIndex + PRODUCTS_PER_PAGE;
+    setProducts(allProducts.slice(startIndex, endIndex));
+  }, [currentPage, allProducts]);
+
   const fetchProducts = async () => {
     try {
       const { data, error } = await supabase
         .from('products')
-        .select('*, categories(name)');
+        .select('*, categories(name)')
+        .order('created_at', { ascending: false });
       
       if (error) throw error;
-      setProducts(data || []);
+      setAllProducts(data || []);
     } catch (error: any) {
       toast({
         title: "Error fetching products",
@@ -87,6 +101,8 @@ const ProductList = () => {
 
   const handleDeleteSelected = async (e: React.MouseEvent) => {
     e.preventDefault();
+    if (selectedProducts.length === 0) return;
+
     try {
       const { error } = await supabase
         .from('products')
@@ -171,6 +187,13 @@ const ProductList = () => {
     setIsDialogOpen(true);
   };
 
+  const totalPages = Math.ceil(allProducts.length / PRODUCTS_PER_PAGE);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    setSelectedProducts([]); // Clear selection when changing pages
+  };
+
   return (
     <div className="p-6">
       <ProductListHeader 
@@ -183,14 +206,55 @@ const ProductList = () => {
       />
 
       <Card className="p-6">
-        {products.length > 0 ? (
-          <ProductListTable 
-            products={products}
-            selectedProducts={selectedProducts}
-            onSelectAll={handleSelectAll}
-            onSelectProduct={handleSelectProduct}
-            onEditProduct={handleEditProduct}
-          />
+        {allProducts.length > 0 ? (
+          <>
+            <div className="mb-4 flex justify-between items-center">
+              <p className="text-sm text-muted-foreground">
+                Showing {((currentPage - 1) * PRODUCTS_PER_PAGE) + 1} to {Math.min(currentPage * PRODUCTS_PER_PAGE, allProducts.length)} of {allProducts.length} products
+              </p>
+              {selectedProducts.length > 0 && (
+                <p className="text-sm text-muted-foreground">
+                  {selectedProducts.length} products selected
+                </p>
+              )}
+            </div>
+            
+            <ProductListTable 
+              products={products}
+              selectedProducts={selectedProducts}
+              onSelectAll={handleSelectAll}
+              onSelectProduct={handleSelectProduct}
+              onEditProduct={handleEditProduct}
+            />
+
+            {totalPages > 1 && (
+              <div className="mt-6 flex justify-center items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  Previous
+                </Button>
+                
+                <span className="text-sm text-muted-foreground mx-4">
+                  Page {currentPage} of {totalPages}
+                </span>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
+            )}
+          </>
         ) : (
           <EmptyProductState />
         )}
