@@ -49,17 +49,24 @@ const ProductList = () => {
 
   const fetchProducts = async () => {
     try {
+      console.log('Fetching products...');
       const { data, error } = await supabase
         .from('products')
         .select('*, categories(name)')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching products:', error);
+        throw error;
+      }
+      
+      console.log('Products fetched successfully:', data?.length || 0);
       setAllProducts(data || []);
     } catch (error: any) {
+      console.error('Failed to fetch products:', error);
       toast({
         title: "Error fetching products",
-        description: error.message,
+        description: error.message || "Failed to load products",
         variant: "destructive",
       });
     }
@@ -102,22 +109,39 @@ const ProductList = () => {
     if (selectedProducts.length === 0) return;
 
     try {
+      console.log('Deleting products:', selectedProducts);
+      
+      // Check if supabase client is properly initialized
+      if (!supabase) {
+        throw new Error('Supabase client not initialized');
+      }
+
       const { error } = await supabase
         .from('products')
         .delete()
         .in('id', selectedProducts);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase delete error:', error);
+        throw error;
+      }
 
+      console.log('Products deleted successfully');
       setSelectedProducts([]);
+      
       toast({
         title: "Products deleted",
-        description: `${selectedProducts.length} products have been deleted`,
+        description: `${selectedProducts.length} products have been deleted successfully`,
       });
+      
+      // Refresh the products list
+      await fetchProducts();
+      
     } catch (error: any) {
+      console.error('Delete operation failed:', error);
       toast({
         title: "Error deleting products",
-        description: error.message,
+        description: error.message || "Failed to delete products. Please try again.",
         variant: "destructive",
       });
     }
