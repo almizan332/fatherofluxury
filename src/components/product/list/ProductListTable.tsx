@@ -37,10 +37,7 @@ const ProductListTable = ({
           <TableRow className="bg-muted/50">
             <TableHead className="w-[50px]">
               <Checkbox
-                checked={allSelected}
-                ref={(el) => {
-                  if (el) el.indeterminate = someSelected;
-                }}
+                checked={allSelected ? true : someSelected ? "indeterminate" : false}
                 onCheckedChange={onSelectAll}
                 aria-label="Select all products"
               />
