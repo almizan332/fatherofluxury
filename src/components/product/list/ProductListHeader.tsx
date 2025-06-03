@@ -6,7 +6,7 @@ import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 interface ProductListHeaderProps {
   selectedProducts: string[];
   onDownloadTemplate: (e: React.MouseEvent) => void;
-  onDeleteSelected: (e: React.MouseEvent) => void;
+  onDeleteSelected: () => void;
   onOpenAddDialog: (e: React.MouseEvent) => void;
   isDialogOpen: boolean;
   onFileUploadChange: (e: React.ChangeEvent<HTMLInputElement>) => void;

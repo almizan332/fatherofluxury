@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -99,8 +98,7 @@ const ProductList = () => {
     }
   };
 
-  const handleDeleteSelected = async (e: React.MouseEvent) => {
-    e.preventDefault();
+  const handleDeleteSelected = async () => {
     if (selectedProducts.length === 0) return;
 
     try {
