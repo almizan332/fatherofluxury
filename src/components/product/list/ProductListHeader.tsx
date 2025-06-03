@@ -22,7 +22,14 @@ const ProductListHeader = ({
 }: ProductListHeaderProps) => {
   return (
     <div className="flex justify-between items-center mb-6">
-      <h1 className="text-2xl font-bold">Product Management</h1>
+      <div>
+        <h1 className="text-2xl font-bold">Product Management</h1>
+        {selectedProducts.length > 0 && (
+          <p className="text-sm text-muted-foreground mt-1">
+            {selectedProducts.length} products selected
+          </p>
+        )}
+      </div>
       <div className="flex gap-2">
         <Button onClick={onDownloadTemplate}>
           <Download className="h-4 w-4 mr-2" />

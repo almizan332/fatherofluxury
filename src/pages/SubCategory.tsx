@@ -12,7 +12,7 @@ import { useSubCategoryProducts } from "@/hooks/useSubCategoryProducts";
 import { SubCategorySearch } from "@/components/subcategory/SubCategorySearch";
 import { SubCategoryPagination } from "@/components/subcategory/SubCategoryPagination";
 
-const ITEMS_PER_PAGE = 20;
+const ITEMS_PER_PAGE = 120;
 
 const SubCategory = () => {
   const { category } = useParams();
@@ -129,12 +129,16 @@ const SubCategory = () => {
                     >
                       <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer bg-gray-900/50 border-gray-800 h-full">
                         <CardContent className="p-0 h-full flex flex-col">
-                          <div className="aspect-square relative">
+                          <div className="aspect-square relative overflow-hidden">
                             <img
                               src={product.preview_image || 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80'}
                               alt={product.name}
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-cover object-center"
                               loading="lazy"
+                              style={{ 
+                                minHeight: '100%',
+                                maxHeight: '100%'
+                              }}
                             />
                           </div>
                           <div className="p-2 sm:p-3 flex-1 flex flex-col justify-between">

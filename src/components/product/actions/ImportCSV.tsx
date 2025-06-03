@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { parseCSVFile, validateProducts } from "@/utils/csvHelper";
+import { uploadFileToVPS } from "@/utils/vpsFileUpload";
 import { Category } from "@/components/category/types";
 
 interface ImportCSVProps {
@@ -52,6 +53,43 @@ const ImportCSV = ({ categories, onProductSave }: ImportCSVProps) => {
           continue;
         }
 
+        // Handle image uploads
+        let uploadedPreviewImage = product.preview_image;
+        let uploadedGalleryImages = product.gallery_images || [];
+
+        // Upload preview image if it's a URL
+        if (product.preview_image && product.preview_image.startsWith('http')) {
+          try {
+            uploadedPreviewImage = await uploadFileToVPS({
+              url: product.preview_image,
+              type: 'image/jpeg'
+            } as any);
+          } catch (error) {
+            console.error("Error uploading preview image:", error);
+            uploadedPreviewImage = product.preview_image; // Keep original URL as fallback
+          }
+        }
+
+        // Upload gallery images if they are URLs
+        if (product.gallery_images && product.gallery_images.length > 0) {
+          const uploadPromises = product.gallery_images.map(async (imageUrl) => {
+            if (imageUrl && imageUrl.startsWith('http')) {
+              try {
+                return await uploadFileToVPS({
+                  url: imageUrl,
+                  type: 'image/jpeg'
+                } as any);
+              } catch (error) {
+                console.error("Error uploading gallery image:", error);
+                return imageUrl; // Keep original URL as fallback
+              }
+            }
+            return imageUrl;
+          });
+          
+          uploadedGalleryImages = await Promise.all(uploadPromises);
+        }
+
         // Find category ID if the category is provided
         if (product.category_id === undefined && (product as any).category) {
           const categoryName = (product as any).category;
@@ -64,21 +102,12 @@ const ImportCSV = ({ categories, onProductSave }: ImportCSVProps) => {
           }
         }
 
-        // Debug logging for product details
-        console.log('Product before insert:', {
-          name: product.name,
-          gallery_images: product.gallery_images,
-          flylink_url: product.flylink_url,
-          alibaba_url: product.alibaba_url,
-          dhgate_url: product.dhgate_url
-        });
-
         // Prepare product data for insertion
         const productData = {
           name: product.name,
           description: product.description || '',
-          preview_image: product.preview_image || '',
-          gallery_images: product.gallery_images || [],
+          preview_image: uploadedPreviewImage || '',
+          gallery_images: uploadedGalleryImages,
           category_id: product.category_id,
           // Only include non-empty URL fields
           ...(product.flylink_url ? { flylink_url: product.flylink_url } : {}),
@@ -104,7 +133,7 @@ const ImportCSV = ({ categories, onProductSave }: ImportCSVProps) => {
       // Show success toast and refresh products
       toast({
         title: "Products uploaded",
-        description: `${successCount} products were successfully imported.`,
+        description: `${successCount} products were successfully imported with images uploaded.`,
       });
       
       // Refresh the product list
