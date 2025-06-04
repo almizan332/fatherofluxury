@@ -30,7 +30,7 @@ export const parseCSVFile = async (file: File): Promise<Partial<Product>[]> => {
               } else {
                 inQuotes = !inQuotes;
               }
-            } else if (char === ',' && !inQuotes) {
+            } else if (char === '\t' && !inQuotes) {
               result.push(current.trim());
               current = '';
             } else {
@@ -60,12 +60,12 @@ export const parseCSVFile = async (file: File): Promise<Partial<Product>[]> => {
               case 'Description':
                 if (value) product.description = value;
                 break;
-              case 'Preview Image URL':
+              case 'First Image':
                 if (value && value.startsWith('http')) {
                   product.preview_image = value;
                 }
                 break;
-              case 'Gallery Image URLs (semicolon separated)':
+              case 'Media Links':
                 if (value) {
                   product.gallery_images = value.split(';')
                     .map(url => url.trim())
@@ -74,8 +74,8 @@ export const parseCSVFile = async (file: File): Promise<Partial<Product>[]> => {
                   product.gallery_images = [];
                 }
                 break;
-              case 'Flylink URL':
-                if (value && value.startsWith('http')) product.flylink_url = value;
+              case 'Flylinking URL':
+                if (value && value.startsWith('http')) (product as any).flylink_url = value;
                 break;
               case 'Alibaba URL':
                 if (value && value.startsWith('http')) product.alibaba_url = value;
@@ -123,13 +123,13 @@ export const validateProducts = (products: Partial<Product>[]): string[] => {
     
     // Validate image URLs
     if (product.preview_image && !product.preview_image.startsWith('http')) {
-      errors.push(`Row ${rowNumber}: Preview image URL must be a valid HTTP/HTTPS URL`);
+      errors.push(`Row ${rowNumber}: First Image URL must be a valid HTTP/HTTPS URL`);
     }
     
     if (product.gallery_images && Array.isArray(product.gallery_images)) {
       product.gallery_images.forEach((url, imgIndex) => {
         if (url && !url.startsWith('http')) {
-          errors.push(`Row ${rowNumber}: Gallery image ${imgIndex + 1} URL must be a valid HTTP/HTTPS URL`);
+          errors.push(`Row ${rowNumber}: Media Link ${imgIndex + 1} URL must be a valid HTTP/HTTPS URL`);
         }
       });
     }

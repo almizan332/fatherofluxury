@@ -12,25 +12,25 @@ const TemplateDownload = () => {
     
     // Create CSV content with proper escaping
     const escapeCSVField = (field: string) => {
-      if (field.includes(',') || field.includes('"') || field.includes('\n')) {
+      if (field.includes('\t') || field.includes('"') || field.includes('\n')) {
         return `"${field.replace(/"/g, '""')}"`;
       }
       return field;
     };
     
-    // Create CSV rows
+    // Create CSV rows using tab separation to match the user's format
     const csvRows = [
-      productExcelHeaders.map(escapeCSVField).join(','),
+      productExcelHeaders.map(escapeCSVField).join('\t'),
       ...sampleExcelData.map(row => [
         escapeCSVField(row['Product Name']),
-        escapeCSVField(row['Flylink URL'] || ''),
+        escapeCSVField(row['Flylinking URL'] || ''),
         escapeCSVField(row['Alibaba URL'] || ''),
         escapeCSVField(row['DHgate URL'] || ''),
         escapeCSVField(row['Category']),
         escapeCSVField(row['Description']),
-        escapeCSVField(row['Preview Image URL']),
-        escapeCSVField(row['Gallery Image URLs (semicolon separated)'])
-      ].join(','))
+        escapeCSVField(row['First Image']),
+        escapeCSVField(row['Media Links'])
+      ].join('\t'))
     ];
 
     const csvContent = csvRows.join('\n');
@@ -46,7 +46,7 @@ const TemplateDownload = () => {
 
     toast({
       title: "Template downloaded",
-      description: "Fill in the template and import it back. Note: URLs can be left empty if not needed. Use semicolons (;) to separate multiple gallery image URLs.",
+      description: "Fill in the template and import it back. Use tab-separated format. URLs can be left empty if not needed. Use semicolons (;) to separate multiple media links.",
     });
   };
 
