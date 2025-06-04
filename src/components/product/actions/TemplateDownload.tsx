@@ -10,7 +10,7 @@ const TemplateDownload = () => {
   const downloadExcelTemplate = (e: React.MouseEvent) => {
     e.preventDefault();
     
-    // Create CSV content with proper escaping
+    // Create CSV content with proper escaping for tab-separated format
     const escapeCSVField = (field: string) => {
       if (field.includes('\t') || field.includes('"') || field.includes('\n')) {
         return `"${field.replace(/"/g, '""')}"`;
@@ -18,7 +18,7 @@ const TemplateDownload = () => {
       return field;
     };
     
-    // Create CSV rows using tab separation to match the user's format
+    // Create CSV rows using tab separation to match your format
     const csvRows = [
       productExcelHeaders.map(escapeCSVField).join('\t'),
       ...sampleExcelData.map(row => [
@@ -46,7 +46,7 @@ const TemplateDownload = () => {
 
     toast({
       title: "Template downloaded",
-      description: "Fill in the template and import it back. Use tab-separated format. URLs can be left empty if not needed. Use semicolons (;) to separate multiple media links.",
+      description: "Fill in the template with your product data. Use semicolons (;) to separate multiple media links. URLs can be left empty if not needed.",
     });
   };
 

@@ -13,7 +13,7 @@ export const parseCSVFile = async (file: File): Promise<Partial<Product>[]> => {
           throw new Error('CSV file must have at least a header row and one data row');
         }
 
-        // Parse CSV with proper handling of quoted fields
+        // Parse CSV with proper handling of quoted fields and tabs
         const parseCSVLine = (line: string): string[] => {
           const result: string[] = [];
           let current = '';
@@ -51,7 +51,7 @@ export const parseCSVFile = async (file: File): Promise<Partial<Product>[]> => {
           const product: Partial<Product> = {};
           
           headers.forEach((header, index) => {
-            const value = values[index] ? values[index].replace(/"/g, '').trim() : '';
+            const value = values[index] ? values[index].replace(/^"|"$/g, '').trim() : '';
             
             switch(header) {
               case 'Product Name':
@@ -61,27 +61,38 @@ export const parseCSVFile = async (file: File): Promise<Partial<Product>[]> => {
                 if (value) product.description = value;
                 break;
               case 'First Image':
-                if (value && value.startsWith('http')) {
-                  product.preview_image = value;
+                if (value && (value.startsWith('http') || value.startsWith('https'))) {
+                  // Clean up any extra spaces in the URL
+                  product.preview_image = value.replace(/\s+/g, ' ').trim();
                 }
                 break;
               case 'Media Links':
                 if (value) {
-                  product.gallery_images = value.split(';')
-                    .map(url => url.trim())
-                    .filter(url => url && url.length > 0 && url.startsWith('http'));
+                  // Split by semicolon and clean up each URL
+                  const imageUrls = value.split(';')
+                    .map(url => url.trim().replace(/\s+/g, ' '))
+                    .filter(url => url && url.length > 0 && (url.startsWith('http') || url.startsWith('https')));
+                  
+                  product.gallery_images = imageUrls;
+                  console.log('Parsed gallery images:', imageUrls);
                 } else {
                   product.gallery_images = [];
                 }
                 break;
               case 'Flylinking URL':
-                if (value && value.startsWith('http')) (product as any).flylink_url = value;
+                if (value && (value.startsWith('http') || value.startsWith('https'))) {
+                  (product as any).flylink_url = value.trim();
+                }
                 break;
               case 'Alibaba URL':
-                if (value && value.startsWith('http')) product.alibaba_url = value;
+                if (value && (value.startsWith('http') || value.startsWith('https'))) {
+                  product.alibaba_url = value.trim();
+                }
                 break;
               case 'DHgate URL':
-                if (value && value.startsWith('http')) product.dhgate_url = value;
+                if (value && (value.startsWith('http') || value.startsWith('https'))) {
+                  product.dhgate_url = value.trim();
+                }
                 break;
               case 'Category':
                 if (value) (product as any).category = value;
@@ -91,11 +102,16 @@ export const parseCSVFile = async (file: File): Promise<Partial<Product>[]> => {
           
           // Only add product if it has a name
           if (product.name) {
+            console.log('Parsed product:', {
+              name: product.name,
+              preview_image: product.preview_image,
+              gallery_count: product.gallery_images?.length || 0
+            });
             products.push(product);
           }
         }
         
-        console.log("Parsed products:", products);
+        console.log("Total parsed products:", products.length);
         resolve(products);
       } catch (error) {
         console.error("Error parsing CSV:", error);
@@ -121,7 +137,7 @@ export const validateProducts = (products: Partial<Product>[]): string[] => {
       errors.push(`Row ${rowNumber}: Product name too long (max 255 characters)`);
     }
     
-    // Validate image URLs
+    // Validate image URLs - be more lenient with URL validation
     if (product.preview_image && !product.preview_image.startsWith('http')) {
       errors.push(`Row ${rowNumber}: First Image URL must be a valid HTTP/HTTPS URL`);
     }

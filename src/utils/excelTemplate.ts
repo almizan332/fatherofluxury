@@ -12,23 +12,23 @@ export const productExcelHeaders = [
 
 export const sampleExcelData = [
   {
-    'Product Name': 'LV Bag Classic',
+    'Product Name': 'AN4376 ALO SUIT 55.99$ J6S4376 GYYF',
     'Flylinking URL': 'https://s.flylinking.com/g-QP4CZM09OE',
-    'Alibaba URL': 'https://alibaba.com/lv-bag',
-    'DHgate URL': 'https://dhgate.com/lv-bag',
-    'Category': 'Bags',
-    'Description': 'LV Bag 1:1 Good Quality Size: 26x19cm Material: Artificial leather',
-    'First Image': 'https://sgp1.digitaloceanspaces.com/fatherofluxury.com/images/lv-bag.jpg',
-    'Media Links': 'https://sgp1.digitaloceanspaces.com/fatherofluxury.com/images/lv-1.jpg;https://sgp1.digitaloceanspaces.com/fatherofluxury.com/images/lv-2.jpg;https://sgp1.digitaloceanspaces.com/fatherofluxury.com/images/lv-3.jpg'
+    'Alibaba URL': 'https://s.click.aliexpress.com/e/_onEttFK',
+    'DHgate URL': '',
+    'Category': 'James',
+    'Description': '1:1 The highest quality',
+    'First Image': 'https://sgp1.digitaloceanspaces.com/fatherofluxury.com/yaya/AN4376 ALO SUIT 55.99$ J6S4376 GYYF/01e59917.jpg',
+    'Media Links': 'https://sgp1.digitaloceanspaces.com/fatherofluxury.com/yaya/AN4376 ALO SUIT 55.99$ J6S4376 GYYF/01e59917.jpg;https://sgp1.digitaloceanspaces.com/fatherofluxury.com/yaya/AN4376 ALO SUIT 55.99$ J6S4376 GYYF/01e59917_1.jpg;https://sgp1.digitaloceanspaces.com/fatherofluxury.com/yaya/AN4376 ALO SUIT 55.99$ J6S4376 GYYF/02c1874d.jpg;https://sgp1.digitaloceanspaces.com/fatherofluxury.com/yaya/AN4376 ALO SUIT 55.99$ J6S4376 GYYF/02c1874d_1.jpg;https://sgp1.digitaloceanspaces.com/fatherofluxury.com/yaya/AN4376 ALO SUIT 55.99$ J6S4376 GYYF/05355d23.jpg'
   },
   {
-    'Product Name': 'CC Wallet',
-    'Flylinking URL': '',
-    'Alibaba URL': '',
-    'DHgate URL': 'https://dhgate.com/cc-wallet',
-    'Category': 'Wallets',
-    'Description': 'CC Wallet Premium Quality Size: 19x10cm Material: Genuine leather',
-    'First Image': 'https://sgp1.digitaloceanspaces.com/fatherofluxury.com/images/cc-wallet.jpg',
-    'Media Links': 'https://sgp1.digitaloceanspaces.com/fatherofluxury.com/images/cc-1.jpg;https://sgp1.digitaloceanspaces.com/fatherofluxury.com/images/cc-2.jpg'
+    'Product Name': 'Jam10 UGG 55$ 440 UG',
+    'Flylinking URL': 'https://s.flylinking.com/g-ALRX5DCLH9',
+    'Alibaba URL': 'https://s.click.aliexpress.com/e/_onEttFK',
+    'DHgate URL': '',
+    'Category': 'James',
+    'Description': '',
+    'First Image': 'https://sgp1.digitaloceanspaces.com/fatherofluxury.com/yaya/Jam10 UGG 55$ 440 UG/0a4d88ae-9b3e-492e-b2c4-ef645ae2660d.jpg',
+    'Media Links': 'https://sgp1.digitaloceanspaces.com/fatherofluxury.com/yaya/Jam10 UGG 55$ 440 UG/0a4d88ae-9b3e-492e-b2c4-ef645ae2660d.jpg;https://sgp1.digitaloceanspaces.com/fatherofluxury.com/yaya/Jam10 UGG 55$ 440 UG/1935d716-35e1-462f-b5df-3fb9a073976b.jpg;https://sgp1.digitaloceanspaces.com/fatherofluxury.com/yaya/Jam10 UGG 55$ 440 UG/58f206b4-ba42-4bff-8300-be670be8b823.jpg'
   }
 ];

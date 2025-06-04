@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { FileSpreadsheet } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -94,20 +95,24 @@ const ImportCSV = ({ categories, onProductSave }: ImportCSVProps) => {
             }
           }
 
-          // Prepare product data for insertion - keep original URLs as they are already hosted
+          // Use the image URLs directly without any upload processing
           const productData = {
             name: product.name,
             description: product.description || '',
             preview_image: product.preview_image || '',
             gallery_images: product.gallery_images || [],
             category_id: categoryId,
-            // Include all URL fields, including flylink_url
+            // Include all URL fields
             ...((product as any).flylink_url ? { flylink_url: (product as any).flylink_url } : {}),
             ...(product.alibaba_url ? { alibaba_url: product.alibaba_url } : {}),
             ...(product.dhgate_url ? { dhgate_url: product.dhgate_url } : {}),
           };
 
-          console.log('Inserting product data:', productData);
+          console.log('Inserting product data:', {
+            name: productData.name,
+            preview_image: productData.preview_image,
+            gallery_count: productData.gallery_images.length
+          });
 
           // Insert product into the database
           const { error } = await supabase
