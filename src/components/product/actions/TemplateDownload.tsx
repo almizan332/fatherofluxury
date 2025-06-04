@@ -18,7 +18,7 @@ const TemplateDownload = () => {
       return field;
     };
     
-    // Create CSV rows using tab separation to match your format
+    // Create CSV rows using tab separation
     const csvRows = [
       productExcelHeaders.map(escapeCSVField).join('\t'),
       ...sampleExcelData.map(row => [
@@ -46,7 +46,7 @@ const TemplateDownload = () => {
 
     toast({
       title: "Template downloaded",
-      description: "Fill in the template with your product data. Use semicolons (;) to separate multiple media links. URLs can be left empty if not needed.",
+      description: "Template with correct headers: Product Name, Flylinking URL, Alibaba URL, DHgate URL, Category, Description, First Image, Media Links. Description can be empty. Use semicolons (;) to separate multiple media links.",
     });
   };
 

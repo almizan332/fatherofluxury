@@ -74,7 +74,7 @@ const ImportCSV = ({ categories, onProductSave }: ImportCSVProps) => {
           console.log(`Processing product ${index + 1}/${parsedProducts.length}:`, product.name);
           
           // Skip products without a name
-          if (!product.name) {
+          if (!product.name || !product.name.trim()) {
             console.log('Skipping product without name');
             continue;
           }
@@ -95,14 +95,14 @@ const ImportCSV = ({ categories, onProductSave }: ImportCSVProps) => {
             }
           }
 
-          // Use the image URLs directly without any upload processing
+          // Prepare product data for insertion (description can be empty)
           const productData = {
-            name: product.name,
-            description: product.description || '',
+            name: product.name.trim(),
+            description: product.description || '', // Allow empty description
             preview_image: product.preview_image || '',
             gallery_images: product.gallery_images || [],
             category_id: categoryId,
-            // Include all URL fields
+            // Include URL fields if they exist
             ...((product as any).flylink_url ? { flylink_url: (product as any).flylink_url } : {}),
             ...(product.alibaba_url ? { alibaba_url: product.alibaba_url } : {}),
             ...(product.dhgate_url ? { dhgate_url: product.dhgate_url } : {}),
@@ -110,6 +110,7 @@ const ImportCSV = ({ categories, onProductSave }: ImportCSVProps) => {
 
           console.log('Inserting product data:', {
             name: productData.name,
+            description: productData.description,
             preview_image: productData.preview_image,
             gallery_count: productData.gallery_images.length
           });

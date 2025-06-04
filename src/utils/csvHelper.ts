@@ -58,19 +58,19 @@ export const parseCSVFile = async (file: File): Promise<Partial<Product>[]> => {
                 if (value) product.name = value;
                 break;
               case 'Description':
-                if (value) product.description = value;
+                // Always set description, even if empty
+                product.description = value || '';
                 break;
               case 'First Image':
                 if (value && (value.startsWith('http') || value.startsWith('https'))) {
-                  // Clean up any extra spaces in the URL
-                  product.preview_image = value.replace(/\s+/g, ' ').trim();
+                  product.preview_image = value.trim();
                 }
                 break;
               case 'Media Links':
                 if (value) {
                   // Split by semicolon and clean up each URL
                   const imageUrls = value.split(';')
-                    .map(url => url.trim().replace(/\s+/g, ' '))
+                    .map(url => url.trim())
                     .filter(url => url && url.length > 0 && (url.startsWith('http') || url.startsWith('https')));
                   
                   product.gallery_images = imageUrls;
@@ -100,10 +100,11 @@ export const parseCSVFile = async (file: File): Promise<Partial<Product>[]> => {
             }
           });
           
-          // Only add product if it has a name
-          if (product.name) {
+          // Add product if it has a name (description is optional)
+          if (product.name && product.name.trim()) {
             console.log('Parsed product:', {
               name: product.name,
+              description: product.description,
               preview_image: product.preview_image,
               gallery_count: product.gallery_images?.length || 0
             });
@@ -137,7 +138,7 @@ export const validateProducts = (products: Partial<Product>[]): string[] => {
       errors.push(`Row ${rowNumber}: Product name too long (max 255 characters)`);
     }
     
-    // Validate image URLs - be more lenient with URL validation
+    // Validate image URLs
     if (product.preview_image && !product.preview_image.startsWith('http')) {
       errors.push(`Row ${rowNumber}: First Image URL must be a valid HTTP/HTTPS URL`);
     }
