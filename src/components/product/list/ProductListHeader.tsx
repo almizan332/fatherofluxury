@@ -10,6 +10,7 @@ interface ProductListHeaderProps {
   onOpenAddDialog: (e: React.MouseEvent) => void;
   isDialogOpen: boolean;
   onFileUploadChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  isImporting?: boolean;
 }
 
 const ProductListHeader = ({
@@ -19,6 +20,7 @@ const ProductListHeader = ({
   onOpenAddDialog,
   isDialogOpen,
   onFileUploadChange,
+  isImporting = false,
 }: ProductListHeaderProps) => {
   return (
     <div className="flex justify-between items-center mb-6">
@@ -31,9 +33,9 @@ const ProductListHeader = ({
         )}
       </div>
       <div className="flex gap-2 flex-wrap">
-        <Button variant="outline" onClick={onDownloadTemplate}>
+        <Button variant="outline" onClick={onDownloadTemplate} className="bg-white/50">
           <Download className="h-4 w-4 mr-2" />
-          Download Template
+          Template
         </Button>
         
         {selectedProducts.length > 0 && (
@@ -62,10 +64,11 @@ const ProductListHeader = ({
             accept=".csv"
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             onChange={onFileUploadChange}
+            disabled={isImporting}
           />
-          <Button variant="outline" className="bg-blue-50 hover:bg-blue-100">
+          <Button variant="outline" className="bg-blue-50 hover:bg-blue-100" disabled={isImporting}>
             <FileSpreadsheet className="h-4 w-4 mr-2" />
-            Import from CSV
+            {isImporting ? "Importing..." : "Import CSV"}
           </Button>
         </div>
       </div>

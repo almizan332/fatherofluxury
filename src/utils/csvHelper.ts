@@ -61,25 +61,27 @@ export const parseCSVFile = async (file: File): Promise<Partial<Product>[]> => {
                 if (value) product.description = value;
                 break;
               case 'Preview Image URL':
-                if (value) product.preview_image = value;
+                if (value && value.startsWith('http')) {
+                  product.preview_image = value;
+                }
                 break;
               case 'Gallery Image URLs (semicolon separated)':
                 if (value) {
                   product.gallery_images = value.split(';')
                     .map(url => url.trim())
-                    .filter(url => url && url.length > 0);
+                    .filter(url => url && url.length > 0 && url.startsWith('http'));
                 } else {
                   product.gallery_images = [];
                 }
                 break;
               case 'Flylink URL':
-                if (value) product.flylink_url = value;
+                if (value && value.startsWith('http')) product.flylink_url = value;
                 break;
               case 'Alibaba URL':
-                if (value) product.alibaba_url = value;
+                if (value && value.startsWith('http')) product.alibaba_url = value;
                 break;
               case 'DHgate URL':
-                if (value) product.dhgate_url = value;
+                if (value && value.startsWith('http')) product.dhgate_url = value;
                 break;
               case 'Category':
                 if (value) (product as any).category = value;
@@ -117,6 +119,19 @@ export const validateProducts = (products: Partial<Product>[]): string[] => {
     
     if (product.name && product.name.length > 255) {
       errors.push(`Row ${rowNumber}: Product name too long (max 255 characters)`);
+    }
+    
+    // Validate image URLs
+    if (product.preview_image && !product.preview_image.startsWith('http')) {
+      errors.push(`Row ${rowNumber}: Preview image URL must be a valid HTTP/HTTPS URL`);
+    }
+    
+    if (product.gallery_images && Array.isArray(product.gallery_images)) {
+      product.gallery_images.forEach((url, imgIndex) => {
+        if (url && !url.startsWith('http')) {
+          errors.push(`Row ${rowNumber}: Gallery image ${imgIndex + 1} URL must be a valid HTTP/HTTPS URL`);
+        }
+      });
     }
   });
   

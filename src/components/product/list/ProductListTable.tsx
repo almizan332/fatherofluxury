@@ -31,37 +31,43 @@ const ProductListTable = ({
   const someSelected = selectedProducts.length > 0 && selectedProducts.length < products.length;
 
   return (
-    <div className="border rounded-lg overflow-hidden">
+    <div className="border rounded-lg overflow-hidden bg-white">
       <Table>
         <TableHeader>
-          <TableRow className="bg-muted/50">
-            <TableHead className="w-[50px]">
-              <Checkbox
-                checked={allSelected ? true : someSelected ? "indeterminate" : false}
-                onCheckedChange={onSelectAll}
-                aria-label="Select all products"
-              />
+          <TableRow className="bg-gray-50 border-b">
+            <TableHead className="w-[50px] bg-white">
+              <div className="flex items-center justify-center p-1">
+                <Checkbox
+                  checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                  onCheckedChange={onSelectAll}
+                  aria-label="Select all products"
+                  className="border-2 border-gray-400 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                />
+              </div>
             </TableHead>
-            <TableHead className="min-w-[200px]">Product Name</TableHead>
-            <TableHead className="min-w-[120px]">Category</TableHead>
-            <TableHead className="min-w-[250px]">Description</TableHead>
-            <TableHead className="min-w-[120px]">Preview Image</TableHead>
-            <TableHead className="min-w-[150px]">Gallery Images</TableHead>
-            <TableHead className="w-[80px]">Actions</TableHead>
+            <TableHead className="min-w-[200px] font-semibold text-gray-900">Product Name</TableHead>
+            <TableHead className="min-w-[120px] font-semibold text-gray-900">Category</TableHead>
+            <TableHead className="min-w-[250px] font-semibold text-gray-900">Description</TableHead>
+            <TableHead className="min-w-[120px] font-semibold text-gray-900">Preview Image</TableHead>
+            <TableHead className="min-w-[150px] font-semibold text-gray-900">Gallery Images</TableHead>
+            <TableHead className="w-[80px] font-semibold text-gray-900">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {products.map((product) => (
             <TableRow 
               key={product.id} 
-              className={`hover:bg-muted/50 ${selectedProducts.includes(product.id) ? 'bg-muted/30' : ''}`}
+              className={`hover:bg-gray-50 transition-colors ${selectedProducts.includes(product.id) ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''}`}
             >
-              <TableCell>
-                <Checkbox
-                  checked={selectedProducts.includes(product.id)}
-                  onCheckedChange={(checked) => onSelectProduct(product.id, checked as boolean)}
-                  aria-label={`Select ${product.name}`}
-                />
+              <TableCell className="bg-white">
+                <div className="flex items-center justify-center p-1">
+                  <Checkbox
+                    checked={selectedProducts.includes(product.id)}
+                    onCheckedChange={(checked) => onSelectProduct(product.id, checked as boolean)}
+                    aria-label={`Select ${product.name}`}
+                    className="border-2 border-gray-400 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                  />
+                </div>
               </TableCell>
               <TableCell className="font-medium">
                 <div className="max-w-[200px] truncate" title={product.name}>
@@ -83,13 +89,21 @@ const ProductListTable = ({
                   <img 
                     src={product.preview_image} 
                     alt={product.name} 
-                    className="w-16 h-16 object-cover rounded-lg border border-muted"
+                    className="w-16 h-16 object-cover rounded-lg border border-gray-200 shadow-sm"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      target.nextElementSibling?.classList.remove('hidden');
+                    }}
                   />
                 ) : (
-                  <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center text-xs text-muted-foreground">
+                  <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-xs text-gray-500 border border-gray-200">
                     No Image
                   </div>
                 )}
+                <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-xs text-gray-500 border border-gray-200 hidden">
+                  Failed to Load
+                </div>
               </TableCell>
               <TableCell>
                 <div className="flex gap-1 flex-wrap max-w-[150px]">
@@ -99,17 +113,21 @@ const ProductListTable = ({
                         key={idx} 
                         src={img} 
                         alt={`${product.name} gallery ${idx + 1}`} 
-                        className="w-10 h-10 object-cover rounded border border-muted"
+                        className="w-10 h-10 object-cover rounded border border-gray-200"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                        }}
                       />
                     )
                   ))}
                   {(product.gallery_images?.length || 0) > 3 && (
-                    <div className="w-10 h-10 bg-muted rounded flex items-center justify-center text-xs text-muted-foreground">
+                    <div className="w-10 h-10 bg-gray-100 rounded flex items-center justify-center text-xs text-gray-500 border border-gray-200">
                       +{(product.gallery_images?.length || 0) - 3}
                     </div>
                   )}
                   {(!product.gallery_images || product.gallery_images.length === 0) && (
-                    <div className="w-10 h-10 bg-muted rounded flex items-center justify-center text-xs text-muted-foreground">
+                    <div className="w-10 h-10 bg-gray-100 rounded flex items-center justify-center text-xs text-gray-500 border border-gray-200">
                       None
                     </div>
                   )}
