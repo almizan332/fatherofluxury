@@ -58,7 +58,7 @@ export const parseCSVFile = async (file: File): Promise<Partial<Product>[]> => {
                 if (value) product.name = value;
                 break;
               case 'Description':
-                // Always set description, even if empty
+                // Description is optional, can be empty
                 product.description = value || '';
                 break;
               case 'First Image':
@@ -68,13 +68,13 @@ export const parseCSVFile = async (file: File): Promise<Partial<Product>[]> => {
                 break;
               case 'Media Links':
                 if (value) {
-                  // Split by semicolon and clean up each URL
+                  // Split by semicolon and clean up each URL, preserving spaces in URLs
                   const imageUrls = value.split(';')
                     .map(url => url.trim())
                     .filter(url => url && url.length > 0 && (url.startsWith('http') || url.startsWith('https')));
                   
                   product.gallery_images = imageUrls;
-                  console.log('Parsed gallery images:', imageUrls);
+                  console.log('Parsed gallery images:', imageUrls.length, 'images');
                 } else {
                   product.gallery_images = [];
                 }
@@ -85,11 +85,13 @@ export const parseCSVFile = async (file: File): Promise<Partial<Product>[]> => {
                 }
                 break;
               case 'Alibaba URL':
+                // Optional field
                 if (value && (value.startsWith('http') || value.startsWith('https'))) {
                   product.alibaba_url = value.trim();
                 }
                 break;
               case 'DHgate URL':
+                // Optional field
                 if (value && (value.startsWith('http') || value.startsWith('https'))) {
                   product.dhgate_url = value.trim();
                 }
@@ -100,15 +102,22 @@ export const parseCSVFile = async (file: File): Promise<Partial<Product>[]> => {
             }
           });
           
-          // Add product if it has a name (description is optional)
-          if (product.name && product.name.trim()) {
+          // Add product if it has required fields: name, category, and at least first image
+          if (product.name && product.name.trim() && (product as any).category && product.preview_image) {
             console.log('Parsed product:', {
               name: product.name,
-              description: product.description,
-              preview_image: product.preview_image,
+              category: (product as any).category,
+              description: product.description || '(empty)',
+              preview_image: product.preview_image ? 'Yes' : 'No',
               gallery_count: product.gallery_images?.length || 0
             });
             products.push(product);
+          } else {
+            console.log('Skipping product due to missing required fields:', {
+              name: product.name ? 'Yes' : 'No',
+              category: (product as any).category ? 'Yes' : 'No',
+              preview_image: product.preview_image ? 'Yes' : 'No'
+            });
           }
         }
         
@@ -130,8 +139,17 @@ export const validateProducts = (products: Partial<Product>[]): string[] => {
   products.forEach((product, index) => {
     const rowNumber = index + 2; // +2 because we start from row 2 (after header)
     
+    // Required fields validation
     if (!product.name || product.name.trim() === '') {
-      errors.push(`Row ${rowNumber}: Product name is required`);
+      errors.push(`Row ${rowNumber}: Product Name is required`);
+    }
+    
+    if (!(product as any).category || (product as any).category.trim() === '') {
+      errors.push(`Row ${rowNumber}: Category is required`);
+    }
+    
+    if (!product.preview_image || product.preview_image.trim() === '') {
+      errors.push(`Row ${rowNumber}: First Image is required`);
     }
     
     if (product.name && product.name.length > 255) {

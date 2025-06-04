@@ -27,7 +27,7 @@ const TemplateDownload = () => {
         escapeCSVField(row['Alibaba URL'] || ''),
         escapeCSVField(row['DHgate URL'] || ''),
         escapeCSVField(row['Category']),
-        escapeCSVField(row['Description']),
+        escapeCSVField(row['Description'] || ''),
         escapeCSVField(row['First Image']),
         escapeCSVField(row['Media Links'])
       ].join('\t'))
@@ -45,8 +45,8 @@ const TemplateDownload = () => {
     URL.revokeObjectURL(url);
 
     toast({
-      title: "Template downloaded",
-      description: "Template with correct headers: Product Name, Flylinking URL, Alibaba URL, DHgate URL, Category, Description, First Image, Media Links. Description can be empty. Use semicolons (;) to separate multiple media links.",
+      title: "Template downloaded successfully",
+      description: "Required: Product Name, Flylinking URL, Category, First Image, Media Links. Optional: Alibaba URL, DHgate URL, Description. Use semicolons (;) to separate multiple media links.",
     });
   };
 

@@ -45,8 +45,8 @@ const ImportCSV = ({ categories, onProductSave }: ImportCSVProps) => {
       
       if (parsedProducts.length === 0) {
         toast({
-          title: "No products found",
-          description: "The CSV file doesn't contain any valid product data",
+          title: "No valid products found",
+          description: "Make sure your CSV has the required fields: Product Name, Category, First Image",
           variant: "destructive",
         });
         return;
@@ -73,13 +73,13 @@ const ImportCSV = ({ categories, onProductSave }: ImportCSVProps) => {
         try {
           console.log(`Processing product ${index + 1}/${parsedProducts.length}:`, product.name);
           
-          // Skip products without a name
-          if (!product.name || !product.name.trim()) {
-            console.log('Skipping product without name');
+          // Skip products without required fields
+          if (!product.name || !product.name.trim() || !(product as any).category || !product.preview_image) {
+            console.log('Skipping product with missing required fields');
             continue;
           }
 
-          // Find category ID if the category is provided
+          // Find category ID
           let categoryId = product.category_id;
           if (!categoryId && (product as any).category) {
             const categoryName = (product as any).category;
@@ -92,17 +92,19 @@ const ImportCSV = ({ categories, onProductSave }: ImportCSVProps) => {
               console.log('Found matching category:', categoryName, '->', categoryId);
             } else {
               console.log('No matching category found for:', categoryName);
+              errorCount++;
+              continue;
             }
           }
 
-          // Prepare product data for insertion (description can be empty)
+          // Prepare product data for insertion
           const productData = {
             name: product.name.trim(),
-            description: product.description || '', // Allow empty description
+            description: product.description || '', // Optional field
             preview_image: product.preview_image || '',
             gallery_images: product.gallery_images || [],
             category_id: categoryId,
-            // Include URL fields if they exist
+            // Include URL fields only if they exist and are not empty
             ...((product as any).flylink_url ? { flylink_url: (product as any).flylink_url } : {}),
             ...(product.alibaba_url ? { alibaba_url: product.alibaba_url } : {}),
             ...(product.dhgate_url ? { dhgate_url: product.dhgate_url } : {}),
@@ -110,8 +112,9 @@ const ImportCSV = ({ categories, onProductSave }: ImportCSVProps) => {
 
           console.log('Inserting product data:', {
             name: productData.name,
-            description: productData.description,
-            preview_image: productData.preview_image,
+            category_id: productData.category_id,
+            description: productData.description || '(empty)',
+            preview_image: productData.preview_image ? 'Yes' : 'No',
             gallery_count: productData.gallery_images.length
           });
 
@@ -139,8 +142,8 @@ const ImportCSV = ({ categories, onProductSave }: ImportCSVProps) => {
       // Show final result
       if (successCount > 0) {
         toast({
-          title: "Import completed",
-          description: `${successCount} products imported successfully${errorCount > 0 ? `, ${errorCount} failed` : ''}`,
+          title: "Import completed successfully",
+          description: `${successCount} products imported${errorCount > 0 ? `, ${errorCount} failed` : ''}`,
         });
         
         // Refresh the product list
@@ -148,7 +151,7 @@ const ImportCSV = ({ categories, onProductSave }: ImportCSVProps) => {
       } else {
         toast({
           title: "Import failed",
-          description: "No products were imported successfully",
+          description: "No products were imported. Check required fields: Product Name, Category, First Image",
           variant: "destructive",
         });
       }
