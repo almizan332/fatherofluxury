@@ -10,31 +10,35 @@ const TemplateDownload = () => {
   const downloadExcelTemplate = (e: React.MouseEvent) => {
     e.preventDefault();
     
-    // Create CSV content with proper escaping for tab-separated format
+    // Create CSV content with proper tab separation
     const escapeCSVField = (field: string) => {
+      // For tab-separated values, we need to handle tabs and quotes
       if (field.includes('\t') || field.includes('"') || field.includes('\n')) {
         return `"${field.replace(/"/g, '""')}"`;
       }
       return field;
     };
     
-    // Create CSV rows using tab separation
-    const csvRows = [
-      productExcelHeaders.map(escapeCSVField).join('\t'),
-      ...sampleExcelData.map(row => [
-        escapeCSVField(row['Product Name']),
-        escapeCSVField(row['Flylinking URL'] || ''),
-        escapeCSVField(row['Alibaba URL'] || ''),
-        escapeCSVField(row['DHgate URL'] || ''),
-        escapeCSVField(row['Category']),
-        escapeCSVField(row['Description'] || ''),
-        escapeCSVField(row['First Image']),
-        escapeCSVField(row['Media Links'])
-      ].join('\t'))
-    ];
+    // Create header row with tabs
+    const headerRow = productExcelHeaders.map(escapeCSVField).join('\t');
+    
+    // Create data rows with tabs
+    const dataRows = sampleExcelData.map(row => [
+      escapeCSVField(row['Product Name']),
+      escapeCSVField(row['Flylinking URL'] || ''),
+      escapeCSVField(row['Alibaba URL'] || ''),
+      escapeCSVField(row['DHgate URL'] || ''),
+      escapeCSVField(row['Category']),
+      escapeCSVField(row['Description'] || ''),
+      escapeCSVField(row['First Image']),
+      escapeCSVField(row['Media Links'])
+    ].join('\t'));
 
-    const csvContent = csvRows.join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    // Combine header and data rows
+    const csvContent = [headerRow, ...dataRows].join('\n');
+    
+    // Create and download the file
+    const blob = new Blob([csvContent], { type: 'text/tab-separated-values;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
@@ -46,7 +50,7 @@ const TemplateDownload = () => {
 
     toast({
       title: "Template downloaded successfully",
-      description: "Required: Product Name, Flylinking URL, Category, First Image, Media Links. Optional: Alibaba URL, DHgate URL, Description. Use semicolons (;) to separate multiple media links.",
+      description: "Format: Product Name, Flylinking URL, Alibaba URL (optional), DHgate URL (optional), Category (required), Description (optional), First Image (required), Media Links (required - use semicolons to separate multiple URLs)",
     });
   };
 
