@@ -1,8 +1,7 @@
 
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, Download, FileSpreadsheet } from "lucide-react";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import { ProductFormDialogProps } from "../ProductFormDialog";
+import { Plus, Trash2, Download, Upload } from "lucide-react";
+import TemplateDownload from "../actions/TemplateDownload";
 
 interface ProductListHeaderProps {
   selectedProducts: string[];
@@ -10,7 +9,7 @@ interface ProductListHeaderProps {
   onDeleteSelected: (e: React.MouseEvent) => void;
   onOpenAddDialog: (e: React.MouseEvent) => void;
   isDialogOpen: boolean;
-  onFileUploadChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onFileUploadChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 const ProductListHeader = ({
@@ -22,41 +21,45 @@ const ProductListHeader = ({
   onFileUploadChange,
 }: ProductListHeaderProps) => {
   return (
-    <div className="flex justify-between items-center mb-6">
-      <h1 className="text-2xl font-bold">Product Management</h1>
-      <div className="flex gap-2">
-        <Button onClick={onDownloadTemplate}>
-          <Download className="h-4 w-4 mr-2" />
-          Download Template
-        </Button>
-        
-        {selectedProducts.length > 0 && (
-          <Button variant="destructive" onClick={onDeleteSelected}>
-            <Trash2 className="h-4 w-4 mr-2" />
-            Delete Selected ({selectedProducts.length})
-          </Button>
-        )}
-        
-        <Dialog open={isDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={onOpenAddDialog}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Product
+    <div className="mb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+        <div>
+          <h1 className="text-2xl font-bold">Product Management</h1>
+          <p className="text-sm text-muted-foreground">
+            Manage your products and inventory
+          </p>
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          <TemplateDownload />
+          
+          <div className="relative">
+            <input
+              type="file"
+              accept=".csv"
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              onChange={onFileUploadChange}
+            />
+            <Button variant="outline" className="bg-white/50">
+              <Upload className="h-4 w-4 mr-2" />
+              Import CSV
             </Button>
-          </DialogTrigger>
-        </Dialog>
-        
-        <div className="relative">
-          <input
-            type="file"
-            accept=".csv"
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            onChange={onFileUploadChange}
-          />
-          <Button variant="outline">
-            <FileSpreadsheet className="h-4 w-4 mr-2" />
-            Import from CSV
+          </div>
+          
+          <Button onClick={onOpenAddDialog} className="bg-primary">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Product
           </Button>
+          
+          {selectedProducts.length > 0 && (
+            <Button
+              variant="destructive"
+              onClick={onDeleteSelected}
+              className="ml-2"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Selected ({selectedProducts.length})
+            </Button>
+          )}
         </div>
       </div>
     </div>

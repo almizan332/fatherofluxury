@@ -9,19 +9,19 @@ const TemplateDownload = () => {
 
   const downloadExcelTemplate = (e: React.MouseEvent) => {
     e.preventDefault();
-    // Create CSV content with headers and sample data
+    // Create CSV content with headers and sample data using tab separation
     const csvRows = [
-      productExcelHeaders.join(','),
+      productExcelHeaders.join('\t'), // Use tab separator
       ...sampleExcelData.map(row => [
         row['Product Name'],
-        row['Flylink URL'] || '', // Include empty strings for empty URLs
+        row['Flylinking URL'] || '',
         row['Alibaba URL'] || '',
         row['DHgate URL'] || '',
         row['Category'],
         row['Description'],
-        row['Preview Image URL'],
-        row['Gallery Image URLs (comma separated)']
-      ].join(','))
+        row['First Image'],
+        row['Media Links']
+      ].join('\t')) // Use tab separator
     ];
 
     const csvContent = csvRows.join('\n');
@@ -37,7 +37,7 @@ const TemplateDownload = () => {
 
     toast({
       title: "Template downloaded",
-      description: "You can now fill in the template and import it back. Note: You can leave affiliate URLs blank if not needed.",
+      description: "Fill in the template with your DigitalOcean Spaces URLs and import it back. Use semicolon (;) to separate multiple media links.",
     });
   };
 
