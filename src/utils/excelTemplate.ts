@@ -1,34 +1,34 @@
 
 export const productExcelHeaders = [
   'Product Name',
-  'Flylinking URL',
+  'Flylink URL',
   'Alibaba URL',
   'DHgate URL',
   'Category',
   'Description',
-  'First Image',
-  'Media Links'
+  'Preview Image URL',
+  'Gallery Image URLs (comma separated)'
 ];
 
 export const sampleExcelData = [
   {
-    'Product Name': 'AN4376 ALO SUIT 55.99$ J6S4376 GYYF',
-    'Flylinking URL': 'https://s.flylinking.com/g-QP4CZM09OE',
-    'Alibaba URL': 'https://s.click.aliexpress.com/e/_onEttFK',
-    'DHgate URL': '',
-    'Category': 'James',
-    'Description': '1:1 The highest quality',
-    'First Image': 'https://sgp1.digitaloceanspaces.com/fatherofluxury.com/yaya/AN4376 ALO SUIT 55.99$ J6S4376 GYYF/01e59917.jpg',
-    'Media Links': 'https://sgp1.digitaloceanspaces.com/fatherofluxury.com/yaya/AN4376 ALO SUIT 55.99$ J6S4376 GYYF/01e59917.jpg;https://sgp1.digitaloceanspaces.com/fatherofluxury.com/yaya/AN4376 ALO SUIT 55.99$ J6S4376 GYYF/01e59917_1.jpg;https://sgp1.digitaloceanspaces.com/fatherofluxury.com/yaya/AN4376 ALO SUIT 55.99$ J6S4376 GYYF/02c1874d.jpg'
+    'Product Name': 'LV Bag Classic',
+    'Flylink URL': 'https://flylink.com/lv-bag',
+    'Alibaba URL': 'https://alibaba.com/lv-bag',
+    'DHgate URL': 'https://dhgate.com/lv-bag',
+    'Category': 'Bags',
+    'Description': 'LV Bag 1:1 Good Quality Size: 26x19cm Material: Artificial leather',
+    'Preview Image URL': 'https://example.com/images/lv-bag.jpg',
+    'Gallery Image URLs (comma separated)': 'https://example.com/images/lv-1.jpg;https://example.com/images/lv-2.jpg;https://example.com/images/lv-3.jpg'
   },
   {
-    'Product Name': 'Jam10 UGG 55$ 440 UG',
-    'Flylinking URL': 'https://s.flylinking.com/g-ALRX5DCLH9',
+    'Product Name': 'CC Wallet',
+    'Flylink URL': 'https://flylink.com/cc-wallet',
     'Alibaba URL': '',
-    'DHgate URL': '',
-    'Category': 'James',
-    'Description': '',
-    'First Image': 'https://sgp1.digitaloceanspaces.com/fatherofluxury.com/yaya/Jam10 UGG 55$ 440 UG/0a4d88ae-9b3e-492e-b2c4-ef645ae2660d.jpg',
-    'Media Links': 'https://sgp1.digitaloceanspaces.com/fatherofluxury.com/yaya/Jam10 UGG 55$ 440 UG/0a4d88ae-9b3e-492e-b2c4-ef645ae2660d.jpg;https://sgp1.digitaloceanspaces.com/fatherofluxury.com/yaya/Jam10 UGG 55$ 440 UG/1935d716-35e1-462f-b5df-3fb9a073976b.jpg'
+    'DHgate URL': 'https://dhgate.com/cc-wallet',
+    'Category': 'Wallets',
+    'Description': 'CC Wallet Premium Quality Size: 19x10cm Material: Genuine leather',
+    'Preview Image URL': 'https://example.com/images/cc-wallet.jpg',
+    'Gallery Image URLs (comma separated)': 'https://example.com/images/cc-1.jpg;https://example.com/images/cc-2.jpg'
   }
 ];

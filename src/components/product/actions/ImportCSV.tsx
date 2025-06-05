@@ -20,20 +20,8 @@ const ImportCSV = ({ categories, onProductSave }: ImportCSVProps) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    if (!file.name.toLowerCase().endsWith('.csv')) {
-      toast({
-        title: "Invalid file type",
-        description: "Please upload a CSV file",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
       setIsImporting(true);
-      console.log('Starting CSV import process...');
-      
       toast({
         title: "Processing CSV file",
         description: "Your file is being processed...",
@@ -41,16 +29,6 @@ const ImportCSV = ({ categories, onProductSave }: ImportCSVProps) => {
 
       // Parse the CSV file
       const parsedProducts = await parseCSVFile(file);
-      console.log('Parsed products count:', parsedProducts.length);
-      
-      if (parsedProducts.length === 0) {
-        toast({
-          title: "No valid products found",
-          description: "Make sure your CSV has the required fields: Product Name, Category, First Image",
-          variant: "destructive",
-        });
-        return;
-      }
       
       // Validate the products
       const validationErrors = validateProducts(parsedProducts);
@@ -58,109 +36,84 @@ const ImportCSV = ({ categories, onProductSave }: ImportCSVProps) => {
       if (validationErrors.length > 0) {
         toast({
           title: "Validation errors",
-          description: `${validationErrors.length} errors found: ${validationErrors.slice(0, 3).join(', ')}${validationErrors.length > 3 ? '...' : ''}`,
+          description: `${validationErrors.length} errors found. Please fix them and try again.`,
           variant: "destructive",
         });
         console.error("Validation errors:", validationErrors);
         return;
       }
 
-      // Process each product
+      // For each product in the parsed file
       let successCount = 0;
-      let errorCount = 0;
-      
-      for (const [index, product] of parsedProducts.entries()) {
-        try {
-          console.log(`Processing product ${index + 1}/${parsedProducts.length}:`, product.name);
+      for (const product of parsedProducts) {
+        // Skip products without a name (required field)
+        if (!product.name) {
+          console.error("Skipping product without a name:", product);
+          continue;
+        }
+
+        // Find category ID if the category is provided
+        if (product.category_id === undefined && (product as any).category) {
+          const categoryName = (product as any).category;
+          const matchingCategory = categories.find(c => 
+            c.name.toLowerCase() === categoryName.toLowerCase()
+          );
           
-          // Skip products without required fields
-          if (!product.name || !product.name.trim() || !(product as any).category || !product.preview_image) {
-            console.log('Skipping product with missing required fields');
-            continue;
+          if (matchingCategory) {
+            product.category_id = matchingCategory.id;
           }
+        }
 
-          // Find category ID
-          let categoryId = product.category_id;
-          if (!categoryId && (product as any).category) {
-            const categoryName = (product as any).category;
-            const matchingCategory = categories.find(c => 
-              c.name.toLowerCase() === categoryName.toLowerCase()
-            );
-            
-            if (matchingCategory) {
-              categoryId = matchingCategory.id;
-              console.log('Found matching category:', categoryName, '->', categoryId);
-            } else {
-              console.log('No matching category found for:', categoryName);
-              errorCount++;
-              continue;
-            }
-          }
+        // Debug logging for product details
+        console.log('Product before insert:', {
+          name: product.name,
+          gallery_images: product.gallery_images,
+          flylink_url: product.flylink_url,
+          alibaba_url: product.alibaba_url,
+          dhgate_url: product.dhgate_url
+        });
 
-          // Prepare product data for insertion
-          const productData = {
-            name: product.name.trim(),
-            description: product.description || '', // Optional field
-            preview_image: product.preview_image || '',
-            gallery_images: product.gallery_images || [],
-            category_id: categoryId,
-            // Include URL fields only if they exist and are not empty
-            ...((product as any).flylink_url ? { flylink_url: (product as any).flylink_url } : {}),
-            ...(product.alibaba_url ? { alibaba_url: product.alibaba_url } : {}),
-            ...(product.dhgate_url ? { dhgate_url: product.dhgate_url } : {}),
-          };
+        // Prepare product data for insertion
+        const productData = {
+          name: product.name,
+          description: product.description || '',
+          preview_image: product.preview_image || '',
+          gallery_images: product.gallery_images || [],
+          category_id: product.category_id,
+          // Only include non-empty URL fields
+          ...(product.flylink_url ? { flylink_url: product.flylink_url } : {}),
+          ...(product.alibaba_url ? { alibaba_url: product.alibaba_url } : {}),
+          ...(product.dhgate_url ? { dhgate_url: product.dhgate_url } : {}),
+        };
 
-          console.log('Inserting product data:', {
-            name: productData.name,
-            category_id: productData.category_id,
-            description: productData.description || '(empty)',
-            preview_image: productData.preview_image ? 'Yes' : 'No',
-            gallery_count: productData.gallery_images.length
-          });
+        // Insert product into the database
+        const { error } = await supabase
+          .from('products')
+          .insert([productData]);
 
-          // Insert product into the database
-          const { error } = await supabase
-            .from('products')
-            .insert([productData]);
-
-          if (error) {
-            console.error("Error inserting product:", error);
-            errorCount++;
-          } else {
-            console.log('Product inserted successfully:', product.name);
-            successCount++;
-          }
-        } catch (productError) {
-          console.error(`Error processing product ${product.name}:`, productError);
-          errorCount++;
+        if (error) {
+          console.error("Error inserting product:", error);
+        } else {
+          successCount++;
         }
       }
 
       // Clean up input value to allow re-uploading the same file
       event.target.value = '';
       
-      // Show final result
-      if (successCount > 0) {
-        toast({
-          title: "Import completed successfully",
-          description: `${successCount} products imported${errorCount > 0 ? `, ${errorCount} failed` : ''}`,
-        });
-        
-        // Refresh the product list
-        onProductSave();
-      } else {
-        toast({
-          title: "Import failed",
-          description: "No products were imported. Check required fields: Product Name, Category, First Image",
-          variant: "destructive",
-        });
-      }
+      // Show success toast and refresh products
+      toast({
+        title: "Products uploaded",
+        description: `${successCount} products were successfully imported.`,
+      });
+      
+      // Refresh the product list
+      onProductSave();
       
     } catch (error: any) {
-      console.error('CSV import error:', error);
       toast({
-        title: "Error importing CSV",
-        description: error.message || "Failed to process CSV file",
+        title: "Error uploading file",
+        description: error.message,
         variant: "destructive",
       });
     } finally {
@@ -175,7 +128,6 @@ const ImportCSV = ({ categories, onProductSave }: ImportCSVProps) => {
         accept=".csv"
         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
         onChange={handleFileUpload}
-        disabled={isImporting}
       />
       <Button variant="outline" className="bg-white/50" disabled={isImporting}>
         <FileSpreadsheet className="h-4 w-4 mr-2" />

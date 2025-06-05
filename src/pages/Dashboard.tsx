@@ -18,8 +18,7 @@ import {
   ListPlus,
   Upload,
   ChevronDown,
-  ExternalLink,
-  MessageSquare
+  ExternalLink
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
@@ -174,7 +173,6 @@ const Dashboard = () => {
     { title: "SEO Pages", icon: Search, url: "#" },
     { title: "Mail-settings", icon: Mail, url: "#" },
     { title: "Role Management", icon: UserCog, url: "#" },
-    { title: "Chatbot", icon: MessageSquare, url: "/dashboard/chatbot" },
   ];
 
   return (

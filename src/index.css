@@ -33,55 +33,9 @@
 @layer base {
   * {
     @apply border-border;
-    box-sizing: border-box;
   }
-  
-  html {
-    /* Improve text rendering across browsers */
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
-  }
-  
   body {
     @apply bg-background text-foreground font-['Inter'];
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-    /* Prevent horizontal scroll on mobile */
-    width: 100vw;
-    min-height: 100vh;
-  }
-  
-  /* Improve form elements across browsers */
-  input, textarea, select, button {
-    font-family: inherit;
-    font-size: inherit;
-  }
-  
-  /* Better button styles for all browsers */
-  button {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    background: none;
-    border: none;
-    cursor: pointer;
-  }
-  
-  /* Improve input styles across browsers */
-  input[type="search"] {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-  }
-  
-  /* Remove default search input styles */
-  input[type="search"]::-webkit-search-decoration,
-  input[type="search"]::-webkit-search-cancel-button,
-  input[type="search"]::-webkit-search-results-button,
-  input[type="search"]::-webkit-search-results-decoration {
-    display: none;
   }
 }
 
@@ -108,71 +62,6 @@
   .scrollbar-thin::-webkit-scrollbar-thumb {
     @apply bg-gray-300 rounded-full;
   }
-  
-  /* Line clamp utilities for better text truncation */
-  .line-clamp-1 {
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 1;
-  }
-  
-  .line-clamp-2 {
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-  }
-  
-  .line-clamp-3 {
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
-  }
-  
-  /* Responsive container improvements */
-  .container {
-    width: 100%;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
-  }
-  
-  @media (min-width: 640px) {
-    .container {
-      max-width: 640px;
-      padding-left: 1rem;
-      padding-right: 1rem;
-    }
-  }
-  
-  @media (min-width: 768px) {
-    .container {
-      max-width: 768px;
-    }
-  }
-  
-  @media (min-width: 1024px) {
-    .container {
-      max-width: 1024px;
-      padding-left: 1.5rem;
-      padding-right: 1.5rem;
-    }
-  }
-  
-  @media (min-width: 1280px) {
-    .container {
-      max-width: 1280px;
-    }
-  }
-  
-  @media (min-width: 1536px) {
-    .container {
-      max-width: 1536px;
-    }
-  }
 }
 
 .gradient-text {
@@ -192,21 +81,5 @@
   50% {
     background-size: 200% 200%;
     background-position: right center;
-  }
-}
-
-/* Mobile-first responsive design improvements */
-@media (max-width: 475px) {
-  .container {
-    padding-left: 0.75rem;
-    padding-right: 0.75rem;
-  }
-}
-
-/* Improve touch targets for mobile */
-@media (max-width: 768px) {
-  button, a, input, select, textarea {
-    min-height: 44px;
-    min-width: 44px;
   }
 }
