@@ -16,10 +16,25 @@ interface ProductGalleryProps {
   product: Product;
 }
 
-// Helper function to sanitize gallery image URLs
+// Helper function to sanitize and handle DigitalOcean Spaces URLs
 const sanitizeImageUrl = (url: string): string => {
   // Remove any quotes that might be in the URL
-  return url.replace(/['"]/g, '');
+  let cleanUrl = url.replace(/['"]/g, '');
+  
+  // Handle DigitalOcean Spaces URLs - ensure proper encoding
+  if (cleanUrl.includes('digitaloceanspaces.com')) {
+    // Split the URL to encode only the path part after the domain
+    const urlParts = cleanUrl.split('/');
+    if (urlParts.length > 3) {
+      const domain = urlParts.slice(0, 3).join('/');
+      const pathParts = urlParts.slice(3);
+      // Encode each path segment but preserve forward slashes
+      const encodedPath = pathParts.map(part => encodeURIComponent(part)).join('/');
+      cleanUrl = `${domain}/${encodedPath}`;
+    }
+  }
+  
+  return cleanUrl;
 };
 
 export const ProductGallery = ({ product }: ProductGalleryProps) => {
@@ -49,6 +64,11 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
               src={allMedia[selectedMediaIndex].url}
               alt={`${product.name} - View ${selectedMediaIndex + 1}`}
               className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
+              onError={(e) => {
+                console.log('Image failed to load:', allMedia[selectedMediaIndex].url);
+                // Optionally set a fallback image
+                e.currentTarget.style.display = 'none';
+              }}
             />
             <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
               <div className="bg-white/90 rounded-full p-4 transform scale-0 group-hover:scale-100 transition-transform duration-300">
@@ -56,10 +76,10 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
               </div>
             </div>
 
-            {/* Product Code Overlay - Only shown on first image */}
-            {selectedMediaIndex === 0 && product.name.includes("LV") && (
+            {/* Product Code Overlay - Extract from product name */}
+            {selectedMediaIndex === 0 && product.name && (
               <div className="absolute top-4 right-4 bg-black/70 backdrop-blur-sm text-white px-3 py-1 rounded-md text-sm font-medium shadow-lg">
-                103257-2
+                {product.name.split(' ')[0]}
               </div>
             )}
           </>
@@ -98,6 +118,10 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
                       src={media.url}
                       alt={`${product.name} thumbnail ${index + 1}`}
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        console.log('Thumbnail failed to load:', media.url);
+                        e.currentTarget.style.display = 'none';
+                      }}
                     />
                   )}
                 </div>
@@ -141,15 +165,12 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
                   src={media.url}
                   alt={`${product.name} thumbnail ${index + 1}`}
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                  onError={(e) => {
+                    console.log('Grid thumbnail failed to load:', media.url);
+                    e.currentTarget.style.display = 'none';
+                  }}
                 />
                 <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-                
-                {/* Show product code on thumbnails if applicable */}
-                {product.name.includes("LV") && media.url.includes("103257") && (
-                  <div className="absolute bottom-1 right-1 bg-black/70 text-white px-1 rounded text-xs">
-                    103257
-                  </div>
-                )}
               </>
             )}
           </div>
@@ -185,7 +206,7 @@ export const getAllMedia = (product: Product): MediaType[] => {
   if (product.gallery_images && Array.isArray(product.gallery_images)) {
     product.gallery_images.forEach(url => {
       if (url) {
-        // Clean up the URL (remove any quotes)
+        // Clean up the URL and handle DigitalOcean Spaces URLs
         const cleanUrl = sanitizeImageUrl(url);
         media.push({ type: 'image', url: cleanUrl });
       }

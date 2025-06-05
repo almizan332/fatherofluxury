@@ -12,23 +12,23 @@ export const productExcelHeaders = [
 
 export const sampleExcelData = [
   {
-    'Product Name': 'LV Bag Classic',
-    'Flylink URL': 'https://flylink.com/lv-bag',
-    'Alibaba URL': 'https://alibaba.com/lv-bag',
-    'DHgate URL': 'https://dhgate.com/lv-bag',
-    'Category': 'Bags',
-    'Description': 'LV Bag 1:1 Good Quality Size: 26x19cm Material: Artificial leather',
-    'Preview Image URL': 'https://example.com/images/lv-bag.jpg',
-    'Gallery Image URLs (comma separated)': 'https://example.com/images/lv-1.jpg;https://example.com/images/lv-2.jpg;https://example.com/images/lv-3.jpg'
+    'Product Name': 'AN4376 ALO SUIT',
+    'Flylink URL': 'https://flylink.com/an4376-alo-suit',
+    'Alibaba URL': '',
+    'DHgate URL': 'https://dhgate.com/an4376-alo-suit',
+    'Category': 'Suits',
+    'Description': 'AN4376 ALO SUIT 55.99$ J6S4376 GYYF Premium Quality Designer Suit',
+    'Preview Image URL': 'https://sgp1.digitaloceanspaces.com/fatherofluxury.com/yaya/AN4376%20ALO%20SUIT%2055.99$%20%20J6S4376%20%20%20%20GYYF/01e59917.jpg',
+    'Gallery Image URLs (comma separated)': 'https://sgp1.digitaloceanspaces.com/fatherofluxury.com/yaya/AN4376%20ALO%20SUIT%2055.99$%20%20J6S4376%20%20%20%20GYYF/01e59917.jpg,https://sgp1.digitaloceanspaces.com/fatherofluxury.com/yaya/AN4376%20ALO%20SUIT%2055.99$%20%20J6S4376%20%20%20%20GYYF/02e59917.jpg,https://sgp1.digitaloceanspaces.com/fatherofluxury.com/yaya/AN4376%20ALO%20SUIT%2055.99$%20%20J6S4376%20%20%20%20GYYF/03e59917.jpg'
   },
   {
-    'Product Name': 'CC Wallet',
-    'Flylink URL': 'https://flylink.com/cc-wallet',
-    'Alibaba URL': '',
-    'DHgate URL': 'https://dhgate.com/cc-wallet',
-    'Category': 'Wallets',
-    'Description': 'CC Wallet Premium Quality Size: 19x10cm Material: Genuine leather',
-    'Preview Image URL': 'https://example.com/images/cc-wallet.jpg',
-    'Gallery Image URLs (comma separated)': 'https://example.com/images/cc-1.jpg;https://example.com/images/cc-2.jpg'
+    'Product Name': 'Designer Bag Premium',
+    'Flylink URL': 'https://flylink.com/designer-bag',
+    'Alibaba URL': 'https://alibaba.com/designer-bag',
+    'DHgate URL': '',
+    'Category': 'Bags',
+    'Description': 'Designer Bag Premium Quality Leather Material Size: 30x20cm',
+    'Preview Image URL': 'https://sgp1.digitaloceanspaces.com/fatherofluxury.com/yaya/DESIGNER%20BAG%20PREMIUM/main.jpg',
+    'Gallery Image URLs (comma separated)': 'https://sgp1.digitaloceanspaces.com/fatherofluxury.com/yaya/DESIGNER%20BAG%20PREMIUM/main.jpg,https://sgp1.digitaloceanspaces.com/fatherofluxury.com/yaya/DESIGNER%20BAG%20PREMIUM/detail1.jpg'
   }
 ];
