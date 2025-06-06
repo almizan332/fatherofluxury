@@ -22,23 +22,46 @@ import { supabase } from "@/integrations/supabase/client";
 import { Product } from "@/types/product";
 import ChatbotWidget from "@/components/ChatbotWidget";
 
+// Increased to show more products per page
 const ITEMS_PER_PAGE = 120;
 
 const Index = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [products, setProducts] = useState<Product[]>([]);
+  const [totalCount, setTotalCount] = useState(0); 
   const { toast } = useToast();
   
   useEffect(() => {
     fetchProducts();
+    fetchTotalCount();
   }, []);
+
+  const fetchTotalCount = async () => {
+    try {
+      const { count, error } = await supabase
+        .from('products')
+        .select('*', { count: 'exact', head: true });
+
+      if (error) {
+        throw error;
+      }
+
+      if (count !== null) {
+        setTotalCount(count);
+      }
+    } catch (error: any) {
+      console.error('Error fetching product count:', error);
+    }
+  };
 
   const fetchProducts = async () => {
     try {
+      // Use pagination to fetch only the products for the current page
       const { data, error } = await supabase
         .from('products')
         .select('*, categories(name)')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1);
 
       if (error) {
         throw error;
@@ -46,7 +69,7 @@ const Index = () => {
 
       if (data) {
         setProducts(data);
-        if (data.length === 0) {
+        if (data.length === 0 && currentPage === 1) {
           toast({
             title: "No products found",
             description: "There are currently no products to display.",
@@ -64,16 +87,16 @@ const Index = () => {
     }
   };
   
-  const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
+  // Update fetchProducts when page changes
+  useEffect(() => {
+    fetchProducts();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentPage]);
   
-  const paginatedProducts = products.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Generate page numbers for unlimited pagination
@@ -128,11 +151,11 @@ const Index = () => {
             animate={{ opacity: 1, y: 0 }}
             className="text-xl sm:text-2xl md:text-3xl font-bold mb-6 gradient-text"
           >
-            Latest Products ({products.length} products)
+            Latest Products ({totalCount} products)
           </motion.h1>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
-            {paginatedProducts.map((product, index) => (
+            {products.map((product, index) => (
               <Link to={`/product/${product.id}`} key={product.id}>
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}

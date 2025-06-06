@@ -1,3 +1,4 @@
+
 import { Card } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
@@ -18,7 +19,8 @@ import {
   ListPlus,
   Upload,
   ChevronDown,
-  ExternalLink
+  ExternalLink,
+  MessageSquare
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
@@ -171,6 +173,7 @@ const Dashboard = () => {
     { title: "Blog Management", icon: Files, url: "/dashboard/blog-management" },
     { title: "Dynamic Pages", icon: Boxes, url: "#" },
     { title: "SEO Pages", icon: Search, url: "#" },
+    { title: "Chatbot Management", icon: MessageSquare, url: "/dashboard/chatbot" },
     { title: "Mail-settings", icon: Mail, url: "#" },
     { title: "Role Management", icon: UserCog, url: "#" },
   ];
