@@ -9,9 +9,10 @@ const TemplateDownload = () => {
 
   const downloadExcelTemplate = (e: React.MouseEvent) => {
     e.preventDefault();
-    // Create CSV content with headers and sample data using tab separation
+    
+    // Create proper tab-separated CSV content
     const csvRows = [
-      productExcelHeaders.join('\t'), // Use tab separator
+      productExcelHeaders.join('\t'), // Headers with tab separation
       ...sampleExcelData.map(row => [
         row['Product Name'],
         row['Flylinking URL'] || '',
@@ -21,11 +22,14 @@ const TemplateDownload = () => {
         row['Description'],
         row['First Image'],
         row['Media Links']
-      ].join('\t')) // Use tab separator
+      ].join('\t')) // Data rows with tab separation
     ];
 
     const csvContent = csvRows.join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    
+    // Add BOM for better Excel compatibility
+    const BOM = '\uFEFF';
+    const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
@@ -37,7 +41,7 @@ const TemplateDownload = () => {
 
     toast({
       title: "Template downloaded",
-      description: "Template updated with your DigitalOcean Spaces format. Use semicolon (;) to separate multiple media links and tab-separated values.",
+      description: "Template ready with DigitalOcean Spaces format. Use semicolon (;) to separate multiple media links.",
     });
   };
 

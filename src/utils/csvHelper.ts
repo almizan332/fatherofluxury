@@ -7,8 +7,23 @@ export const parseCSVFile = async (file: File): Promise<Partial<Product>[]> => {
     reader.onload = async (event) => {
       try {
         const text = event.target?.result as string;
-        const rows = text.split('\n');
-        const headers = rows[0].split('\t').map(header => header.trim()); // Using tab separator
+        
+        // Split by newlines and filter out empty rows
+        const rows = text.split('\n').filter(row => row.trim());
+        
+        if (rows.length < 2) {
+          throw new Error('CSV file must have at least a header row and one data row');
+        }
+        
+        // Parse headers - handle both tab and comma separation for flexibility
+        const headerRow = rows[0];
+        let headers: string[];
+        
+        if (headerRow.includes('\t')) {
+          headers = headerRow.split('\t').map(header => header.trim());
+        } else {
+          headers = headerRow.split(',').map(header => header.trim());
+        }
         
         console.log("CSV headers:", headers);
         
@@ -16,32 +31,37 @@ export const parseCSVFile = async (file: File): Promise<Partial<Product>[]> => {
           .slice(1) // Skip header row
           .filter(row => row.trim()) // Skip empty rows
           .map((row, rowIndex) => {
-            const values = row.split('\t').map(value => value.trim()); // Using tab separator
+            let values: string[];
+            
+            // Use the same separator as headers
+            if (headerRow.includes('\t')) {
+              values = row.split('\t').map(value => value.trim());
+            } else {
+              values = row.split(',').map(value => value.trim());
+            }
+            
             const product: Partial<Product> = {};
             
             headers.forEach((header, index) => {
-              const value = values[index];
+              const value = values[index] || '';
               
               switch(header) {
                 case 'Product Name':
-                  if (value) product.name = value;
+                  if (value && value.trim()) product.name = value.trim();
                   break;
                 case 'Description':
-                  if (value) product.description = value;
+                  if (value && value.trim()) product.description = value.trim();
                   break;
                 case 'First Image':
-                case 'Preview Image URL':
                   if (value && value.trim()) {
-                    // Clean and encode the URL properly for DigitalOcean Spaces
                     const cleanUrl = cleanDigitalOceanUrl(value.trim());
                     product.preview_image = cleanUrl;
                     console.log(`Row ${rowIndex + 2} Preview image:`, cleanUrl);
                   }
                   break;
                 case 'Media Links':
-                case 'Gallery Image URLs (comma separated)':
                   if (value && value.trim()) {
-                    // Split by semicolon for your format
+                    // Split by semicolon for media links
                     const urls = value.split(';')
                       .map(url => cleanDigitalOceanUrl(url.trim()))
                       .filter(url => url && url.length > 0);
@@ -62,7 +82,7 @@ export const parseCSVFile = async (file: File): Promise<Partial<Product>[]> => {
                   if (value && value.trim()) product.dhgate_url = value.trim();
                   break;
                 case 'Category':
-                  if (value) (product as any).category = value;
+                  if (value && value.trim()) (product as any).category = value.trim();
                   break;
               }
             });
@@ -123,7 +143,7 @@ export const validateProducts = (products: Partial<Product>[]): string[] => {
   const errors: string[] = [];
   
   products.forEach((product, index) => {
-    if (!product.name) {
+    if (!product.name || !product.name.trim()) {
       errors.push(`Row ${index + 2}: Product name is required`);
     }
   });
