@@ -14,7 +14,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, PlusCircle, Upload, Trash2, MessageSquare, FileText, Globe } from "lucide-react";
+import { Loader2, PlusCircle, Upload, Trash2, MessageSquare, FileText, Globe, BrainCircuit } from "lucide-react";
 import ChatbotWelcomeMessage from "@/components/chatbot/ChatbotWelcomeMessage";
 import ChatbotTrainingContent from "@/components/chatbot/ChatbotTrainingContent";
 import ChatbotCustomPrompts from "@/components/chatbot/ChatbotCustomPrompts";
@@ -97,94 +97,110 @@ const ChatbotManagement = () => {
           </SidebarContent>
         </Sidebar>
 
-        <div className="flex-1 p-6">
+        <div className="flex-1 p-6 overflow-auto">
           <div className="flex justify-between items-center mb-8">
             <div>
               <h1 className="text-3xl font-bold gradient-text">Chatbot Management</h1>
               <p className="text-muted-foreground">Customize and train your AI chatbot</p>
             </div>
-            <Button onClick={handleSaveSettings} disabled={loading}>
+            <Button 
+              onClick={handleSaveSettings} 
+              disabled={loading}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
               {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
               Save Settings
             </Button>
           </div>
 
           <Tabs defaultValue="settings" className="space-y-6">
-            <TabsList>
-              <TabsTrigger value="settings">General Settings</TabsTrigger>
-              <TabsTrigger value="training">Training Data</TabsTrigger>
-              <TabsTrigger value="prompts">Custom Prompts</TabsTrigger>
+            <TabsList className="mb-2">
+              <TabsTrigger value="settings" className="flex items-center gap-1">
+                <MessageSquare className="h-4 w-4" />
+                General Settings
+              </TabsTrigger>
+              <TabsTrigger value="training" className="flex items-center gap-1">
+                <BrainCircuit className="h-4 w-4" />
+                Training Data
+              </TabsTrigger>
+              <TabsTrigger value="prompts" className="flex items-center gap-1">
+                <FileText className="h-4 w-4" />
+                Custom Prompts
+              </TabsTrigger>
             </TabsList>
             
             <TabsContent value="settings" className="space-y-6">
-              <Card className="p-6">
-                <h2 className="text-xl font-semibold mb-4">Chatbot Settings</h2>
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <Label htmlFor="enabled">Enable Chatbot</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Toggle to enable or disable the chatbot on your website
-                      </p>
-                    </div>
-                    <Switch 
-                      id="enabled" 
-                      checked={settings.enabled} 
-                      onCheckedChange={(checked) => setSettings({...settings, enabled: checked})}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="welcome_message">Welcome Message</Label>
-                    <Textarea 
-                      id="welcome_message"
-                      value={settings.welcome_message}
-                      onChange={(e) => setSettings({...settings, welcome_message: e.target.value})}
-                      placeholder="Enter a welcome message for your visitors"
-                      rows={3}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="theme_color">Theme Color</Label>
-                    <div className="flex items-center gap-2">
-                      <Input 
-                        id="theme_color"
-                        type="color"
-                        value={settings.theme_color}
-                        onChange={(e) => setSettings({...settings, theme_color: e.target.value})}
-                        className="w-16 h-10 p-1"
-                      />
-                      <Input 
-                        type="text"
-                        value={settings.theme_color}
-                        onChange={(e) => setSettings({...settings, theme_color: e.target.value})}
-                        className="w-32"
+              <div className="grid md:grid-cols-2 gap-6">
+                <Card className="p-6">
+                  <h2 className="text-xl font-semibold mb-4">Chatbot Settings</h2>
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <Label htmlFor="enabled">Enable Chatbot</Label>
+                        <p className="text-sm text-muted-foreground">
+                          Toggle to enable or disable the chatbot on your website
+                        </p>
+                      </div>
+                      <Switch 
+                        id="enabled" 
+                        checked={settings.enabled} 
+                        onCheckedChange={(checked) => setSettings({...settings, enabled: checked})}
                       />
                     </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="welcome_message">Welcome Message</Label>
+                      <Textarea 
+                        id="welcome_message"
+                        value={settings.welcome_message}
+                        onChange={(e) => setSettings({...settings, welcome_message: e.target.value})}
+                        placeholder="Enter a welcome message for your visitors"
+                        rows={3}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="theme_color">Theme Color</Label>
+                      <div className="flex items-center gap-2">
+                        <Input 
+                          id="theme_color"
+                          type="color"
+                          value={settings.theme_color}
+                          onChange={(e) => setSettings({...settings, theme_color: e.target.value})}
+                          className="w-16 h-10 p-1"
+                        />
+                        <Input 
+                          type="text"
+                          value={settings.theme_color}
+                          onChange={(e) => setSettings({...settings, theme_color: e.target.value})}
+                          className="w-32"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="position">Position</Label>
+                      <select
+                        id="position"
+                        value={settings.position}
+                        onChange={(e) => setSettings({...settings, position: e.target.value})}
+                        className="w-full p-2 border rounded bg-background"
+                      >
+                        <option value="bottom-right">Bottom Right</option>
+                        <option value="bottom-left">Bottom Left</option>
+                        <option value="top-right">Top Right</option>
+                        <option value="top-left">Top Left</option>
+                      </select>
+                    </div>
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="position">Position</Label>
-                    <select
-                      id="position"
-                      value={settings.position}
-                      onChange={(e) => setSettings({...settings, position: e.target.value})}
-                      className="w-full p-2 border rounded bg-background"
-                    >
-                      <option value="bottom-right">Bottom Right</option>
-                      <option value="bottom-left">Bottom Left</option>
-                      <option value="top-right">Top Right</option>
-                      <option value="top-left">Top Left</option>
-                    </select>
-                  </div>
-                </div>
-              </Card>
-              
-              <ChatbotWelcomeMessage 
-                welcomeMessage={settings.welcome_message} 
-                themeColor={settings.theme_color} 
-              />
+                </Card>
+                
+                <ChatbotWelcomeMessage 
+                  welcomeMessage={settings.welcome_message} 
+                  themeColor={settings.theme_color}
+                  position={settings.position}
+                />
+              </div>
             </TabsContent>
             
             <TabsContent value="training">
