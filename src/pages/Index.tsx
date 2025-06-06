@@ -20,6 +20,7 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Product } from "@/types/product";
+import ChatbotWidget from "@/components/ChatbotWidget";
 
 const ITEMS_PER_PAGE = 120;
 
@@ -75,6 +76,48 @@ const Index = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Generate page numbers for unlimited pagination
+  const getVisiblePages = () => {
+    const delta = 2; // Number of pages to show on each side of current page
+    const range = [];
+    const rangeWithDots = [];
+
+    // Always show first page
+    if (totalPages > 0) {
+      range.push(1);
+    }
+
+    // Add pages around current page
+    for (let i = Math.max(2, currentPage - delta); i <= Math.min(totalPages - 1, currentPage + delta); i++) {
+      range.push(i);
+    }
+
+    // Always show last page if there are multiple pages
+    if (totalPages > 1) {
+      range.push(totalPages);
+    }
+
+    // Remove duplicates and sort
+    const uniqueRange = [...new Set(range)].sort((a, b) => a - b);
+
+    // Add ellipsis where there are gaps
+    for (let i = 0; i < uniqueRange.length; i++) {
+      if (i === 0) {
+        rangeWithDots.push(uniqueRange[i]);
+      } else if (uniqueRange[i] - uniqueRange[i - 1] === 2) {
+        rangeWithDots.push(uniqueRange[i - 1] + 1);
+        rangeWithDots.push(uniqueRange[i]);
+      } else if (uniqueRange[i] - uniqueRange[i - 1] !== 1) {
+        rangeWithDots.push('...');
+        rangeWithDots.push(uniqueRange[i]);
+      } else {
+        rangeWithDots.push(uniqueRange[i]);
+      }
+    }
+
+    return rangeWithDots;
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
@@ -126,7 +169,7 @@ const Index = () => {
             ))}
           </div>
 
-          {products.length > ITEMS_PER_PAGE && (
+          {totalPages > 1 && (
             <div className="mt-8 mb-12 overflow-x-auto">
               <Pagination>
                 <PaginationContent className="flex-wrap justify-center gap-1">
@@ -137,30 +180,21 @@ const Index = () => {
                     />
                   </PaginationItem>
                   
-                  {Array.from({ length: totalPages }, (_, i) => i + 1)
-                    .filter(page => {
-                      if (page === 1 || page === totalPages) return true;
-                      if (page >= currentPage - 1 && page <= currentPage + 1) return true;
-                      return false;
-                    })
-                    .map((page, index, array) => (
-                      <React.Fragment key={page}>
-                        {index > 0 && array[index - 1] !== page - 1 && (
-                          <PaginationItem>
-                            <PaginationEllipsis />
-                          </PaginationItem>
-                        )}
-                        <PaginationItem>
-                          <PaginationLink
-                            className="text-sm"
-                            isActive={currentPage === page}
-                            onClick={() => handlePageChange(page)}
-                          >
-                            {page}
-                          </PaginationLink>
-                        </PaginationItem>
-                      </React.Fragment>
-                    ))}
+                  {getVisiblePages().map((page, index) => (
+                    <PaginationItem key={index}>
+                      {page === '...' ? (
+                        <PaginationEllipsis />
+                      ) : (
+                        <PaginationLink
+                          className="text-sm"
+                          isActive={currentPage === page}
+                          onClick={() => handlePageChange(page as number)}
+                        >
+                          {page}
+                        </PaginationLink>
+                      )}
+                    </PaginationItem>
+                  ))}
 
                   <PaginationItem>
                     <PaginationNext
@@ -175,6 +209,7 @@ const Index = () => {
         </main>
       </ScrollArea>
       <Footer />
+      <ChatbotWidget />
     </div>
   );
 };
