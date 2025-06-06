@@ -37,7 +37,7 @@ const TemplateDownload = () => {
 
     toast({
       title: "Template downloaded",
-      description: "Fill in the template with your DigitalOcean Spaces URLs and import it back. Use semicolon (;) to separate multiple media links.",
+      description: "Template updated with your DigitalOcean Spaces format. Use semicolon (;) to separate multiple media links and tab-separated values.",
     });
   };
 
