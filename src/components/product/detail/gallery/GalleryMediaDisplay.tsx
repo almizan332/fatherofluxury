@@ -10,6 +10,27 @@ interface GalleryMediaDisplayProps {
   handleZoom: () => void;
 }
 
+// Helper function to sanitize and handle DigitalOcean Spaces URLs
+const sanitizeImageUrl = (url: string): string => {
+  // Remove any quotes that might be in the URL
+  let cleanUrl = url.replace(/['"]/g, '');
+  
+  // Handle DigitalOcean Spaces URLs - ensure proper encoding
+  if (cleanUrl.includes('digitaloceanspaces.com')) {
+    // Split the URL to encode only the path part after the domain
+    const urlParts = cleanUrl.split('/');
+    if (urlParts.length > 3) {
+      const domain = urlParts.slice(0, 3).join('/');
+      const pathParts = urlParts.slice(3);
+      // Encode each path segment but preserve forward slashes
+      const encodedPath = pathParts.map(part => encodeURIComponent(part)).join('/');
+      cleanUrl = `${domain}/${encodedPath}`;
+    }
+  }
+  
+  return cleanUrl;
+};
+
 export const GalleryMediaDisplay = ({
   media,
   productName,
@@ -19,6 +40,9 @@ export const GalleryMediaDisplay = ({
   handleZoom
 }: GalleryMediaDisplayProps) => {
   if (!media) return null;
+  
+  // Sanitize the media URL
+  const sanitizedUrl = sanitizeImageUrl(media.url);
   
   return (
     <div 
@@ -33,25 +57,25 @@ export const GalleryMediaDisplay = ({
     >
       {media.type === 'video' ? (
         <video
-          src={media.url}
+          src={sanitizedUrl}
           className="max-w-full max-h-full object-contain"
           controls
           autoPlay
           playsInline
           onError={(e) => {
-            console.log('Video failed to load:', media.url);
+            console.log('Video failed to load:', sanitizedUrl);
           }}
         />
       ) : (
         <img
-          src={media.url}
+          src={sanitizedUrl}
           alt={`${productName} - View ${selectedIndex + 1}`}
           className="max-w-full max-h-full object-contain"
           onLoad={() => {
-            console.log('Image loaded successfully:', media.url);
+            console.log('Image loaded successfully:', sanitizedUrl);
           }}
           onError={(e) => {
-            console.log('Image failed to load:', media.url);
+            console.log('Image failed to load:', sanitizedUrl);
             // Show a fallback or placeholder
             e.currentTarget.style.opacity = '0.5';
           }}
