@@ -22,12 +22,12 @@ export const GalleryMediaDisplay = ({
   
   return (
     <div 
-      className={`relative transition-transform duration-300 ${isZoomed ? 'cursor-move' : 'cursor-zoom-in'}`}
+      className={`relative w-full h-full flex items-center justify-center transition-transform duration-300 ${
+        isZoomed ? 'cursor-move' : 'cursor-zoom-in'
+      }`}
       style={{ 
         transform: `scale(${zoomLevel})`, 
-        transformOrigin: 'center', 
-        maxWidth: '100%',
-        maxHeight: '100%'
+        transformOrigin: 'center'
       }}
       onClick={handleZoom}
     >
@@ -38,12 +38,23 @@ export const GalleryMediaDisplay = ({
           controls
           autoPlay
           playsInline
+          onError={(e) => {
+            console.log('Video failed to load:', media.url);
+          }}
         />
       ) : (
         <img
           src={media.url}
           alt={`${productName} - View ${selectedIndex + 1}`}
           className="max-w-full max-h-full object-contain"
+          onLoad={() => {
+            console.log('Image loaded successfully:', media.url);
+          }}
+          onError={(e) => {
+            console.log('Image failed to load:', media.url);
+            // Show a fallback or placeholder
+            e.currentTarget.style.opacity = '0.5';
+          }}
         />
       )}
     </div>
