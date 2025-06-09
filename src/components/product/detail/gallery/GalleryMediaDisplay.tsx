@@ -20,10 +20,13 @@ const sanitizeImageUrl = (url: string): string => {
   // Handle DigitalOcean Spaces URLs - ensure proper encoding
   if (cleanUrl.includes('digitaloceanspaces.com')) {
     try {
-      // Parse the URL to handle encoding properly
-      const urlObj = new URL(cleanUrl);
-      // Reconstruct with properly encoded pathname
-      cleanUrl = `${urlObj.protocol}//${urlObj.host}${urlObj.pathname}${urlObj.search}${urlObj.hash}`;
+      // Don't re-encode if URL is already encoded
+      if (!cleanUrl.includes('%')) {
+        // Parse the URL to handle encoding properly
+        const urlObj = new URL(cleanUrl);
+        // Reconstruct with properly encoded pathname
+        cleanUrl = `${urlObj.protocol}//${urlObj.host}${encodeURI(urlObj.pathname)}${urlObj.search}${urlObj.hash}`;
+      }
     } catch (error) {
       console.log('URL parsing failed, using original:', cleanUrl);
     }
@@ -40,9 +43,17 @@ export const GalleryMediaDisplay = ({
   zoomLevel,
   handleZoom
 }: GalleryMediaDisplayProps) => {
-  if (!media) return null;
+  if (!media || !media.url) {
+    console.log('No media or URL provided:', media);
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-lg">
+        <p className="text-gray-500">No image available</p>
+      </div>
+    );
+  }
   
   const sanitizedUrl = sanitizeImageUrl(media.url);
+  console.log('Displaying media:', { original: media.url, sanitized: sanitizedUrl, type: media.type });
   
   return (
     <div 
@@ -63,6 +74,9 @@ export const GalleryMediaDisplay = ({
           onError={(e) => {
             console.error('Video failed to load:', sanitizedUrl);
           }}
+          onLoadStart={() => {
+            console.log('Video started loading:', sanitizedUrl);
+          }}
         />
       ) : (
         <img
@@ -71,11 +85,16 @@ export const GalleryMediaDisplay = ({
           className="max-w-full max-h-full object-contain"
           onError={(e) => {
             console.error('Image failed to load:', sanitizedUrl);
-            // Show a placeholder or hide the image
-            e.currentTarget.style.display = 'none';
+            console.error('Original URL:', media.url);
+            // Show error state instead of hiding
+            e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJMMTMuMDkgOC4yNkwyMCA5TDEzLjA5IDE1Ljc0TDEyIDIyTDEwLjkxIDE1Ljc0TDQgOUwxMC45MSA4LjI2TDEyIDJaIiBzdHJva2U9IiNjY2MiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+Cjwvc3ZnPgo=';
+            e.currentTarget.alt = 'Image failed to load';
           }}
           onLoad={() => {
             console.log('Image loaded successfully:', sanitizedUrl);
+          }}
+          onLoadStart={() => {
+            console.log('Image started loading:', sanitizedUrl);
           }}
         />
       )}

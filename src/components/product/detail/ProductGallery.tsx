@@ -18,19 +18,23 @@ interface ProductGalleryProps {
 
 // Helper function to sanitize and handle DigitalOcean Spaces URLs
 const sanitizeImageUrl = (url: string): string => {
+  if (!url) return '';
+  
   // Remove any quotes that might be in the URL
-  let cleanUrl = url.replace(/['"]/g, '');
+  let cleanUrl = url.replace(/['"]/g, '').trim();
   
   // Handle DigitalOcean Spaces URLs - ensure proper encoding
   if (cleanUrl.includes('digitaloceanspaces.com')) {
-    // Split the URL to encode only the path part after the domain
-    const urlParts = cleanUrl.split('/');
-    if (urlParts.length > 3) {
-      const domain = urlParts.slice(0, 3).join('/');
-      const pathParts = urlParts.slice(3);
-      // Encode each path segment but preserve forward slashes
-      const encodedPath = pathParts.map(part => encodeURIComponent(part)).join('/');
-      cleanUrl = `${domain}/${encodedPath}`;
+    try {
+      // Don't re-encode if URL is already encoded
+      if (!cleanUrl.includes('%')) {
+        // Parse the URL to handle encoding properly
+        const urlObj = new URL(cleanUrl);
+        // Reconstruct with properly encoded pathname
+        cleanUrl = `${urlObj.protocol}//${urlObj.host}${encodeURI(urlObj.pathname)}${urlObj.search}${urlObj.hash}`;
+      }
+    } catch (error) {
+      console.log('URL parsing failed, using original:', cleanUrl);
     }
   }
   
@@ -42,6 +46,9 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
 
   const allMedia = getAllMedia(product);
+  console.log('ProductGallery - All media:', allMedia);
+  console.log('ProductGallery - Selected index:', selectedMediaIndex);
+  console.log('ProductGallery - Current media:', allMedia[selectedMediaIndex]);
 
   return (
     <div className="space-y-6">
@@ -50,39 +57,44 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
         className="aspect-square relative rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 shadow-lg cursor-pointer group"
         onClick={() => setIsGalleryOpen(true)}
       >
-        {allMedia.length > 0 && allMedia[selectedMediaIndex]?.type === 'video' ? (
-          <video
-            src={allMedia[selectedMediaIndex].url}
-            className="w-full h-full object-contain"
-            controls
-            autoPlay
-            playsInline
-          />
-        ) : allMedia.length > 0 ? (
-          <>
-            <img
+        {allMedia.length > 0 && allMedia[selectedMediaIndex] ? (
+          allMedia[selectedMediaIndex].type === 'video' ? (
+            <video
               src={allMedia[selectedMediaIndex].url}
-              alt={`${product.name} - View ${selectedMediaIndex + 1}`}
-              className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
-              onError={(e) => {
-                console.log('Image failed to load:', allMedia[selectedMediaIndex].url);
-                // Optionally set a fallback image
-                e.currentTarget.style.display = 'none';
-              }}
+              className="w-full h-full object-contain"
+              controls
+              autoPlay
+              playsInline
             />
-            <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-              <div className="bg-white/90 rounded-full p-4 transform scale-0 group-hover:scale-100 transition-transform duration-300">
-                <ZoomIn className="h-8 w-8 text-gray-800" />
+          ) : (
+            <>
+              <img
+                src={allMedia[selectedMediaIndex].url}
+                alt={`${product.name} - View ${selectedMediaIndex + 1}`}
+                className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
+                onError={(e) => {
+                  console.error('Main gallery image failed to load:', allMedia[selectedMediaIndex].url);
+                  // Show fallback instead of hiding
+                  e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjZjNmNGY2Ii8+CjxwYXRoIGQ9Ik0xMDAgNTBMMTEwIDkwTDE1MCA5MEwxMTAgMTEwTDEyMCAxNTBMMTAwIDEzMEw4MCAxNTBMOTAgMTEwTDUwIDkwTDkwIDkwTDEwMCA1MFoiIGZpbGw9IiNjY2MiLz4KPHR4ZSB4PSIxMDAiIHk9IjE3NSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+Cjwvc3ZnPgo=';
+                }}
+                onLoad={() => {
+                  console.log('Main gallery image loaded successfully:', allMedia[selectedMediaIndex].url);
+                }}
+              />
+              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                <div className="bg-white/90 rounded-full p-4 transform scale-0 group-hover:scale-100 transition-transform duration-300">
+                  <ZoomIn className="h-8 w-8 text-gray-800" />
+                </div>
               </div>
-            </div>
 
-            {/* Product Code Overlay - Extract from product name */}
-            {selectedMediaIndex === 0 && product.name && (
-              <div className="absolute top-4 right-4 bg-black/70 backdrop-blur-sm text-white px-3 py-1 rounded-md text-sm font-medium shadow-lg">
-                {product.name.split(' ')[0]}
-              </div>
-            )}
-          </>
+              {/* Product Code Overlay - Extract from product name */}
+              {selectedMediaIndex === 0 && product.name && (
+                <div className="absolute top-4 right-4 bg-black/70 backdrop-blur-sm text-white px-3 py-1 rounded-md text-sm font-medium shadow-lg">
+                  {product.name.split(' ')[0]}
+                </div>
+              )}
+            </>
+          )
         ) : (
           // Fallback when no images are available
           <div className="w-full h-full flex items-center justify-center bg-gray-100">
@@ -98,7 +110,10 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
             {allMedia.slice(0, 100).map((media, index) => (
               <CarouselItem key={index} className="basis-1/4">
                 <div
-                  onClick={() => setSelectedMediaIndex(index)}
+                  onClick={() => {
+                    console.log('Mobile thumbnail clicked:', index, media);
+                    setSelectedMediaIndex(index);
+                  }}
                   className={`aspect-square relative rounded-md overflow-hidden cursor-pointer ${
                     selectedMediaIndex === index 
                       ? 'ring-2 ring-primary border border-primary' 
@@ -119,7 +134,7 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
                       alt={`${product.name} thumbnail ${index + 1}`}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        console.log('Thumbnail failed to load:', media.url);
+                        console.log('Mobile thumbnail failed to load:', media.url);
                         e.currentTarget.style.display = 'none';
                       }}
                     />
@@ -139,6 +154,7 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
           <div
             key={index}
             onClick={() => {
+              console.log('Desktop thumbnail clicked:', index, media);
               setSelectedMediaIndex(index);
             }}
             className={`aspect-square relative rounded-lg overflow-hidden cursor-pointer group transition-all duration-200 transform hover:-translate-y-1 hover:shadow-lg ${
@@ -166,7 +182,7 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
                   alt={`${product.name} thumbnail ${index + 1}`}
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                   onError={(e) => {
-                    console.log('Grid thumbnail failed to load:', media.url);
+                    console.log('Desktop thumbnail failed to load:', media.url);
                     e.currentTarget.style.display = 'none';
                   }}
                 />
@@ -196,18 +212,20 @@ export const getAllMedia = (product: Product): MediaType[] => {
   
   // Add preview image if available
   if (product.preview_image) {
+    const cleanUrl = sanitizeImageUrl(product.preview_image);
+    console.log('Adding preview image:', { original: product.preview_image, clean: cleanUrl });
     media.push({ 
       type: 'image', 
-      url: sanitizeImageUrl(product.preview_image)
+      url: cleanUrl
     });
   }
   
   // Add gallery images if available
   if (product.gallery_images && Array.isArray(product.gallery_images)) {
-    product.gallery_images.forEach(url => {
+    product.gallery_images.forEach((url, index) => {
       if (url) {
-        // Clean up the URL and handle DigitalOcean Spaces URLs
         const cleanUrl = sanitizeImageUrl(url);
+        console.log(`Adding gallery image ${index}:`, { original: url, clean: cleanUrl });
         media.push({ type: 'image', url: cleanUrl });
       }
     });
@@ -215,13 +233,14 @@ export const getAllMedia = (product: Product): MediaType[] => {
   
   // Add videos if available
   if (product.video_urls && Array.isArray(product.video_urls)) {
-    product.video_urls.forEach(url => {
+    product.video_urls.forEach((url, index) => {
       if (url) {
+        console.log(`Adding video ${index}:`, url);
         media.push({ type: 'video', url });
       }
     });
   }
   
-  // If no media was found, add an empty array to prevent undefined errors
+  console.log('getAllMedia result:', media);
   return media;
 };
