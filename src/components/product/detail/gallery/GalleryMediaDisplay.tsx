@@ -15,16 +15,21 @@ const sanitizeImageUrl = (url: string): string => {
   // Remove any quotes that might be in the URL
   let cleanUrl = url.replace(/['"]/g, '');
   
-  // Handle DigitalOcean Spaces URLs - ensure proper encoding
+  // Handle DigitalOcean Spaces URLs - but avoid double encoding
   if (cleanUrl.includes('digitaloceanspaces.com')) {
-    // Split the URL to encode only the path part after the domain
-    const urlParts = cleanUrl.split('/');
-    if (urlParts.length > 3) {
-      const domain = urlParts.slice(0, 3).join('/');
-      const pathParts = urlParts.slice(3);
-      // Encode each path segment but preserve forward slashes
-      const encodedPath = pathParts.map(part => encodeURIComponent(part)).join('/');
-      cleanUrl = `${domain}/${encodedPath}`;
+    // Check if the URL is already encoded (contains %20 etc)
+    const isAlreadyEncoded = cleanUrl.includes('%20') || cleanUrl.includes('%24') || cleanUrl.includes('%25');
+    
+    if (!isAlreadyEncoded) {
+      // Only encode if not already encoded
+      const urlParts = cleanUrl.split('/');
+      if (urlParts.length > 3) {
+        const domain = urlParts.slice(0, 3).join('/');
+        const pathParts = urlParts.slice(3);
+        // Encode each path segment but preserve forward slashes
+        const encodedPath = pathParts.map(part => encodeURIComponent(part)).join('/');
+        cleanUrl = `${domain}/${encodedPath}`;
+      }
     }
   }
   
