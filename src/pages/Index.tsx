@@ -35,6 +35,7 @@ const Index = () => {
 
   const fetchProducts = async () => {
     try {
+      // Fetch ALL products without any limit
       const { data, error } = await supabase
         .from('products')
         .select('*, categories(name)')
@@ -46,6 +47,7 @@ const Index = () => {
 
       if (data) {
         setProducts(data);
+        console.log(`Homepage loaded ${data.length} total products`);
         if (data.length === 0) {
           toast({
             title: "No products found",
@@ -128,7 +130,7 @@ const Index = () => {
             animate={{ opacity: 1, y: 0 }}
             className="text-xl sm:text-2xl md:text-3xl font-bold mb-6 gradient-text"
           >
-            Latest Products ({products.length} products)
+            Latest Products ({products.length} products total)
           </motion.h1>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
@@ -171,6 +173,9 @@ const Index = () => {
 
           {totalPages > 1 && (
             <div className="mt-8 mb-12 overflow-x-auto">
+              <div className="text-center mb-4 text-sm text-muted-foreground">
+                Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, products.length)} of {products.length} products
+              </div>
               <Pagination>
                 <PaginationContent className="flex-wrap justify-center gap-1">
                   <PaginationItem>

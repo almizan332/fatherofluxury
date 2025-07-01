@@ -10,12 +10,16 @@ export function useProducts() {
 
   const fetchProducts = async () => {
     try {
+      // Remove any limit to fetch ALL products
       const { data, error } = await supabase
         .from('products')
-        .select('*, categories(name)');
+        .select('*, categories(name)')
+        .order('created_at', { ascending: false });
       
       if (error) throw error;
       setProducts(data || []);
+      
+      console.log(`Loaded ${data?.length || 0} products`);
     } catch (error: any) {
       toast({
         title: "Error fetching products",

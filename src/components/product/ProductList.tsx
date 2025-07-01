@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -37,12 +36,15 @@ const ProductList = () => {
 
   const fetchProducts = async () => {
     try {
+      // Fetch ALL products without any limit for admin view
       const { data, error } = await supabase
         .from('products')
-        .select('*, categories(name)');
+        .select('*, categories(name)')
+        .order('created_at', { ascending: false });
       
       if (error) throw error;
       setProducts(data || []);
+      console.log(`Admin panel loaded ${data?.length || 0} products`);
     } catch (error: any) {
       toast({
         title: "Error fetching products",
@@ -173,6 +175,13 @@ const ProductList = () => {
 
   return (
     <div className="p-6">
+      <div className="mb-4">
+        <h1 className="text-2xl font-bold mb-2">Product Management</h1>
+        <p className="text-muted-foreground">
+          Manage all {products.length} products in your catalog
+        </p>
+      </div>
+
       <ProductListHeader 
         selectedProducts={selectedProducts}
         onDownloadTemplate={downloadExcelTemplate}
