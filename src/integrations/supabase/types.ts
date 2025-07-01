@@ -396,7 +396,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_admin_access: {
+        Args: { user_email: string }
+        Returns: boolean
+      }
       check_if_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      ensure_admin_user: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }

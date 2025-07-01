@@ -13,7 +13,9 @@ export function useAdminAuth() {
       
       // Check if logged in via session or via custom credentials
       const isLoggedIn = Boolean(session?.user) || sessionStorage.getItem('isAdminLoggedIn') === 'true';
-      const isAdminUser = session?.user?.email === 'homeincome08@gmail.com' || isLoggedIn;
+      const isAdminUser = session?.user?.email === 'almizancolab@gmail.com' || 
+                         sessionStorage.getItem('adminEmail') === 'almizancolab@gmail.com' || 
+                         isLoggedIn;
       
       setIsAdmin(isAdminUser);
 
@@ -29,7 +31,9 @@ export function useAdminAuth() {
       
       // Check if logged in via session or via custom credentials
       const isLoggedIn = Boolean(session?.user) || sessionStorage.getItem('isAdminLoggedIn') === 'true';
-      const isAdminUser = session?.user?.email === 'homeincome08@gmail.com' || isLoggedIn;
+      const isAdminUser = session?.user?.email === 'almizancolab@gmail.com' || 
+                         sessionStorage.getItem('adminEmail') === 'almizancolab@gmail.com' || 
+                         isLoggedIn;
       
       setIsAdmin(isAdminUser);
       
@@ -43,5 +47,25 @@ export function useAdminAuth() {
     };
   }, [navigate]);
 
-  return { isAdmin };
+  const logout = async () => {
+    try {
+      // Clear session storage
+      sessionStorage.removeItem('isAdminLoggedIn');
+      sessionStorage.removeItem('adminEmail');
+      
+      // Sign out from Supabase
+      await supabase.auth.signOut();
+      
+      // Navigate to login
+      navigate('/almizan');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Even if Supabase logout fails, clear local state
+      sessionStorage.removeItem('isAdminLoggedIn');
+      sessionStorage.removeItem('adminEmail');
+      navigate('/almizan');
+    }
+  };
+
+  return { isAdmin, logout };
 }
