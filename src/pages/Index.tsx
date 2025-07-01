@@ -22,39 +22,42 @@ import { supabase } from "@/integrations/supabase/client";
 import { Product } from "@/types/product";
 import ChatbotWidget from "@/components/ChatbotWidget";
 
-const ITEMS_PER_PAGE = 120;
+const ITEMS_PER_BATCH = 120;
 
 const Index = () => {
-  const [currentPage, setCurrentPage] = useState(1);
   const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [totalCount, setTotalCount] = useState(0);
   const { toast } = useToast();
   
   useEffect(() => {
-    fetchProducts();
+    fetchInitialProducts();
   }, []);
 
-  const fetchProducts = async () => {
+  const fetchInitialProducts = async () => {
     try {
-      // Fetch ALL products without any limit
+      setLoading(true);
+      // First get the total count
+      const { count } = await supabase
+        .from('products')
+        .select('*', { count: 'exact', head: true });
+      
+      setTotalCount(count || 0);
+      
+      // Then fetch the first batch
       const { data, error } = await supabase
         .from('products')
         .select('*, categories(name)')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .range(0, ITEMS_PER_BATCH - 1);
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       if (data) {
         setProducts(data);
-        console.log(`Homepage loaded ${data.length} total products`);
-        if (data.length === 0) {
-          toast({
-            title: "No products found",
-            description: "There are currently no products to display.",
-            duration: 3000,
-          });
-        }
+        setHasMore(data.length === ITEMS_PER_BATCH && data.length < (count || 0));
+        console.log(`Homepage loaded initial ${data.length} products of ${count} total`);
       }
     } catch (error: any) {
       console.error('Error fetching products:', error);
@@ -63,62 +66,41 @@ const Index = () => {
         description: "There was an error loading the products.",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
-  
-  const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
-  
-  const paginatedProducts = products.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  const loadMoreProducts = async () => {
+    if (loading || !hasMore) return;
+    
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('products')
+        .select('*, categories(name)')
+        .order('created_at', { ascending: false })
+        .range(products.length, products.length + ITEMS_PER_BATCH - 1);
 
-  // Generate page numbers for unlimited pagination
-  const getVisiblePages = () => {
-    const delta = 2; // Number of pages to show on each side of current page
-    const range = [];
-    const rangeWithDots = [];
+      if (error) throw error;
 
-    // Always show first page
-    if (totalPages > 0) {
-      range.push(1);
-    }
-
-    // Add pages around current page
-    for (let i = Math.max(2, currentPage - delta); i <= Math.min(totalPages - 1, currentPage + delta); i++) {
-      range.push(i);
-    }
-
-    // Always show last page if there are multiple pages
-    if (totalPages > 1) {
-      range.push(totalPages);
-    }
-
-    // Remove duplicates and sort
-    const uniqueRange = [...new Set(range)].sort((a, b) => a - b);
-
-    // Add ellipsis where there are gaps
-    for (let i = 0; i < uniqueRange.length; i++) {
-      if (i === 0) {
-        rangeWithDots.push(uniqueRange[i]);
-      } else if (uniqueRange[i] - uniqueRange[i - 1] === 2) {
-        rangeWithDots.push(uniqueRange[i - 1] + 1);
-        rangeWithDots.push(uniqueRange[i]);
-      } else if (uniqueRange[i] - uniqueRange[i - 1] !== 1) {
-        rangeWithDots.push('...');
-        rangeWithDots.push(uniqueRange[i]);
-      } else {
-        rangeWithDots.push(uniqueRange[i]);
+      if (data) {
+        setProducts(prev => [...prev, ...data]);
+        setHasMore(data.length === ITEMS_PER_BATCH);
+        console.log(`Loaded ${data.length} more products, total: ${products.length + data.length}`);
       }
+    } catch (error: any) {
+      console.error('Error loading more products:', error);
+      toast({
+        title: "Error",
+        description: "There was an error loading more products.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-
-    return rangeWithDots;
   };
+
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -134,7 +116,7 @@ const Index = () => {
           </motion.h1>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
-            {paginatedProducts.map((product, index) => (
+            {products.map((product, index) => (
               <Link to={`/product/${product.id}`} key={product.id}>
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
@@ -171,44 +153,27 @@ const Index = () => {
             ))}
           </div>
 
-          {totalPages > 1 && (
-            <div className="mt-8 mb-12 overflow-x-auto">
-              <div className="text-center mb-4 text-sm text-muted-foreground">
-                Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, products.length)} of {products.length} products
+          {hasMore && (
+            <div className="mt-8 mb-12 text-center">
+              <div className="mb-4 text-sm text-muted-foreground">
+                Showing {products.length} of {totalCount} products
               </div>
-              <Pagination>
-                <PaginationContent className="flex-wrap justify-center gap-1">
-                  <PaginationItem>
-                    <PaginationPrevious 
-                      onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
-                      className={`${currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"} text-sm`}
-                    />
-                  </PaginationItem>
-                  
-                  {getVisiblePages().map((page, index) => (
-                    <PaginationItem key={index}>
-                      {page === '...' ? (
-                        <PaginationEllipsis />
-                      ) : (
-                        <PaginationLink
-                          className="text-sm"
-                          isActive={currentPage === page}
-                          onClick={() => handlePageChange(page as number)}
-                        >
-                          {page}
-                        </PaginationLink>
-                      )}
-                    </PaginationItem>
-                  ))}
+              <Button 
+                onClick={loadMoreProducts}
+                disabled={loading}
+                size="lg"
+                className="min-w-[150px]"
+              >
+                {loading ? "Loading..." : "Load More Products"}
+              </Button>
+            </div>
+          )}
 
-                  <PaginationItem>
-                    <PaginationNext
-                      onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
-                      className={`${currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"} text-sm`}
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
+          {!hasMore && products.length > 0 && (
+            <div className="mt-8 mb-12 text-center">
+              <div className="text-sm text-muted-foreground">
+                All {totalCount} products loaded
+              </div>
             </div>
           )}
         </main>
