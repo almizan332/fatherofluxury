@@ -10,31 +10,20 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useSubCategoryProducts } from "@/hooks/useSubCategoryProducts";
 import { SubCategorySearch } from "@/components/subcategory/SubCategorySearch";
-import { SubCategoryPagination } from "@/components/subcategory/SubCategoryPagination";
-
-const ITEMS_PER_PAGE = 20;
 
 const SubCategory = () => {
   const { category } = useParams();
-  const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
-  const { products, loading } = useSubCategoryProducts(category);
+  const { products, loading, hasMore, totalCount, loadMoreProducts } = useSubCategoryProducts(category);
   const { toast } = useToast();
 
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
-  const paginatedProducts = filteredProducts.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
-
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearchQuery(query);
-    setCurrentPage(1);
 
     if (query && filteredProducts.length === 0) {
       toast({
@@ -43,11 +32,6 @@ const SubCategory = () => {
         variant: "destructive",
       });
     }
-  };
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -63,11 +47,11 @@ const SubCategory = () => {
             <SubCategorySearch
               searchQuery={searchQuery}
               onSearchChange={handleSearch}
-              productCount={filteredProducts.length}
+              productCount={searchQuery ? filteredProducts.length : totalCount}
               categoryName={category}
             />
 
-            {loading ? (
+            {loading && products.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-muted-foreground">Loading products...</p>
               </div>
@@ -77,7 +61,7 @@ const SubCategory = () => {
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
-                {paginatedProducts.map((product, index) => (
+                {filteredProducts.map((product, index) => (
                   <Link to={`/product/${product.id}`} key={product.id}>
                     <motion.div
                       initial={{ opacity: 0, scale: 0.9 }}
@@ -115,12 +99,28 @@ const SubCategory = () => {
               </div>
             )}
 
-            {filteredProducts.length > ITEMS_PER_PAGE && (
-              <SubCategoryPagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-              />
+            {!searchQuery && hasMore && (
+              <div className="mt-8 mb-12 text-center">
+                <div className="mb-4 text-sm text-muted-foreground">
+                  Showing {products.length} of {totalCount} products
+                </div>
+                <Button 
+                  onClick={loadMoreProducts}
+                  disabled={loading}
+                  size="lg"
+                  className="min-w-[150px]"
+                >
+                  {loading ? "Loading..." : "Load More Products"}
+                </Button>
+              </div>
+            )}
+
+            {!searchQuery && !hasMore && products.length > 0 && (
+              <div className="mt-8 mb-12 text-center">
+                <div className="text-sm text-muted-foreground">
+                  All {totalCount} products loaded
+                </div>
+              </div>
             )}
           </motion.div>
         </main>

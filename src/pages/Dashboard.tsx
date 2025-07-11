@@ -169,6 +169,7 @@ const Dashboard = () => {
       ]
     },
     { title: "Blog Management", icon: Files, url: "/dashboard/blog-management" },
+    { title: "Chatbot Management", icon: MonitorDot, url: "/dashboard/chatbot" },
     { title: "Dynamic Pages", icon: Boxes, url: "#" },
     { title: "SEO Pages", icon: Search, url: "#" },
     { title: "Mail-settings", icon: Mail, url: "#" },
