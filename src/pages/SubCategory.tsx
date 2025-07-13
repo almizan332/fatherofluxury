@@ -10,11 +10,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useSubCategoryProducts } from "@/hooks/useSubCategoryProducts";
 import { SubCategorySearch } from "@/components/subcategory/SubCategorySearch";
+import { SubCategoryPagination } from "@/components/subcategory/SubCategoryPagination";
 
 const SubCategory = () => {
   const { category } = useParams();
   const [searchQuery, setSearchQuery] = useState("");
-  const { products, loading, hasMore, totalCount, loadMoreProducts } = useSubCategoryProducts(category);
+  const { products, loading, currentPage, totalPages, totalCount, handlePageChange } = useSubCategoryProducts(category);
   const { toast } = useToast();
 
   const filteredProducts = products.filter(product =>
@@ -99,28 +100,12 @@ const SubCategory = () => {
               </div>
             )}
 
-            {!searchQuery && hasMore && (
-              <div className="mt-8 mb-12 text-center">
-                <div className="mb-4 text-sm text-muted-foreground">
-                  Showing {products.length} of {totalCount} products
-                </div>
-                <Button 
-                  onClick={loadMoreProducts}
-                  disabled={loading}
-                  size="lg"
-                  className="min-w-[150px]"
-                >
-                  {loading ? "Loading..." : "Load More Products"}
-                </Button>
-              </div>
-            )}
-
-            {!searchQuery && !hasMore && products.length > 0 && (
-              <div className="mt-8 mb-12 text-center">
-                <div className="text-sm text-muted-foreground">
-                  All {totalCount} products loaded
-                </div>
-              </div>
+            {!searchQuery && totalPages > 1 && (
+              <SubCategoryPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
             )}
           </motion.div>
         </main>

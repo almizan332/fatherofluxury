@@ -7,11 +7,14 @@ import { useToast } from "@/components/ui/use-toast";
 export const useSubCategoryProducts = (category: string | undefined) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const { toast } = useToast();
+  
+  const ITEMS_PER_PAGE = 120;
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
-  const fetchInitialProducts = async () => {
+  const fetchProducts = async (page: number) => {
     try {
       setLoading(true);
       const { data: categoryData, error: categoryError } = await supabase
@@ -31,17 +34,21 @@ export const useSubCategoryProducts = (category: string | undefined) => {
         
         setTotalCount(count || 0);
 
-        // Fetch initial products
+        // Calculate pagination range
+        const startRange = (page - 1) * ITEMS_PER_PAGE;
+        const endRange = startRange + ITEMS_PER_PAGE - 1;
+
+        // Fetch products for current page
         const { data: productsData, error: productsError } = await supabase
           .from('products')
           .select('*')
           .eq('category_id', categoryData.id)
           .order('display_id', { ascending: true })
-          .range(0, 119); // Load first 120 products
+          .range(startRange, endRange);
 
         if (productsError) throw productsError;
         setProducts(productsData || []);
-        setHasMore((productsData?.length || 0) >= 120 && (productsData?.length || 0) < (count || 0));
+        console.log(`Category ${category} loaded page ${page}: ${productsData?.length} products of ${count} total`);
       }
     } catch (error) {
       console.error('Error fetching products:', error);
@@ -55,54 +62,24 @@ export const useSubCategoryProducts = (category: string | undefined) => {
     }
   };
 
-  const loadMoreProducts = async () => {
-    if (loading || !hasMore || !category) return;
-    
-    try {
-      setLoading(true);
-      const { data: categoryData, error: categoryError } = await supabase
-        .from('categories')
-        .select('id')
-        .ilike('name', decodeURIComponent(category))
-        .single();
-
-      if (categoryError) throw categoryError;
-
-      if (categoryData) {
-        const { data: moreProducts, error: productsError } = await supabase
-          .from('products')
-          .select('*')
-          .eq('category_id', categoryData.id)
-          .order('display_id', { ascending: true })
-          .range(products.length, products.length + 119);
-
-        if (productsError) throw productsError;
-
-        if (moreProducts) {
-          setProducts(prev => [...prev, ...moreProducts]);
-          setHasMore(moreProducts.length >= 120 && products.length + moreProducts.length < totalCount);
-        }
-      }
-    } catch (error) {
-      console.error('Error loading more products:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load more products",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   useEffect(() => {
     if (category) {
       setProducts([]);
-      setHasMore(true);
+      setCurrentPage(1);
       setTotalCount(0);
-      fetchInitialProducts();
     }
   }, [category]);
 
-  return { products, loading, hasMore, totalCount, loadMoreProducts };
+  useEffect(() => {
+    if (category) {
+      fetchProducts(currentPage);
+    }
+  }, [category, currentPage]);
+
+  return { products, loading, currentPage, totalPages, totalCount, handlePageChange };
 };
