@@ -47,27 +47,33 @@ serve(async (req) => {
 
 async function handleImageSearch(supabase: any, image: string, deepseekApiKey: string) {
   try {
+    console.log('Starting image search with DeepSeek...');
+    
     // Use DeepSeek to analyze the image and extract product features
     const imageAnalysis = await analyzeImageWithDeepSeek(image, deepseekApiKey);
+    console.log('DeepSeek analysis result:', imageAnalysis);
     
     // Search for similar products based on the analysis
     const products = await searchSimilarProducts(supabase, imageAnalysis);
 
     if (products.length > 0) {
-      const productLinks = products.slice(0, 3).map(product => 
-        `• ${product.name} - View details: ${Deno.env.get('SUPABASE_URL')?.replace('supabase.co', 'lovableproject.com')}/product/${product.id}`
-      ).join('\n');
+      const topMatch = products[0];
+      
+      // Format the response with product name, price estimate, and link
+      const productUrl = `https://fatherofluxury.com/product/${topMatch.id}`;
+      
+      const response = `This looks like *${topMatch.name}*. Here's the link: ${productUrl}
+
+${products.length > 1 ? `\nOther similar products:\n${products.slice(1, 3).map(p => `• ${p.name} - https://fatherofluxury.com/product/${p.id}`).join('\n')}` : ''}`;
 
       return new Response(
-        JSON.stringify({ 
-          response: `I found ${products.length} similar product${products.length > 1 ? 's' : ''}:\n\n${productLinks}` 
-        }),
+        JSON.stringify({ response }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     } else {
       return new Response(
         JSON.stringify({ 
-          response: "Sorry, I couldn't find any similar products for this image. Try browsing our categories or contact our support team for assistance!" 
+          response: "Sorry, I couldn't find this product. Please try uploading a clearer image." 
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -76,7 +82,7 @@ async function handleImageSearch(supabase: any, image: string, deepseekApiKey: s
     console.error('Error in image search:', error);
     return new Response(
       JSON.stringify({ 
-        response: "Sorry, I couldn't process this image right now. Please try again later or describe what you're looking for!" 
+        response: "Sorry, I couldn't find this product. Please try uploading a clearer image." 
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
@@ -85,6 +91,8 @@ async function handleImageSearch(supabase: any, image: string, deepseekApiKey: s
 
 async function analyzeImageWithDeepSeek(image: string, apiKey: string) {
   try {
+    console.log('Calling DeepSeek API for image analysis...');
+    
     const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -99,7 +107,7 @@ async function analyzeImageWithDeepSeek(image: string, apiKey: string) {
             content: [
               {
                 type: 'text',
-                text: 'Analyze this image and extract key product features like: category, color, style, material, brand if visible, and main characteristics. Return a brief description focusing on searchable attributes.'
+                text: 'Analyze this product image. Identify: 1) Product type/category (clothing, accessories, electronics, etc.) 2) Brand if visible 3) Key features like color, material, style 4) Any text or model numbers visible. Return a concise description with these searchable keywords.'
               },
               {
                 type: 'image_url',
@@ -108,54 +116,82 @@ async function analyzeImageWithDeepSeek(image: string, apiKey: string) {
             ]
           }
         ],
-        max_tokens: 150,
+        max_tokens: 200,
         temperature: 0.1
       }),
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`DeepSeek API error: ${response.status} - ${errorText}`);
       throw new Error(`DeepSeek API error: ${response.statusText}`);
     }
 
     const data = await response.json();
-    return data.choices[0]?.message?.content || '';
+    const analysis = data.choices[0]?.message?.content || '';
+    console.log('DeepSeek analysis:', analysis);
+    return analysis;
   } catch (error) {
     console.error('Error analyzing image with DeepSeek:', error);
-    return 'general product';
+    return 'luxury product item';
   }
 }
 
 async function searchSimilarProducts(supabase: any, analysis: string) {
   try {
-    // Extract keywords from the analysis
-    const keywords = analysis.toLowerCase().split(' ').filter(word => 
-      word.length > 3 && !['this', 'that', 'with', 'from', 'have', 'been', 'they', 'were'].includes(word)
-    );
+    console.log('Searching products with analysis:', analysis);
+    
+    // Extract meaningful keywords from the analysis
+    const keywords = analysis.toLowerCase()
+      .replace(/[^\w\s]/g, ' ')
+      .split(/\s+/)
+      .filter(word => 
+        word.length > 2 && 
+        !['the', 'and', 'this', 'that', 'with', 'from', 'have', 'been', 'they', 'were', 'for', 'are', 'but', 'not', 'you', 'all', 'can', 'had', 'her', 'was', 'one', 'our', 'out', 'day', 'get', 'has', 'him', 'his', 'how', 'man', 'new', 'now', 'old', 'see', 'two', 'way', 'who', 'boy', 'did', 'its', 'let', 'put', 'say', 'she', 'too', 'use'].includes(word)
+      )
+      .slice(0, 8); // Limit to most relevant keywords
+
+    console.log('Extracted keywords:', keywords);
 
     if (keywords.length === 0) {
       // Fallback to recent products
       const { data, error } = await supabase
         .from('products')
-        .select('id, name, preview_image, created_at')
+        .select('id, name, preview_image, description, created_at')
         .order('created_at', { ascending: false })
         .limit(5);
 
       return data || [];
     }
 
+    // Create search conditions for name and description
+    const searchConditions = keywords.flatMap(keyword => [
+      `name.ilike.%${keyword}%`,
+      `description.ilike.%${keyword}%`
+    ]);
+
     // Search products using text similarity
     const { data, error } = await supabase
       .from('products')
-      .select('id, name, preview_image, description, created_at')
-      .or(keywords.map(keyword => `name.ilike.%${keyword}%,description.ilike.%${keyword}%`).join(','))
+      .select('id, name, preview_image, description, created_at, display_id')
+      .or(searchConditions.join(','))
       .order('created_at', { ascending: false })
       .limit(10);
 
     if (error) {
       console.error('Error searching products:', error);
-      return [];
+      
+      // Fallback search without filtering
+      const { data: fallbackData } = await supabase
+        .from('products')
+        .select('id, name, preview_image, description, created_at, display_id')
+        .order('created_at', { ascending: false })
+        .limit(5);
+      
+      return fallbackData || [];
     }
 
+    console.log(`Found ${data?.length || 0} matching products`);
     return data || [];
   } catch (error) {
     console.error('Error in searchSimilarProducts:', error);
