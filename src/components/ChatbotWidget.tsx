@@ -24,7 +24,8 @@ const ChatbotWidget = () => {
     enabled: true,
     welcome_message: "Hello! How can I help you today? I can assist you with product information, orders, and general inquiries. You can also upload an image to find similar products!",
     theme_color: "#8B5CF6",
-    position: "bottom-right"
+    position: "bottom-right",
+    image_search_enabled: true
   });
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -237,11 +238,13 @@ const ChatbotWidget = () => {
                           style={!message.isBot ? { backgroundColor: settings.theme_color } : {}}
                         >
                           {message.image && (
-                            <img 
-                              src={message.image} 
-                              alt="Uploaded" 
-                              className="max-w-full h-auto rounded mb-2" 
-                            />
+                            <div className="mb-2 max-w-48">
+                              <img 
+                                src={message.image} 
+                                alt="Uploaded" 
+                                className="w-full h-auto rounded-md object-cover max-h-32" 
+                              />
+                            </div>
                           )}
                           <p className="text-sm">{message.text}</p>
                           <p className="text-xs opacity-70 mt-1">
@@ -272,15 +275,18 @@ const ChatbotWidget = () => {
                     accept="image/*"
                     className="hidden"
                   />
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isLoading}
-                    className="shrink-0"
-                  >
-                    <Upload className="h-4 w-4" />
-                  </Button>
+                  {settings.image_search_enabled && (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isLoading}
+                      className="shrink-0"
+                      title="Upload image to find similar products"
+                    >
+                      <Upload className="h-4 w-4" />
+                    </Button>
+                  )}
                   <Input
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}

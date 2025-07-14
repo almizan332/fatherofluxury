@@ -139,6 +139,7 @@ export type Database = {
           created_at: string | null
           enabled: boolean | null
           id: string
+          image_search_enabled: boolean | null
           last_retrained: string | null
           position: string | null
           theme_color: string | null
@@ -149,6 +150,7 @@ export type Database = {
           created_at?: string | null
           enabled?: boolean | null
           id?: string
+          image_search_enabled?: boolean | null
           last_retrained?: string | null
           position?: string | null
           theme_color?: string | null
@@ -159,6 +161,7 @@ export type Database = {
           created_at?: string | null
           enabled?: boolean | null
           id?: string
+          image_search_enabled?: boolean | null
           last_retrained?: string | null
           position?: string | null
           theme_color?: string | null
