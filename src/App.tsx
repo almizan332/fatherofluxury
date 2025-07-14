@@ -40,6 +40,7 @@ function App() {
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/almizan" element={<Login />} />
               <Route path="/login" element={<Navigate to="/almizan" replace />} />
+              <Route path="/admin" element={<Navigate to="/almizan" replace />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/dashboard/categories" element={<ProductCategories />} />
               <Route path="/dashboard/products" element={<ProductList />} />
