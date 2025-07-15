@@ -59,12 +59,10 @@ async function handleImageSearch(supabase: any, image: string, deepseekApiKey: s
     if (products.length > 0) {
       const topMatch = products[0];
       
-      // Format the response with product name, price estimate, and link
-      const productUrl = `https://fatherofluxury.com/product/${topMatch.id}`;
+      // Format the response with product name, price estimate, and link (aliHiddenProduct.com domain)
+      const productUrl = `https://alihiddenproduct.com/product/${topMatch.id}`;
       
-      const response = `This looks like *${topMatch.name}*. Here's the link: ${productUrl}
-
-${products.length > 1 ? `\nOther similar products:\n${products.slice(1, 3).map(p => `• ${p.name} - https://fatherofluxury.com/product/${p.id}`).join('\n')}` : ''}`;
+      const response = `**${topMatch.name}**\nPrice: Contact for pricing\nLink: ${productUrl}`;
 
       return new Response(
         JSON.stringify({ response }),
@@ -73,7 +71,7 @@ ${products.length > 1 ? `\nOther similar products:\n${products.slice(1, 3).map(p
     } else {
       return new Response(
         JSON.stringify({ 
-          response: "Sorry, I couldn't find this product. Please try uploading a clearer image." 
+          response: "Sorry, I couldn't find an exact match. You may try uploading a clearer image or check our latest categories here: https://alihiddenproduct.com/categories" 
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -82,7 +80,7 @@ ${products.length > 1 ? `\nOther similar products:\n${products.slice(1, 3).map(p
     console.error('Error in image search:', error);
     return new Response(
       JSON.stringify({ 
-        response: "Sorry, I couldn't find this product. Please try uploading a clearer image." 
+        response: "Sorry, I couldn't find an exact match. You may try uploading a clearer image or check our latest categories here: https://alihiddenproduct.com/categories" 
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
@@ -203,6 +201,16 @@ async function handleTextQuery(supabase: any, message: string) {
   try {
     const lowerMessage = message.toLowerCase();
     
+    // Check for external references first - reject them
+    if (lowerMessage.includes('amazon') || lowerMessage.includes('ebay') || lowerMessage.includes('aliexpress') || lowerMessage.includes('temu')) {
+      return new Response(
+        JSON.stringify({ 
+          response: "Sorry, I can only help with products available on aliHiddenProduct.com." 
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Handle product search queries
     if (lowerMessage.includes('product') || lowerMessage.includes('find') || lowerMessage.includes('search')) {
       const { data, error } = await supabase
@@ -213,12 +221,19 @@ async function handleTextQuery(supabase: any, message: string) {
 
       if (!error && data && data.length > 0) {
         const productList = data.map(product => 
-          `• ${product.name} - View: ${Deno.env.get('SUPABASE_URL')?.replace('supabase.co', 'lovableproject.com')}/product/${product.id}`
-        ).join('\n');
+          `**${product.name}**\nPrice: Contact for pricing\nLink: https://alihiddenproduct.com/product/${product.id}`
+        ).join('\n\n');
 
         return new Response(
           JSON.stringify({ 
-            response: `I found these products for you:\n\n${productList}` 
+            response: productList 
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      } else {
+        return new Response(
+          JSON.stringify({ 
+            response: "Sorry, I couldn't find an exact match. You may try uploading a clearer image or check our latest categories here: https://alihiddenproduct.com/categories" 
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
@@ -240,18 +255,18 @@ async function handleTextQuery(supabase: any, message: string) {
 
         return new Response(
           JSON.stringify({ 
-            response: `Here are our top categories:\n\n${categoryList}\n\nYou can browse any category by visiting our website!` 
+            response: `Here are our top categories:\n\n${categoryList}\n\nBrowse all categories: https://alihiddenproduct.com/categories` 
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
     }
 
-    // Default responses for common queries
+    // Default responses for common queries (domain-specific)
     const responses = {
-      greeting: "Hello! I'm here to help you find products. You can ask about specific items, browse categories, or upload an image to find similar products!",
-      help: "I can help you:\n• Find specific products\n• Browse categories\n• Search by uploading images\n• Answer questions about our inventory\n\nWhat would you like to do?",
-      default: "I'm here to help you find the perfect products! You can describe what you're looking for, ask about categories, or upload an image to find similar items."
+      greeting: "Hello! I can help you find products on aliHiddenProduct.com. Try searching, browsing categories, or upload an image!",
+      help: "I can help you:\n• Find specific products from aliHiddenProduct.com\n• Browse categories\n• Search by uploading images\n\nWhat would you like to find?",
+      default: "I'm here to help you find products on aliHiddenProduct.com. Try searching for something specific, browse categories, or upload an image!"
     };
 
     if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
