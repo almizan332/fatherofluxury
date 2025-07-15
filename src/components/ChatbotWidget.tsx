@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect, useRef } from "react";
-import { MessageCircle, X, Send, Camera, Upload } from "lucide-react";
+import { MessageCircle, X, Send, Upload, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Message {
   id: string;
@@ -18,6 +19,7 @@ interface Message {
 
 const ChatbotWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [settings, setSettings] = useState({
@@ -30,6 +32,7 @@ const ChatbotWidget = () => {
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     fetchSettings();
@@ -193,13 +196,16 @@ const ChatbotWidget = () => {
   return (
     <>
       {/* Chat Widget Button */}
-      <div className={`fixed ${settings.position === 'bottom-left' ? 'bottom-4 left-4' : 
-                              settings.position === 'top-right' ? 'top-4 right-4' : 
-                              settings.position === 'top-left' ? 'top-4 left-4' : 
-                              'bottom-4 right-4'} z-50`}>
+      <div className={`fixed ${
+        isMobile ? 'bottom-6 right-6' : 
+        settings.position === 'bottom-left' ? 'bottom-6 left-6' : 
+        settings.position === 'top-right' ? 'top-6 right-6' : 
+        settings.position === 'top-left' ? 'top-6 left-6' : 
+        'bottom-6 right-6'
+      } z-50 transition-all duration-300 ease-in-out`}>
         <Button
           onClick={() => setIsOpen(!isOpen)}
-          className="rounded-full w-14 h-14 shadow-lg"
+          className="rounded-full w-14 h-14 shadow-lg hover:scale-105 transition-transform duration-200"
           style={{ backgroundColor: settings.theme_color }}
           size="icon"
         >
@@ -209,105 +215,160 @@ const ChatbotWidget = () => {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className={`fixed ${settings.position === 'bottom-left' ? 'bottom-20 left-4' : 
-                                settings.position === 'top-right' ? 'top-20 right-4' : 
-                                settings.position === 'top-left' ? 'top-20 left-4' : 
-                                'bottom-20 right-4'} z-50 w-80 h-96`}>
-          <Card className="h-full flex flex-col bg-white shadow-xl border">
-            <CardHeader className="text-white rounded-t-lg" style={{ backgroundColor: settings.theme_color }}>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <MessageCircle className="h-5 w-5" />
-                Support Chat
-              </CardTitle>
-            </CardHeader>
-            
-            <CardContent className="flex-1 flex flex-col p-0">
-              <ScrollArea className="flex-1 p-4">
-                  <div className="space-y-4">
-                    {messages.map((message) => (
-                      <div
-                        key={message.id}
-                        className={`flex ${message.isBot ? 'justify-start' : 'justify-end'}`}
-                      >
-                        <div
-                          className={`max-w-[80%] p-3 rounded-lg ${
-                            message.isBot
-                              ? 'bg-gray-100 text-gray-800'
-                              : 'text-white'
-                          }`}
-                          style={!message.isBot ? { backgroundColor: settings.theme_color } : {}}
-                        >
-                          {message.image && (
-                            <div className="mb-2 max-w-48">
-                              <img 
-                                src={message.image} 
-                                alt="Uploaded" 
-                                className="w-full h-auto rounded-md object-cover max-h-32" 
-                              />
-                            </div>
-                          )}
-                          <p className="text-sm">{message.text}</p>
-                          <p className="text-xs opacity-70 mt-1">
-                            {message.timestamp.toLocaleTimeString([], {
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                    {isLoading && (
-                      <div className="flex justify-start">
-                        <div className="bg-gray-100 text-gray-800 p-3 rounded-lg">
-                          <p className="text-sm">Typing...</p>
-                        </div>
-                      </div>
-                    )}
+        <>
+          {/* Mobile Overlay */}
+          {isMobile && (
+            <div 
+              className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300"
+              onClick={() => setIsOpen(false)}
+            />
+          )}
+          
+          <div className={`
+            fixed z-50 transition-all duration-300 ease-in-out
+            ${isMobile 
+              ? 'inset-x-4 bottom-4 top-20' 
+              : isMinimized 
+                ? 'w-80 h-12' 
+                : 'w-80 max-w-sm h-[500px] max-h-[80vh]'
+            }
+            ${!isMobile && settings.position === 'bottom-left' ? 'bottom-24 left-6' : 
+              !isMobile && settings.position === 'top-right' ? 'top-24 right-6' : 
+              !isMobile && settings.position === 'top-left' ? 'top-24 left-6' : 
+              !isMobile ? 'bottom-24 right-6' : ''
+            }
+          `}>
+            <Card className="h-full flex flex-col bg-background shadow-2xl border animate-fade-in">
+              <CardHeader 
+                className="text-white rounded-t-lg flex-shrink-0 p-4" 
+                style={{ backgroundColor: settings.theme_color }}
+              >
+                <CardTitle className="text-lg flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <MessageCircle className="h-5 w-5" />
+                    Support Chat
                   </div>
-              </ScrollArea>
-              
-              <div className="p-4 border-t">
-                <div className="flex gap-2 mb-2">
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleImageUpload}
-                    accept="image/*"
-                    className="hidden"
-                  />
-                  {settings.image_search_enabled && (
+                  <div className="flex items-center gap-2">
+                    {!isMobile && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setIsMinimized(!isMinimized)}
+                        className="h-8 w-8 text-white hover:bg-white/20"
+                      >
+                        <Minimize2 className="h-4 w-4" />
+                      </Button>
+                    )}
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="icon"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={isLoading}
-                      className="shrink-0"
-                      title="Upload image to find similar products"
+                      onClick={() => setIsOpen(false)}
+                      className="h-8 w-8 text-white hover:bg-white/20"
                     >
-                      <Upload className="h-4 w-4" />
+                      <X className="h-4 w-4" />
                     </Button>
-                  )}
-                  <Input
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Type your message or upload an image..."
-                    className="flex-1"
-                    disabled={isLoading}
-                  />
-                  <Button 
-                    onClick={handleSendMessage}
-                    size="icon"
-                    style={{ backgroundColor: settings.theme_color }}
-                    disabled={isLoading}
-                  >
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+                  </div>
+                </CardTitle>
+              </CardHeader>
+              
+              {!isMinimized && (
+                <CardContent className="flex-1 flex flex-col p-0 min-h-0">
+                  <ScrollArea className="flex-1 p-4">
+                    <div className="space-y-4">
+                      {messages.map((message) => (
+                        <div
+                          key={message.id}
+                          className={`flex ${message.isBot ? 'justify-start' : 'justify-end'}`}
+                        >
+                          <div
+                            className={`max-w-[85%] p-3 rounded-lg break-words ${
+                              message.isBot
+                                ? 'bg-muted text-foreground'
+                                : 'text-white'
+                            }`}
+                            style={!message.isBot ? { backgroundColor: settings.theme_color } : {}}
+                          >
+                            {message.image && (
+                              <div className="mb-2 max-w-48">
+                                <img 
+                                  src={message.image} 
+                                  alt="Uploaded" 
+                                  className="w-full h-auto rounded-md object-cover max-h-32" 
+                                />
+                              </div>
+                            )}
+                            <p className="text-sm leading-relaxed">{message.text}</p>
+                            <p className="text-xs opacity-70 mt-1">
+                              {message.timestamp.toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                      {isLoading && (
+                        <div className="flex justify-start">
+                          <div className="bg-muted text-foreground p-3 rounded-lg">
+                            <div className="flex items-center gap-2">
+                              <div className="flex space-x-1">
+                                <div className="w-2 h-2 bg-current rounded-full animate-pulse"></div>
+                                <div className="w-2 h-2 bg-current rounded-full animate-pulse delay-75"></div>
+                                <div className="w-2 h-2 bg-current rounded-full animate-pulse delay-150"></div>
+                              </div>
+                              <p className="text-sm">Typing...</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </ScrollArea>
+                  
+                  <div className="p-4 border-t flex-shrink-0">
+                    <div className="flex gap-2">
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleImageUpload}
+                        accept="image/*"
+                        className="hidden"
+                      />
+                      {settings.image_search_enabled && (
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={isLoading}
+                          className="shrink-0 hover:scale-105 transition-transform duration-200"
+                          title="Upload image to find similar products"
+                        >
+                          <Upload className="h-4 w-4" />
+                        </Button>
+                      )}
+                      <Input
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        onKeyPress={handleKeyPress}
+                        placeholder={isMobile ? "Type message..." : "Type your message or upload an image..."}
+                        className="flex-1"
+                        disabled={isLoading}
+                      />
+                      <Button 
+                        onClick={handleSendMessage}
+                        size="icon"
+                        style={{ backgroundColor: settings.theme_color }}
+                        disabled={isLoading}
+                        className="hover:scale-105 transition-transform duration-200"
+                      >
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              )}
+            </Card>
+          </div>
+        </>
       )}
     </>
   );
