@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_2fa_settings: {
+        Row: {
+          admin_email: string
+          created_at: string
+          id: string
+          is_enabled: boolean
+          phone_number: string | null
+          preferred_method: string
+          updated_at: string
+        }
+        Insert: {
+          admin_email: string
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          phone_number?: string | null
+          preferred_method?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_email?: string
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          phone_number?: string | null
+          preferred_method?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       admin_users: {
         Row: {
           created_at: string | null
@@ -257,6 +287,36 @@ export type Database = {
         }
         Relationships: []
       }
+      login_attempts: {
+        Row: {
+          admin_email: string
+          attempt_type: string
+          blocked_until: string | null
+          created_at: string
+          id: string
+          ip_address: unknown
+          success: boolean
+        }
+        Insert: {
+          admin_email: string
+          attempt_type: string
+          blocked_until?: string | null
+          created_at?: string
+          id?: string
+          ip_address: unknown
+          success?: boolean
+        }
+        Update: {
+          admin_email?: string
+          attempt_type?: string
+          blocked_until?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          success?: boolean
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           alibaba_url: string | null
@@ -315,6 +375,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      verification_codes: {
+        Row: {
+          admin_email: string
+          code_hash: string
+          created_at: string
+          expires_at: string
+          id: string
+          method: string
+          used: boolean
+        }
+        Insert: {
+          admin_email: string
+          code_hash: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          method: string
+          used?: boolean
+        }
+        Update: {
+          admin_email?: string
+          code_hash?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          method?: string
+          used?: boolean
+        }
+        Relationships: []
       }
       web_contents: {
         Row: {
@@ -409,6 +499,10 @@ export type Database = {
         Returns: boolean
       }
       check_if_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      cleanup_expired_codes: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
