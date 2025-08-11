@@ -17,6 +17,7 @@ export type Database = {
       admin_2fa_settings: {
         Row: {
           admin_email: string
+          carrier: string | null
           created_at: string
           id: string
           is_enabled: boolean
@@ -26,6 +27,7 @@ export type Database = {
         }
         Insert: {
           admin_email: string
+          carrier?: string | null
           created_at?: string
           id?: string
           is_enabled?: boolean
@@ -35,6 +37,7 @@ export type Database = {
         }
         Update: {
           admin_email?: string
+          carrier?: string | null
           created_at?: string
           id?: string
           is_enabled?: boolean

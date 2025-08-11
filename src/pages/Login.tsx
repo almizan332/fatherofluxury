@@ -30,6 +30,7 @@ const Login = () => {
   const [verificationCode, setVerificationCode] = useState("");
   const [preferredMethod, setPreferredMethod] = useState<'email' | 'sms'>('email');
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [carrier, setCarrier] = useState("");
 
   // Check if already logged in
   useEffect(() => {
@@ -155,7 +156,8 @@ const Login = () => {
         body: { 
           email: formData.email, 
           method: preferredMethod,
-          phone: phoneNumber 
+          phone: phoneNumber,
+          carrier: carrier
         }
       });
 
@@ -272,19 +274,43 @@ const Login = () => {
               </div>
 
               {preferredMethod === 'sms' && (
-                <div className="space-y-2">
-                  <label htmlFor="phone" className="text-sm font-medium">
-                    Phone Number
-                  </label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    placeholder="+1234567890"
-                    required={preferredMethod === 'sms'}
-                  />
-                </div>
+                <>
+                  <div className="space-y-2">
+                    <label htmlFor="phone" className="text-sm font-medium">
+                      Phone Number (numbers only)
+                    </label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
+                      placeholder="1234567890"
+                      required={preferredMethod === 'sms'}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="carrier" className="text-sm font-medium">
+                      Carrier
+                    </label>
+                    <select
+                      id="carrier"
+                      value={carrier}
+                      onChange={(e) => setCarrier(e.target.value)}
+                      className="w-full p-2 border rounded"
+                      required={preferredMethod === 'sms'}
+                    >
+                      <option value="">Select Carrier</option>
+                      <option value="att">AT&T</option>
+                      <option value="verizon">Verizon</option>
+                      <option value="tmobile">T-Mobile</option>
+                      <option value="sprint">Sprint</option>
+                      <option value="boost">Boost Mobile</option>
+                      <option value="cricket">Cricket</option>
+                      <option value="uscellular">US Cellular</option>
+                      <option value="metro">Metro PCS</option>
+                    </select>
+                  </div>
+                </>
               )}
 
               <div className="space-y-2">
@@ -317,7 +343,7 @@ const Login = () => {
                   variant="outline" 
                   onClick={send2FACode}
                   className="flex-1"
-                  disabled={is2FALoading || (preferredMethod === 'sms' && !phoneNumber)}
+                  disabled={is2FALoading || (preferredMethod === 'sms' && (!phoneNumber || !carrier))}
                 >
                   {is2FALoading ? "Sending..." : "Resend Code"}
                 </Button>
