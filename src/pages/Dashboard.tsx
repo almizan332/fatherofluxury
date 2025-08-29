@@ -36,6 +36,7 @@ import {
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Header } from "@/components/Header";
 
 const Dashboard = () => {
   const [timeRange, setTimeRange] = useState<'1d' | '1w' | '1m' | '1y'>('1w');
@@ -257,7 +258,9 @@ const Dashboard = () => {
           </SidebarContent>
         </Sidebar>
 
-        <div className="flex-1 p-6">
+        <div className="flex-1 flex flex-col">
+          <Header />
+          <div className="flex-1 p-6">
           <div className="flex justify-between items-center mb-8">
             <div>
               <h1 className="text-3xl font-bold gradient-text">Dashboard</h1>
@@ -336,7 +339,8 @@ const Dashboard = () => {
             </div>
           </Card>
         </div>
-      </div>
+          </div>
+        </div>
     </SidebarProvider>
   );
 };
