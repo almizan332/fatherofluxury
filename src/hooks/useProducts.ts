@@ -10,14 +10,25 @@ export function useProducts() {
 
   const fetchProducts = async () => {
     try {
-      // Remove any limit to fetch ALL products
       const { data, error } = await supabase
         .from('products')
-        .select('*, categories(name)')
+        .select(`
+          *,
+          product_images (
+            id,
+            url,
+            position
+          )
+        `)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      setProducts(data || []);
+      // Cast status to the correct type
+      const typedProducts = (data || []).map(product => ({
+        ...product,
+        status: product.status as 'draft' | 'published'
+      }));
+      setProducts(typedProducts);
       
       console.log(`Loaded ${data?.length || 0} products`);
     } catch (error: any) {

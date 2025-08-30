@@ -1,20 +1,23 @@
 
 export interface Product {
   id: string;
-  name: string;
-  category_id: string;
+  title: string;
+  slug: string;
   description: string;
-  preview_image: string;
-  gallery_images: string[];
+  affiliate_link?: string | null;
+  thumbnail?: string | null;
+  status: 'draft' | 'published';
   created_at: string;
   updated_at: string;
-  flylink_url?: string | null;
-  alibaba_url?: string | null;
-  dhgate_url?: string | null;
-  video_urls?: string[] | null;
-  categories?: {
-    name: string;
-  } | null;
+  product_images?: ProductImage[];
+}
+
+export interface ProductImage {
+  id: string;
+  product_id: string;
+  url: string;
+  position: number;
+  created_at: string;
 }
 
 export interface CategoryImages {

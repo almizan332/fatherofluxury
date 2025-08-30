@@ -1,12 +1,12 @@
 
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { ProductActionsToolbar } from "@/components/product/ProductActionsToolbar";
+// import { ProductActionsToolbar } from "@/components/product/ProductActionsToolbar";
 import { ProductFilters } from "@/components/product/ProductFilters";
 import { useProducts } from "@/hooks/useProducts";
-import { useCategories } from "@/hooks/useCategories";
+// import { useCategories } from "@/hooks/useCategories";
 import { Product } from "@/types/product";
-import ProductGrid from "@/components/product/ProductGrid";
+// import ProductGrid from "@/components/product/ProductGrid";
 import {
   Table,
   TableBody,
@@ -17,10 +17,12 @@ import {
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Edit, Trash2, Upload } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,6 +36,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const ProductList = () => {
+  const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
@@ -41,7 +44,7 @@ const ProductList = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   const { products, deleteProducts, fetchProducts } = useProducts();
-  const { categories } = useCategories();
+  // const { categories } = useCategories();
   const { toast } = useToast();
 
   const handleSelectAll = (checked: boolean) => {
@@ -93,9 +96,9 @@ const ProductList = () => {
   };
 
   const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === "all" || product.category_id === selectedCategory;
-    return matchesSearch && matchesCategory;
+    const matchesSearch = product.title.toLowerCase().includes(searchTerm.toLowerCase());
+    // Remove category filtering for now since we changed the schema
+    return matchesSearch;
   });
 
   return (
@@ -111,6 +114,13 @@ const ProductList = () => {
             </p>
           </div>
           <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => navigate('/dashboard/products/import')}
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              Import CSV
+            </Button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="destructive">
@@ -136,14 +146,6 @@ const ProductList = () => {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-            <ProductActionsToolbar
-              selectedProducts={selectedProducts}
-              onDeleteSelected={handleDeleteSelected}
-              categories={categories}
-              onProductSave={fetchProducts}
-              setIsDialogOpen={setIsDialogOpen}
-              isDialogOpen={isDialogOpen}
-            />
           </div>
         </div>
       </div>
@@ -154,7 +156,7 @@ const ProductList = () => {
           onSearchChange={setSearchTerm}
           selectedCategory={selectedCategory}
           onCategoryChange={setSelectedCategory}
-          categories={categories}
+          categories={[]} // Empty categories for now
           viewMode={viewMode}
           onViewModeChange={setViewMode}
         />
@@ -183,10 +185,10 @@ const ProductList = () => {
                         />
                       </TableHead>
                       <TableHead>Product Name</TableHead>
-                      <TableHead>Category</TableHead>
+                      <TableHead>Status</TableHead>
                       <TableHead>Description</TableHead>
-                      <TableHead>Preview Image</TableHead>
-                      <TableHead>Gallery Images</TableHead>
+                      <TableHead>Thumbnail</TableHead>
+                      <TableHead>Images</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -199,33 +201,35 @@ const ProductList = () => {
                             onCheckedChange={(checked) => handleSelectProduct(product.id, checked as boolean)}
                           />
                         </TableCell>
-                        <TableCell className="font-medium">{product.name}</TableCell>
-                        <TableCell>{(product as any).categories?.name}</TableCell>
+                        <TableCell className="font-medium">{product.title}</TableCell>
+                        <TableCell>
+                          <Badge variant={product.status === 'published' ? 'default' : 'secondary'}>
+                            {product.status}
+                          </Badge>
+                        </TableCell>
                         <TableCell className="max-w-[200px] truncate">{product.description}</TableCell>
                         <TableCell>
-                          {product.preview_image && (
+                          {product.thumbnail && (
                             <img 
-                              src={product.preview_image} 
-                              alt={product.name} 
+                              src={product.thumbnail} 
+                              alt={product.title} 
                               className="w-16 h-16 object-cover rounded-lg border border-muted"
                             />
                           )}
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
-                            {product.gallery_images?.slice(0, 3).map((img, idx) => (
-                              img && (
-                                <img 
-                                  key={idx} 
-                                  src={img} 
-                                  alt={`${product.name} gallery ${idx + 1}`} 
-                                  className="w-12 h-12 object-cover rounded-lg border border-muted"
-                                />
-                              )
+                            {product.product_images?.sort((a, b) => a.position - b.position).slice(0, 3).map((img, idx) => (
+                              <img 
+                                key={img.id} 
+                                src={img.url} 
+                                alt={`${product.title} gallery ${idx + 1}`} 
+                                className="w-12 h-12 object-cover rounded-lg border border-muted"
+                              />
                             ))}
-                            {(product.gallery_images?.length || 0) > 3 && (
+                            {(product.product_images?.length || 0) > 3 && (
                               <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center text-sm text-muted-foreground">
-                                +{(product.gallery_images?.length || 0) - 3}
+                                +{(product.product_images?.length || 0) - 3}
                               </div>
                             )}
                           </div>
@@ -258,15 +262,10 @@ const ProductList = () => {
                 </Table>
               </motion.div>
             ) : (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.2 }}
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
-              >
-                <ProductGrid products={filteredProducts} />
-              </motion.div>
+              <div className="text-center py-12">
+                <p className="text-lg text-muted-foreground">Grid view temporarily disabled</p>
+                <p className="text-sm text-muted-foreground mt-2">Use list view for now</p>
+              </div>
             )}
           </AnimatePresence>
         )}

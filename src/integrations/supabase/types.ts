@@ -320,64 +320,73 @@ export type Database = {
         }
         Relationships: []
       }
-      products: {
+      product_images: {
         Row: {
-          alibaba_url: string | null
-          category_id: string | null
-          created_at: string
-          description: string | null
-          dhgate_url: string | null
-          display_id: number
-          flylink_url: string | null
-          gallery_images: string[] | null
+          created_at: string | null
           id: string
-          name: string
-          preview_image: string | null
-          related_products: string[] | null
-          updated_at: string
-          video_urls: string[] | null
+          position: number
+          product_id: string
+          url: string
         }
         Insert: {
-          alibaba_url?: string | null
-          category_id?: string | null
-          created_at?: string
-          description?: string | null
-          dhgate_url?: string | null
-          display_id?: number
-          flylink_url?: string | null
-          gallery_images?: string[] | null
+          created_at?: string | null
           id?: string
-          name: string
-          preview_image?: string | null
-          related_products?: string[] | null
-          updated_at?: string
-          video_urls?: string[] | null
+          position?: number
+          product_id: string
+          url: string
         }
         Update: {
-          alibaba_url?: string | null
-          category_id?: string | null
-          created_at?: string
-          description?: string | null
-          dhgate_url?: string | null
-          display_id?: number
-          flylink_url?: string | null
-          gallery_images?: string[] | null
+          created_at?: string | null
           id?: string
-          name?: string
-          preview_image?: string | null
-          related_products?: string[] | null
-          updated_at?: string
-          video_urls?: string[] | null
+          position?: number
+          product_id?: string
+          url?: string
         }
         Relationships: [
           {
-            foreignKeyName: "products_category_id_fkey"
-            columns: ["category_id"]
+            foreignKeyName: "product_images_product_id_fkey"
+            columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "categories"
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]
+      }
+      products: {
+        Row: {
+          affiliate_link: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          slug: string
+          status: string
+          thumbnail: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          affiliate_link?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          slug: string
+          status?: string
+          thumbnail?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          affiliate_link?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          slug?: string
+          status?: string
+          thumbnail?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
