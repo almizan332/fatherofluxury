@@ -62,7 +62,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signUp = async (email: string, password: string) => {
-    const redirectUrl = `${window.location.origin}/`;
+    // Get production-safe URL with fallback
+    const baseUrl = import.meta.env.VITE_APP_URL || 'https://alihiddenproduct.com';
+    const redirectUrl = `${baseUrl}/`;
     
     const { error } = await supabase.auth.signUp({
       email,
@@ -75,8 +77,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const resetPassword = async (email: string) => {
+    // Get production-safe URL with fallback
+    const baseUrl = import.meta.env.VITE_APP_URL || 'https://alihiddenproduct.com';
+    const redirectUrl = `${baseUrl}/reset-password`;
+    
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`
+      redirectTo: redirectUrl
     });
     return { error };
   };

@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, ArrowLeft, Mail } from 'lucide-react';
+import { Loader2, ArrowLeft, Mail, AlertTriangle } from 'lucide-react';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -15,6 +15,9 @@ export default function ForgotPassword() {
   const [error, setError] = useState('');
 
   const { resetPassword } = useAuth();
+  
+  // Check if we're on localhost for warning banner
+  const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,6 +75,15 @@ export default function ForgotPassword() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {isLocalhost && (
+              <Alert className="border-orange-500 text-orange-800 bg-orange-50">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Development Warning:</strong> You are on localhost. Reset emails will point to localhost and may not work in production.
+                </AlertDescription>
+              </Alert>
+            )}
+            
             {error && (
               <Alert variant="destructive">
                 <AlertDescription>{error}</AlertDescription>

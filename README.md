@@ -52,13 +52,50 @@ npm run dev
 
 ## What technologies are used for this project?
 
-This project is built with .
+This project is built with:
 
 - Vite
 - TypeScript
 - React
 - shadcn-ui
 - Tailwind CSS
+- Supabase (Authentication & Database)
+
+## Authentication & Supabase Setup
+
+### CRITICAL: Supabase Authentication Configuration
+
+Before deploying to production, you MUST configure these Supabase Auth settings:
+
+1. **Site URL Configuration**
+   - Go to [Supabase Auth Settings](https://supabase.com/dashboard/project/zsptshspjdzvhgjmnjtl/auth/providers)
+   - Set **Site URL** to: `https://alihiddenproduct.com`
+
+2. **Redirect URLs Configuration** 
+   - In the same settings page, add these redirect URLs:
+   - `https://alihiddenproduct.com/reset-password`
+   - `https://alihiddenproduct.com/` (for sign up confirmations)
+
+3. **Admin User Setup**
+   - Go to [Supabase Users](https://supabase.com/dashboard/project/zsptshspjdzvhgjmnjtl/auth/users)
+   - Create admin user with email: `almizancolab@gmail.com`
+   - The system will automatically assign admin role via database trigger
+
+4. **SMTP Configuration** (Optional but recommended)
+   - Configure SMTP in Supabase Auth settings for password reset emails
+   - Without SMTP, password reset emails won't be sent
+
+### Password Reset Flow
+
+- Reset emails will redirect to: `https://alihiddenproduct.com/reset-password`
+- The app uses `VITE_APP_URL` environment variable with fallback to production domain
+- Localhost users see warning banners about development limitations
+
+### Important Notes
+
+- **Re-send reset emails** after changing Site URL and Redirect URL settings
+- Password reset links are time-limited and single-use
+- Admin users have full access to all management features
 
 ## How can I deploy this project?
 
