@@ -31,12 +31,7 @@ export function useProductDetail(id: string | undefined) {
           console.log('Attempting UUID lookup for:', id);
           const { data, error } = await supabase
             .from('products')
-            .select(`
-              *,
-              categories (
-                name
-              )
-            `)
+            .select('*')
             .eq('id', id)
             .maybeSingle();
           
@@ -62,13 +57,8 @@ export function useProductDetail(id: string | undefined) {
                 console.log('Attempting display_id lookup with:', numericId);
                 const { data: displayIdData, error: displayIdError } = await supabase
                   .from('products')
-                  .select(`
-                    *,
-                    categories (
-                      name
-                    )
-                  `)
-                  .eq('display_id', numericId)
+                  .select('*')
+                  .eq('id', numericId.toString())
                   .maybeSingle();
                 
                 if (!displayIdError && displayIdData) {
@@ -86,13 +76,8 @@ export function useProductDetail(id: string | undefined) {
             
             const { data: nameData, error: nameError } = await supabase
               .from('products')
-              .select(`
-                *,
-                categories (
-                  name
-                )
-              `)
-              .ilike('name', `%${cleanName}%`)
+              .select('*')
+              .ilike('title', `%${cleanName}%`)
               .order('created_at', { ascending: false })
               .limit(1)
               .maybeSingle();
@@ -107,17 +92,18 @@ export function useProductDetail(id: string | undefined) {
           setProduct(productData);
           
           // Fetch related products from the same category
-          if (productData.category_id) {
-            const { data: relatedData, error: relatedError } = await supabase
-              .from('products')
-              .select('*')
-              .eq('category_id', productData.category_id)
-              .neq('id', productData.id)
-              .limit(6);
+          const { data: relatedData, error: relatedError } = await supabase
+            .from('products')
+            .select('*')
+            .neq('id', productData.id)
+            .limit(6);
 
-            if (relatedError) throw relatedError;
-            setRelatedProducts(relatedData || []);
-          }
+          if (relatedError) throw relatedError;
+          const typedRelated = (relatedData || []).map(product => ({
+            ...product,
+            status: product.status as 'draft' | 'published'
+          }));
+          setRelatedProducts(typedRelated);
         } else {
           console.log('Product not found after all lookups');
           setProduct(null);

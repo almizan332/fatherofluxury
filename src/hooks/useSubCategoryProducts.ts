@@ -29,8 +29,7 @@ export const useSubCategoryProducts = (category: string | undefined) => {
         // Get total count
         const { count } = await supabase
           .from('products')
-          .select('*', { count: 'exact', head: true })
-          .eq('category_id', categoryData.id);
+          .select('*', { count: 'exact', head: true });
         
         setTotalCount(count || 0);
 
@@ -42,12 +41,15 @@ export const useSubCategoryProducts = (category: string | undefined) => {
         const { data: productsData, error: productsError } = await supabase
           .from('products')
           .select('*')
-          .eq('category_id', categoryData.id)
-          .order('display_id', { ascending: true })
+          .order('created_at', { ascending: true })
           .range(startRange, endRange);
 
         if (productsError) throw productsError;
-        setProducts(productsData || []);
+        const typedProducts = (productsData || []).map(product => ({
+          ...product,
+          status: product.status as 'draft' | 'published'
+        }));
+        setProducts(typedProducts);
         console.log(`Category ${category} loaded page ${page}: ${productsData?.length} products of ${count} total`);
       }
     } catch (error) {

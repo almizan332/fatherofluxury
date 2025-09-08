@@ -54,14 +54,18 @@ const [products, setProducts] = useState<Product[]>([]);
       // Fetch products for current page
       const { data, error } = await supabase
         .from('products')
-        .select('*, categories(name)')
+        .select('*')
         .order('created_at', { ascending: false })
         .range(startRange, endRange);
 
       if (error) throw error;
 
       if (data) {
-        setProducts(data);
+        const typedProducts = data.map(product => ({
+          ...product,
+          status: product.status as 'draft' | 'published'
+        }));
+        setProducts(typedProducts);
         console.log(`Homepage loaded page ${page}: ${data.length} products of ${count} total`);
       }
     } catch (error: any) {
@@ -118,19 +122,19 @@ const [products, setProducts] = useState<Product[]>([]);
                       <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer bg-gray-900/50 border-gray-800">
                         <CardContent className="p-0">
                           <div className="aspect-square relative">
-                            <img
-                              src={product.preview_image || 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80'}
-                              alt={product.name}
+                             <img
+                              src={product.thumbnail || 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80'}
+                              alt={product.title}
                               className="w-full h-full object-cover"
                               loading="lazy"
                             />
                           </div>
                           <div className="p-3">
-                            <h3 className="text-sm font-medium text-gray-200 line-clamp-2">{product.name}</h3>
-                            <div className="flex justify-between items-center mt-2">
-                              <p className="text-xs text-gray-400">
-                                {new Date(product.created_at).toLocaleDateString()}
-                              </p>
+                             <h3 className="text-sm font-medium text-gray-200 line-clamp-2">{product.title}</h3>
+                             <div className="flex justify-between items-center mt-2">
+                               <p className="text-xs text-gray-400">
+                                 {product.created_at ? new Date(product.created_at).toLocaleDateString() : 'No date'}
+                               </p>
                               <Button variant="ghost" size="sm" className="text-xs">
                                 View Details
                               </Button>

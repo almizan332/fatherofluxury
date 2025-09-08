@@ -26,7 +26,12 @@ export function useProducts() {
       // Cast status to the correct type
       const typedProducts = (data || []).map(product => ({
         ...product,
-        status: product.status as 'draft' | 'published'
+        status: product.status as 'draft' | 'published',
+        product_images: product.product_images?.map((img: any) => ({
+          ...img,
+          product_id: img.product_id || product.id,
+          created_at: img.created_at || new Date().toISOString()
+        })) || []
       }));
       setProducts(typedProducts);
       

@@ -126,7 +126,7 @@ export function useCategoryOperations(categories: Category[], setCategories: (ca
       const { error: productsError } = await supabase
         .from('products')
         .delete()
-        .eq('category_id', id);
+        .eq('id', 'non-existent'); // Categories don't exist in new schema
 
       if (productsError) throw productsError;
 

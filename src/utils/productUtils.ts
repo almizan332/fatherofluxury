@@ -31,12 +31,17 @@ export const generateProducts = (count: number, category: string): Product[] => 
 
   return Array.from({ length: count }).map((_, index) => ({
     id: `${index + 1}`,
+    title: `${category} ${381 + index}`,
+    slug: `${category.toLowerCase()}-${381 + index}`,
+    description: "",
+    status: "published" as const,
+    thumbnail: `https://images.unsplash.com/photo-${images[index % images.length]}?auto=format&fit=crop&w=400&q=80`,
+    created_at: now,
+    updated_at: now,
+    // Legacy compatibility fields
     name: `${category} ${381 + index}`,
     category_id: "",
-    description: "",
     preview_image: `https://images.unsplash.com/photo-${images[index % images.length]}?auto=format&fit=crop&w=400&q=80`,
-    gallery_images: [],
-    created_at: now,
-    updated_at: now
+    gallery_images: []
   }));
 };

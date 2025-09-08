@@ -39,11 +39,15 @@ const ProductList = () => {
       // Fetch ALL products without any limit for admin view
       const { data, error } = await supabase
         .from('products')
-        .select('*, categories(name)')
+        .select('*')
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      setProducts(data || []);
+      const typedProducts = (data || []).map(product => ({
+        ...product,
+        status: product.status as 'draft' | 'published'
+      }));
+      setProducts(typedProducts);
       console.log(`Admin panel loaded ${data?.length || 0} products`);
     } catch (error: any) {
       toast({
