@@ -96,6 +96,22 @@ export interface ProductValidationError {
   message: string
 }
 
+/**
+ * Helper function to convert empty string to null
+ */
+function toNull(s?: string): string | null {
+  const trimmed = (s ?? '').trim();
+  return trimmed.length ? trimmed : null;
+}
+
+/**
+ * Parse media links string into array of URLs separated by semicolon
+ */
+function parseMediaLinksToArray(input?: string): string[] | null {
+  if (!input?.trim()) return null;
+  return input.split(';').map(s => s.trim()).filter(Boolean);
+}
+
 export function validateProductRow(row: any, rowIndex: number): ProductValidationError[] {
   const errors: ProductValidationError[] = []
   
@@ -103,21 +119,12 @@ export function validateProductRow(row: any, rowIndex: number): ProductValidatio
     errors.push({ field: 'Product Name', message: 'Product name is required' })
   }
   
-  // Validate URLs if present
-  const flyLink = row['FlyLink']
-  if (flyLink?.trim()) {
-    const extractedUrl = extractUrlFromHtml(flyLink)
-    if (!extractedUrl) {
-      errors.push({ field: 'FlyLink', message: 'Invalid URL format' })
-    }
+  if (!row['Category']?.trim()) {
+    errors.push({ field: 'Category', message: 'Category is required' })
   }
   
-  const firstImage = row['First Image']
-  if (firstImage?.trim()) {
-    const extractedUrl = extractUrlFromHtml(firstImage)
-    if (!extractedUrl) {
-      errors.push({ field: 'First Image', message: 'Invalid image URL format' })
-    }
+  if (!row['First Image']?.trim()) {
+    errors.push({ field: 'First Image', message: 'First image is required' })
   }
   
   return errors
@@ -127,34 +134,26 @@ export function validateProductRow(row: any, rowIndex: number): ProductValidatio
  * Transform CSV row to product data
  */
 export interface ProductData {
-  title: string
-  slug: string
-  description: string
-  affiliate_link: string | null
-  status: 'draft' | 'published'
-  images: string[]
-  thumbnail: string | null
+  product_name: string
+  flylink: string | null
+  alibaba_url: string | null
+  dhgate_url: string | null
+  category: string
+  description: string | null
+  first_image: string
+  media_links: string[] | null
 }
 
-export function transformCsvRowToProduct(
-  row: any, 
-  defaultStatus: 'draft' | 'published' = 'draft'
-): ProductData {
-  const title = row['Product Name']?.trim() || ''
-  const slug = slugify(title)
-  const description = row['Description']?.trim() || ''
-  const affiliate_link = extractUrlFromHtml(row['FlyLink']?.trim() || '')
-  const images = combineImages(row['First Image'] || '', row['Media Links'] || '')
-  const thumbnail = images.length > 0 ? images[0] : null
-  
+export function transformCsvRowToProduct(row: any): ProductData {
   return {
-    title,
-    slug,
-    description,
-    affiliate_link,
-    status: defaultStatus,
-    images,
-    thumbnail
+    product_name: row['Product Name'].trim(),
+    flylink: toNull(row['FlyLink']),
+    alibaba_url: toNull(row['Alibaba URL']),
+    dhgate_url: toNull(row['DHgate URL']),
+    category: row['Category'].trim(),
+    description: toNull(row['Description']),
+    first_image: row['First Image'].trim(),
+    media_links: parseMediaLinksToArray(row['Media Links'])
   }
 }
 
@@ -162,21 +161,27 @@ export function transformCsvRowToProduct(
  * Generate sample CSV content for download template
  */
 export function generateSampleCsv(): string {
-  const headers = ['Product Name', 'FlyLink', 'Description', 'First Image', 'Media Links']
+  const headers = ['Product Name', 'FlyLink', 'Alibaba URL', 'DHgate URL', 'Category', 'Description', 'First Image', 'Media Links']
   const sampleRows = [
     [
       'Premium Designer Handbag',
       'https://example-flylink.com/handbag-123',
+      'https://example-alibaba.com/handbag',
+      'https://example-dhgate.com/handbag',
+      'Fashion',
       'Beautiful premium handbag with genuine leather construction',
       'https://example.com/images/handbag-main.jpg',
-      'https://example.com/images/handbag-1.jpg;https://example.com/images/handbag-2.jpg;https://example.com/images/handbag-3.jpg'
+      'https://example.com/images/handbag-1.jpg;https://example.com/images/handbag-2.jpg'
     ],
     [
       'Luxury Watch Collection',
-      '<a href="https://affiliate-link.com/watch">Buy Now</a>',
-      'Swiss-made luxury timepiece with automatic movement',
+      '',
+      'https://example-alibaba.com/watch',
+      '',
+      'Accessories',
+      '',
       'https://example.com/images/watch-main.jpg',
-      'https://example.com/images/watch-detail1.jpg,https://example.com/images/watch-detail2.jpg'
+      'https://example.com/images/watch-detail1.jpg;https://example.com/images/watch-detail2.jpg'
     ]
   ]
   

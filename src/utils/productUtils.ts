@@ -31,14 +31,21 @@ export const generateProducts = (count: number, category: string): Product[] => 
 
   return Array.from({ length: count }).map((_, index) => ({
     id: `${index + 1}`,
+    product_name: `${category} ${381 + index}`,
+    flylink: null,
+    alibaba_url: null,
+    dhgate_url: null,
+    category: category,
+    description: "",
+    first_image: `https://images.unsplash.com/photo-${images[index % images.length]}?auto=format&fit=crop&w=400&q=80`,
+    media_links: null,
+    created_at: now,
+    // Legacy compatibility fields
     title: `${category} ${381 + index}`,
     slug: `${category.toLowerCase()}-${381 + index}`,
-    description: "",
     status: "published" as const,
     thumbnail: `https://images.unsplash.com/photo-${images[index % images.length]}?auto=format&fit=crop&w=400&q=80`,
-    created_at: now,
     updated_at: now,
-    // Legacy compatibility fields
     name: `${category} ${381 + index}`,
     category_id: "",
     preview_image: `https://images.unsplash.com/photo-${images[index % images.length]}?auto=format&fit=crop&w=400&q=80`,

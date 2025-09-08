@@ -107,7 +107,7 @@ const ProductImport = () => {
       
       // Transform valid rows
       if (errors.length === 0) {
-        const product = transformCsvRowToProduct(row, publishOnImport ? 'published' : 'draft')
+        const product = transformCsvRowToProduct(row)
         products.push(product)
       }
     })

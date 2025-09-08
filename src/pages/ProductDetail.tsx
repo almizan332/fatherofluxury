@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { ProductGallery } from "@/components/product/detail/ProductGallery";
-import { ProductInfo } from "@/components/product/detail/ProductInfo";
+import ProductInfo from "@/components/product/detail/ProductInfo";
 import { RelatedProducts } from "@/components/product/detail/RelatedProducts";
 import { useProductDetail } from "@/hooks/useProductDetail";
 

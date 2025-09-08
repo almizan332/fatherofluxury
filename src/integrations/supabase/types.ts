@@ -355,9 +355,16 @@ export type Database = {
       products: {
         Row: {
           affiliate_link: string | null
+          alibaba_url: string | null
+          category: string | null
           created_at: string | null
           description: string | null
+          dhgate_url: string | null
+          first_image: string | null
+          flylink: string | null
           id: string
+          media_links: string[] | null
+          product_name: string | null
           slug: string
           status: string
           thumbnail: string | null
@@ -366,9 +373,16 @@ export type Database = {
         }
         Insert: {
           affiliate_link?: string | null
+          alibaba_url?: string | null
+          category?: string | null
           created_at?: string | null
           description?: string | null
+          dhgate_url?: string | null
+          first_image?: string | null
+          flylink?: string | null
           id?: string
+          media_links?: string[] | null
+          product_name?: string | null
           slug: string
           status?: string
           thumbnail?: string | null
@@ -377,9 +391,16 @@ export type Database = {
         }
         Update: {
           affiliate_link?: string | null
+          alibaba_url?: string | null
+          category?: string | null
           created_at?: string | null
           description?: string | null
+          dhgate_url?: string | null
+          first_image?: string | null
+          flylink?: string | null
           id?: string
+          media_links?: string[] | null
+          product_name?: string | null
           slug?: string
           status?: string
           thumbnail?: string | null

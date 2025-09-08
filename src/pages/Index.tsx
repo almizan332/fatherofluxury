@@ -63,7 +63,11 @@ const [products, setProducts] = useState<Product[]>([]);
       if (data) {
         const typedProducts = data.map(product => ({
           ...product,
-          status: product.status as 'draft' | 'published'
+          // Map new fields to legacy fields for compatibility
+          title: product.product_name,
+          thumbnail: product.first_image,
+          name: product.product_name,
+          status: 'published' as const
         }));
         setProducts(typedProducts);
         console.log(`Homepage loaded page ${page}: ${data.length} products of ${count} total`);

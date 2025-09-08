@@ -1,164 +1,176 @@
-
-import { Button } from "@/components/ui/button";
-import { MessageSquare, ShoppingCart, HelpCircle, Store, Clock, Truck } from "lucide-react";
-import { Product } from "@/types/product";
 import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { ExternalLink, MessageCircle, ShoppingCart, Youtube } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Product } from "@/types/product";
 
 interface ProductInfoProps {
   product: Product;
 }
 
-export const ProductInfo = ({ product }: ProductInfoProps) => {
-  const [webContents, setWebContents] = useState<{
-    how_to_buy_link?: string | null;
-    chat_with_us_link?: string | null;
-  } | null>(null);
+function BuyButtons({ product }: { product: Product }) {
+  const handleButtonClick = (url?: string | null) => {
+    if (url) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const hasAnyUrl = product.flylink || product.alibaba_url || product.dhgate_url;
+
+  if (!hasAnyUrl) {
+    return null;
+  }
+
+  return (
+    <div className="space-y-4">
+      <h3 className="text-lg font-semibold">Purchase Options</h3>
+      <div className="flex flex-wrap gap-3">
+        {product.flylink && (
+          <Button
+            onClick={() => handleButtonClick(product.flylink)}
+            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+          >
+            <ShoppingCart className="w-4 h-4 mr-2" />
+            Buy (FlyLink)
+          </Button>
+        )}
+        {product.alibaba_url && (
+          <Button
+            onClick={() => handleButtonClick(product.alibaba_url)}
+            className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
+          >
+            <ShoppingCart className="w-4 h-4 mr-2" />
+            Buy (Alibaba)
+          </Button>
+        )}
+        {product.dhgate_url && (
+          <Button
+            onClick={() => handleButtonClick(product.dhgate_url)}
+            className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
+          >
+            <ShoppingCart className="w-4 h-4 mr-2" />
+            Buy (DHgate)
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const ProductInfo = ({ product }: ProductInfoProps) => {
+  const [webContents, setWebContents] = useState<any>(null);
 
   useEffect(() => {
-    // Fetch web contents for links
     const fetchWebContents = async () => {
-      const { data, error } = await supabase
-        .from('web_contents')
-        .select('how_to_buy_link, chat_with_us_link')
-        .eq('id', 'default')
-        .single();
-      
-      if (!error && data) {
-        setWebContents(data);
-      }
+      const { data } = await supabase.from('web_contents').select('*').single();
+      setWebContents(data);
     };
-
     fetchWebContents();
   }, []);
 
-  // Fixed whatsapp URL for the specific number
-  const whatsappUrl = "https://api.whatsapp.com/send?phone=8801765839696";
-  const youtubeHowToBuyUrl = "https://www.youtube.com/watch?v=I-5asuZ1d4U&feature=youtu.be";
+  const whatsappUrl = "https://wa.me/8801609966905";
+  const youtubeHowToBuyUrl = "https://youtu.be/9xkFJeWaLEA?si=p6v2pqQjhEPGOGjt";
 
   const handleButtonClick = (url?: string | null) => {
-    if (url) window.open(url, '_blank');
+    if (url) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <div className="text-sm text-gray-500 mb-1">
-          {product.categories?.name || "Product"} / {product.name}
-        </div>
-        <h1 className="text-3xl font-bold mb-3">{product.name}</h1>
-        <div className="text-gray-400 whitespace-pre-wrap mb-3">
-          <p className="mb-4">{product.description}</p>
-          
-          {/* Additional product details based on the image */}
-          <div className="space-y-2 text-sm">
-            {product.name.includes("LV") && (
-              <>
-                <p>1:1 AAA Quality Shoe</p>
-                <p>Upper material: Denim</p>
-                <p>Insole material: Cowhide</p>
-                <p>Rubber antiskid sole</p>
-                <p>Packed in an original box</p>
-                <p>Size: 34-41</p>
-                <p>Code number: 103257</p>
-              </>
-            )}
+        <h1 className="text-3xl font-bold mb-2">{product.product_name}</h1>
+        <p className="text-sm text-muted-foreground mb-4">{product.category}</p>
+        
+        {product.description ? (
+          <div className="prose prose-sm max-w-none">
+            <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
+              {product.description}
+            </p>
           </div>
-        </div>
-      </div>
-
-      {/* How to Order Section */}
-      <div className="bg-green-50 p-4 rounded-md border border-green-200 mb-4">
-        <div className="flex items-center gap-2 text-green-800 font-medium mb-2">
-          <Store size={18} /> How to Order
-        </div>
-        <ol className="list-decimal list-inside text-sm text-gray-700 pl-1 space-y-1">
-          <li>Choose a Code from the Photo</li>
-          <li>Select payment link and Size(if Needed)</li>
-          <li>OR</li>
-          <li>If you don't have a selection option, send "Code + Size(if Needed)" with a Message to the Seller.</li>
-        </ol>
-      </div>
-
-      {/* Delivery Information */}
-      <div className="bg-blue-50 p-4 rounded-md border border-blue-200">
-        <div className="flex items-center gap-2 text-blue-800 font-medium mb-2">
-          <Clock size={18} /> Delivery Time
-        </div>
-        <div className="text-sm text-gray-700 pl-1 space-y-1">
-          <p>• Order Processing: 3-5 working days</p>
-          <p>• Delivery: 15-20 working days</p>
-          <p className="flex items-center gap-1 mt-2">
-            <Truck size={16} /> Track your parcel with the provided logistics tracking number at www.17track.net
-          </p>
-        </div>
-      </div>
-
-      <div className="space-y-3 mt-6">
-        {/* Add Flylink Button at the top - use the product's flylink_url if available */}
-        <Button 
-          className="w-full bg-purple-500 hover:bg-purple-600 h-12 text-base" 
-          size="lg"
-          onClick={() => handleButtonClick(product.flylink_url || 'https://flylink.io')}
-        >
-          <ShoppingCart className="mr-2 h-5 w-5" />
-          Buy On Flylink
-        </Button>
-
-        {product.dhgate_url && (
-          <Button 
-            className="w-full bg-green-500 hover:bg-green-600 h-12 text-base" 
-            size="lg"
-            onClick={() => handleButtonClick(product.dhgate_url)}
-          >
-            <ShoppingCart className="mr-2 h-5 w-5" />
-            Buy On DHgate
-          </Button>
+        ) : (
+          <p className="text-muted-foreground italic">No description provided.</p>
         )}
-        
-        {product.alibaba_url && (
-          <Button 
-            className="w-full bg-orange-500 hover:bg-orange-600 h-12 text-base" 
-            size="lg"
-            onClick={() => handleButtonClick(product.alibaba_url)}
-          >
-            <ShoppingCart className="mr-2 h-5 w-5" />
-            Buy On Alibaba
-          </Button>
-        )}
-        
-        <Button 
-          variant="secondary" 
-          className="w-full h-12 text-base bg-emerald-100 hover:bg-emerald-200 text-emerald-800" 
-          size="lg"
+      </div>
+
+      <BuyButtons product={product} />
+
+      {/* Additional Info Cards */}
+      <div className="grid gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <h3 className="font-semibold mb-2 flex items-center">
+              <ShoppingCart className="w-4 h-4 mr-2" />
+              How to Order
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Click on any purchase button above to be redirected to the seller's page. 
+              Follow their ordering process to complete your purchase.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <h3 className="font-semibold mb-2">Delivery Time</h3>
+            <p className="text-sm text-muted-foreground">
+              Delivery times vary by seller and location. Please check with the seller for specific delivery estimates.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex flex-wrap gap-3">
+        <Button
+          variant="outline"
           onClick={() => handleButtonClick(whatsappUrl)}
+          className="border-green-500 text-green-600 hover:bg-green-50"
         >
-          <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-          </svg>
+          <MessageCircle className="w-4 h-4 mr-2" />
           WhatsApp
         </Button>
-        
-        <Button 
-          variant="secondary" 
-          className="w-full h-12 text-base" 
-          size="lg"
-          onClick={() => handleButtonClick(webContents?.chat_with_us_link || whatsappUrl)}
+
+        <Button
+          variant="outline"
+          onClick={() => handleButtonClick(webContents?.chat_with_us_link)}
+          className="border-blue-500 text-blue-600 hover:bg-blue-50"
         >
-          <MessageSquare className="mr-2 h-5 w-5" />
-          Chat With Us
+          <MessageCircle className="w-4 h-4 mr-2" />
+          Chat with Us
         </Button>
-        
-        <Button 
-          variant="outline" 
-          className="w-full h-12 text-base" 
-          size="lg"
-          onClick={() => handleButtonClick(webContents?.how_to_buy_link || youtubeHowToBuyUrl)}
+
+        <Button
+          variant="outline"
+          onClick={() => handleButtonClick(youtubeHowToBuyUrl)}
+          className="border-red-500 text-red-600 hover:bg-red-50"
         >
-          <HelpCircle className="mr-2 h-5 w-5" />
-          How To Buy
+          <Youtube className="w-4 h-4 mr-2" />
+          How to Buy
         </Button>
       </div>
+
+      {/* Media Gallery */}
+      {product.media_links?.length ? (
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Additional Images</h3>
+          <div className="grid grid-cols-3 gap-3">
+            {product.media_links.map((src, i) => (
+              <img
+                key={i}
+                src={src}
+                alt={`${product.product_name} - Image ${i + 1}`}
+                className="rounded-xl object-cover w-full h-32 cursor-pointer hover:opacity-75 transition-opacity"
+                onClick={() => window.open(src, '_blank')}
+              />
+            ))}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 };
+
+export default ProductInfo;

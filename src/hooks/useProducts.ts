@@ -12,26 +12,24 @@ export function useProducts() {
     try {
       const { data, error } = await supabase
         .from('products')
-        .select(`
-          *,
-          product_images (
-            id,
-            url,
-            position
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      // Cast status to the correct type
+      // Map to include legacy compatibility fields
       const typedProducts = (data || []).map(product => ({
         ...product,
-        status: product.status as 'draft' | 'published',
-        product_images: product.product_images?.map((img: any) => ({
-          ...img,
-          product_id: img.product_id || product.id,
-          created_at: img.created_at || new Date().toISOString()
-        })) || []
+        // Legacy compatibility
+        title: product.product_name,
+        slug: product.product_name?.toLowerCase().replace(/\s+/g, '-'),
+        status: 'published' as const,
+        thumbnail: product.first_image,
+        updated_at: product.created_at,
+        name: product.product_name,
+        preview_image: product.first_image,
+        gallery_images: product.media_links || [],
+        flylink_url: product.flylink,
+        product_images: []
       }));
       setProducts(typedProducts);
       

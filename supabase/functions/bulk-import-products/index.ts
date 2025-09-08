@@ -7,13 +7,14 @@ const corsHeaders = {
 }
 
 interface ProductRow {
-  title: string;
-  slug: string;
-  description: string;
-  affiliate_link: string | null;
-  status: 'draft' | 'published';
-  images: string[];
-  thumbnail: string | null;
+  product_name: string;
+  flylink: string | null;
+  alibaba_url: string | null;
+  dhgate_url: string | null;
+  category: string;
+  description: string | null;
+  first_image: string;
+  media_links: string[] | null;
 }
 
 interface ImportResult {
@@ -83,11 +84,14 @@ serve(async (req) => {
     if (dryRun) {
       // For dry run, just validate data
       products.forEach((product, index) => {
-        if (!product.title?.trim()) {
-          result.errors.push({ rowIndex: index, reason: 'Title is required' })
+        if (!product.product_name?.trim()) {
+          result.errors.push({ rowIndex: index, reason: 'Product name is required' })
           result.failed++
-        } else if (!product.slug?.trim()) {
-          result.errors.push({ rowIndex: index, reason: 'Slug generation failed' })
+        } else if (!product.category?.trim()) {
+          result.errors.push({ rowIndex: index, reason: 'Category is required' })
+          result.failed++
+        } else if (!product.first_image?.trim()) {
+          result.errors.push({ rowIndex: index, reason: 'First image is required' })
           result.failed++
         }
       })
@@ -102,86 +106,62 @@ serve(async (req) => {
       const product = products[i]
       
       try {
-        if (!product.title?.trim()) {
-          result.errors.push({ rowIndex: i, reason: 'Title is required' })
+        if (!product.product_name?.trim()) {
+          result.errors.push({ rowIndex: i, reason: 'Product name is required' })
           result.failed++
           continue
         }
 
-        if (!product.slug?.trim()) {
-          result.errors.push({ rowIndex: i, reason: 'Slug generation failed' })
+        if (!product.category?.trim()) {
+          result.errors.push({ rowIndex: i, reason: 'Category is required' })
           result.failed++
           continue
         }
 
-        // Check if product exists by slug
+        if (!product.first_image?.trim()) {
+          result.errors.push({ rowIndex: i, reason: 'First image is required' })
+          result.failed++
+          continue
+        }
+
+        // Check if product exists by product_name (we'll use this as unique identifier)
         const { data: existingProduct } = await supabaseClient
           .from('products')
           .select('id')
-          .eq('slug', product.slug)
+          .eq('product_name', product.product_name)
           .single()
 
         const productData = {
-          title: product.title,
-          slug: product.slug,
-          description: product.description || '',
-          affiliate_link: product.affiliate_link,
-          thumbnail: product.thumbnail,
-          status: product.status
+          product_name: product.product_name,
+          flylink: product.flylink,
+          alibaba_url: product.alibaba_url,
+          dhgate_url: product.dhgate_url,
+          category: product.category,
+          description: product.description,
+          first_image: product.first_image,
+          media_links: product.media_links
         }
-
-        let productId: string
 
         if (existingProduct) {
           // Update existing product
-          const { data: updatedProduct, error: updateError } = await supabaseClient
+          const { error: updateError } = await supabaseClient
             .from('products')
             .update(productData)
             .eq('id', existingProduct.id)
-            .select('id')
-            .single()
 
           if (updateError) throw updateError
-          
-          productId = updatedProduct.id
           result.updated++
-          
-          // Delete existing images
-          await supabaseClient
-            .from('product_images')
-            .delete()
-            .eq('product_id', productId)
-
         } else {
           // Create new product
-          const { data: newProduct, error: insertError } = await supabaseClient
+          const { error: insertError } = await supabaseClient
             .from('products')
             .insert(productData)
-            .select('id')
-            .single()
 
           if (insertError) throw insertError
-          
-          productId = newProduct.id
           result.created++
         }
 
-        // Insert images
-        if (product.images && product.images.length > 0) {
-          const imageRecords = product.images.map((url, position) => ({
-            product_id: productId,
-            url: url.trim(),
-            position
-          }))
-
-          const { error: imagesError } = await supabaseClient
-            .from('product_images')
-            .insert(imageRecords)
-
-          if (imagesError) throw imagesError
-        }
-
-        console.log(`Processed product ${i + 1}/${products.length}: ${product.title}`)
+        console.log(`Processed product ${i + 1}/${products.length}: ${product.product_name}`)
 
       } catch (error) {
         console.error(`Error processing product ${i}:`, error)
