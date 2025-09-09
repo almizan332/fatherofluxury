@@ -1,5 +1,8 @@
 
 project_id = "zsptshspjdzvhgjmnjtl"
 
+[functions.bulk-import-products]
+verify_jwt = true
+
 [functions.do-file-upload]
 verify_jwt = false
