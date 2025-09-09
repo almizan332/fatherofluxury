@@ -142,13 +142,13 @@ const ProductImport = () => {
 
   // Perform import
   const performImport = useCallback(async () => {
-    if (parsedProducts.length === 0) {
+    if (!file) {
       toast({
-        title: 'No products to import',
-        description: 'Please upload and validate a CSV file first',
-        variant: 'destructive'
-      })
-      return
+        title: "No File Selected",
+        description: "Please select a CSV file to import",
+        variant: "destructive",
+      });
+      return;
     }
 
     setIsProcessing(true)
@@ -156,41 +156,72 @@ const ProductImport = () => {
     setImportResult(null)
 
     try {
-      const { data, error } = await supabase.functions.invoke('bulk-import-products', {
-        body: {
-          products: parsedProducts,
-          dryRun
-        }
-      })
+      const formData = new FormData();
+      formData.append('file', file);
 
-      if (error) throw error
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
 
-      setImportResult(data as ImportResult)
-      setProgress(100)
+      const response = await fetch('/api/import-csv', {
+        method: 'POST',
+        body: formData,
+        signal: controller.signal,
+      });
 
-      if (dryRun) {
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Import failed');
+      }
+
+      const result = await response.json();
+      setImportResult({
+        created: result.insertedCount || 0,
+        updated: 0,
+        failed: result.skippedCount || 0,
+        errors: result.errors ? result.errors.map((error: string, index: number) => ({ 
+          rowIndex: index, 
+          reason: error 
+        })) : []
+      });
+      setProgress(100);
+      
+      if (result.insertedCount > 0) {
         toast({
-          title: 'Dry run completed',
-          description: `Validation complete. ${data.failed} potential failures found.`
-        })
-      } else {
+          title: "Import Successful",
+          description: `Successfully imported ${result.insertedCount} products`,
+        });
+      }
+
+      if (result.errors && result.errors.length > 0) {
         toast({
-          title: 'Import completed',
-          description: `${data.created} created, ${data.updated} updated, ${data.failed} failed`
-        })
+          title: "Import Completed with Warnings",
+          description: `${result.insertedCount} products imported, ${result.skippedCount} skipped`,
+          variant: "destructive",
+        });
       }
 
     } catch (error: any) {
-      console.error('Import error:', error)
-      toast({
-        title: 'Import failed',
-        description: error.message || 'An unexpected error occurred',
-        variant: 'destructive'
-      })
+      console.error('Import failed:', error);
+      if (error.name === 'AbortError') {
+        toast({
+          title: "Import Timeout",
+          description: "Import took too long and was cancelled. Try with a smaller file.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Import Failed",
+          description: error.message || "An error occurred during import",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsProcessing(false)
+      setProgress(100)
     }
-  }, [parsedProducts, dryRun, toast])
+  }, [file, toast])
 
   const errorRows = validationResults.filter(r => r.errors.length > 0)
   const warningRows = validationResults.filter(r => r.warnings.length > 0)
@@ -350,10 +381,10 @@ const ProductImport = () => {
               <div className="flex gap-4">
                 <Button
                   onClick={performImport}
-                  disabled={isProcessing || parsedProducts.length === 0}
+                  disabled={isProcessing || !file}
                   className="min-w-[120px]"
                 >
-                  {isProcessing ? 'Processing...' : dryRun ? 'Validate' : 'Import Products'}
+                  {isProcessing ? 'Processing...' : 'Import Products'}
                 </Button>
                 
                 {parsedProducts.length > 0 && (

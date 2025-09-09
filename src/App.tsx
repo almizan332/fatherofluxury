@@ -22,7 +22,7 @@ import BlogPostFormPage from "./pages/BlogPostFormPage";
 import WebContentsManagement from "./pages/WebContentsManagement";
 import YupooUpload from "./pages/YupooUpload";
 import ChatbotManagement from "./pages/ChatbotManagement";
-import ProductImport from "./pages/ProductImport";
+import ProductImportSimple from "./pages/ProductImportSimple";
 import { AuthProvider } from "./auth/AuthProvider";
 import { ProtectedRoute } from "./auth/ProtectedRoute";
 
@@ -72,7 +72,7 @@ function App() {
                 } />
                 <Route path="/dashboard/products/import" element={
                   <ProtectedRoute>
-                    <ProductImport />
+                    <ProductImportSimple />
                   </ProtectedRoute>
                 } />
                 <Route path="/dashboard/blog-management" element={
