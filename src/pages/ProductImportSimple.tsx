@@ -112,16 +112,29 @@ const ProductImportSimple = () => {
         method: 'POST',
         body: formData,
         signal: controller.signal,
+        headers: {
+          'Accept': 'application/json',
+        },
       });
 
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        const errorData = await response.json();
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch {
+          errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
+        }
         throw new Error(errorData.error || 'Import failed');
       }
 
-      const result = await response.json();
+      let result;
+      try {
+        result = await response.json();
+      } catch (parseError) {
+        throw new Error('Server returned invalid JSON response');
+      }
       setImportResults(result);
       
       if (result.insertedCount > 0) {

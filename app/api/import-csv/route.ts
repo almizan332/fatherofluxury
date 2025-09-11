@@ -1,21 +1,15 @@
-import express from 'express';
-import cors from 'cors';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import formidable from 'formidable';
-import fs from 'fs';
 
-const app = express();
-const port = 3001;
-
-// Enable CORS
-app.use(cors());
+export const runtime = 'nodejs';
+export const maxDuration = 60;
 
 const supabase = createClient(
-  process.env.VITE_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
+  "https://zsptshspjdzvhgjmnjtl.supabase.co",
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-function parseMediaLinks(input) {
+function parseMediaLinks(input: string) {
   if (!input?.trim()) return null;
   return input
     .split(';')
@@ -23,12 +17,12 @@ function parseMediaLinks(input) {
     .filter(url => url.length > 0);
 }
 
-function toNull(s) {
+function toNull(s: string) {
   const trimmed = (s ?? '').trim();
   return trimmed.length ? trimmed : null;
 }
 
-function validateRow(row, rowIndex) {
+function validateRow(row: Record<string, string>, rowIndex: number) {
   const errors = [];
   
   if (!row['Product Name']?.trim()) {
@@ -46,21 +40,30 @@ function validateRow(row, rowIndex) {
   return errors;
 }
 
-app.post('/api/import-csv', async (req, res) => {
-  const form = formidable({
-    maxFileSize: 10 * 1024 * 1024, // 10MB
-    keepExtensions: true,
-  });
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+};
 
+export async function OPTIONS() {
+  return NextResponse.json({ ok: true }, { headers: corsHeaders });
+}
+
+export async function GET() {
+  return NextResponse.json({ ok: true, ping: "pong" }, { headers: corsHeaders });
+}
+
+export async function POST(request: NextRequest) {
   try {
-    const [fields, files] = await form.parse(req);
-    const file = Array.isArray(files.file) ? files.file[0] : files.file;
+    const formData = await request.formData();
+    const file = formData.get('file') as File;
 
     if (!file) {
-      return res.status(400).json({ error: 'No file provided' });
+      return NextResponse.json({ error: 'No file provided' }, { status: 400, headers: corsHeaders });
     }
 
-    const text = fs.readFileSync(file.filepath, 'utf8');
+    const text = await file.text();
     const rows = text.split('\n').map(row => {
       // Handle CSV parsing with proper quote handling
       const cells = [];
@@ -84,7 +87,7 @@ app.post('/api/import-csv', async (req, res) => {
     });
     
     if (rows.length === 0) {
-      return res.status(400).json({ error: 'Empty CSV file' });
+      return NextResponse.json({ error: 'Empty CSV file' }, { status: 400, headers: corsHeaders });
     }
 
     const expectedHeaders = ['Product Name', 'FlyLink', 'Alibaba URL', 'DHgate URL', 'Category', 'Description', 'First Image', 'Media Links'];
@@ -93,23 +96,23 @@ app.post('/api/import-csv', async (req, res) => {
     // Validate headers
     const headerMismatch = expectedHeaders.some((expected, index) => headers[index]?.trim() !== expected);
     if (headerMismatch) {
-      return res.status(400).json({ 
+      return NextResponse.json({ 
         error: `Invalid headers. Expected: ${expectedHeaders.join(', ')}` 
-      });
+      }, { status: 400, headers: corsHeaders });
     }
 
     const result = {
       totalRows: rows.length - 1,
       insertedCount: 0,
       skippedCount: 0,
-      errors: []
+      errors: [] as string[]
     };
 
     const dataRows = rows.slice(1).filter(row => row.some(cell => cell.trim()));
 
     for (let i = 0; i < dataRows.length; i++) {
       const row = dataRows[i];
-      const rowData = {};
+      const rowData: Record<string, string> = {};
       
       headers.forEach((header, index) => {
         rowData[header] = row[index] || '';
@@ -147,22 +150,18 @@ app.post('/api/import-csv', async (req, res) => {
         } else {
           result.insertedCount++;
         }
-      } catch (error) {
+      } catch (error: any) {
         result.errors.push(`Row ${i + 1}: ${error.message || 'Unknown error'}`);
         result.skippedCount++;
       }
     }
 
-    res.json(result);
+    return NextResponse.json(result, { headers: corsHeaders });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Import error:', error);
-    res.status(500).json({ 
+    return NextResponse.json({ 
       error: error.message || 'Import failed' 
-    });
+    }, { status: 500, headers: corsHeaders });
   }
-});
-
-app.listen(port, () => {
-  console.log(`API server running on port ${port}`);
-});
+}
