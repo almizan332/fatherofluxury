@@ -38,6 +38,8 @@ function validateRow(row: Record<string, string>, rowIndex: number) {
 }
 
 serve(async (req) => {
+  console.log('Request received:', req.method, req.url);
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -69,8 +71,13 @@ serve(async (req) => {
     }
 
     const text = await file.text();
+    console.log('File content preview:', text.substring(0, 200));
+    
     const rows = text.split('\n').map(row => {
-      // Handle CSV parsing with proper quote handling
+      if (!row.trim()) return [];
+      
+      // Handle both comma and tab delimited CSV
+      const delimiter = row.includes('\t') ? '\t' : ',';
       const cells = [];
       let inQuotes = false;
       let currentCell = '';
@@ -79,7 +86,7 @@ serve(async (req) => {
         const char = row[i];
         if (char === '"') {
           inQuotes = !inQuotes;
-        } else if (char === ',' && !inQuotes) {
+        } else if (char === delimiter && !inQuotes) {
           cells.push(currentCell.trim());
           currentCell = '';
         } else {
@@ -89,7 +96,7 @@ serve(async (req) => {
       cells.push(currentCell.trim());
       
       return cells;
-    });
+    }).filter(row => row.length > 0);
     
     if (rows.length === 0) {
       return new Response(JSON.stringify({ error: 'Empty CSV file' }), {
@@ -98,20 +105,29 @@ serve(async (req) => {
       });
     }
 
-    const expectedHeaders = ['Product Name', 'FlyLink', 'Alibaba URL', 'DHgate URL', 'Category', 'Description', 'First Image', 'Media Links'];
-    const headers = rows[0].map(h => h.trim());
-    
+    if (rows.length === 0) {
+      return new Response(JSON.stringify({ 
+        error: 'Empty CSV file or no valid rows found' 
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    const headers = rows[0].map(h => h.trim().replace(/"/g, ''));
     console.log('Headers received:', headers);
-    console.log('Expected headers:', expectedHeaders);
     
     // More flexible header validation - check for key required headers
     const requiredHeaders = ['Product Name', 'Category', 'First Image'];
-    const missingRequired = requiredHeaders.filter(req => !headers.includes(req));
+    const missingRequired = requiredHeaders.filter(req => 
+      !headers.some(h => h.toLowerCase().includes(req.toLowerCase()))
+    );
     
     if (missingRequired.length > 0) {
       return new Response(JSON.stringify({ 
-        error: `Missing required headers: ${missingRequired.join(', ')}. Expected headers: ${expectedHeaders.join(', ')}`,
-        receivedHeaders: headers
+        error: `Missing required headers: ${missingRequired.join(', ')}`,
+        receivedHeaders: headers,
+        hint: 'Headers should include: Product Name, Category, First Image'
       }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -131,10 +147,31 @@ serve(async (req) => {
       const row = dataRows[i];
       const rowData: Record<string, string> = {};
       
-      // Map headers to expected format
+      // Map headers to expected format with flexible matching
       headers.forEach((header, index) => {
-        const trimmedHeader = header.trim();
-        rowData[trimmedHeader] = (row[index] || '').trim();
+        const trimmedHeader = header.trim().replace(/"/g, '');
+        let value = (row[index] || '').trim().replace(/"/g, '');
+        
+        // Map similar headers to expected format
+        if (trimmedHeader.toLowerCase().includes('product name') || trimmedHeader.toLowerCase() === 'name') {
+          rowData['Product Name'] = value;
+        } else if (trimmedHeader.toLowerCase().includes('flylink')) {
+          rowData['FlyLink'] = value;
+        } else if (trimmedHeader.toLowerCase().includes('alibaba')) {
+          rowData['Alibaba URL'] = value;
+        } else if (trimmedHeader.toLowerCase().includes('dhgate')) {
+          rowData['DHgate URL'] = value;
+        } else if (trimmedHeader.toLowerCase().includes('category')) {
+          rowData['Category'] = value;
+        } else if (trimmedHeader.toLowerCase().includes('description')) {
+          rowData['Description'] = value;
+        } else if (trimmedHeader.toLowerCase().includes('first image') || trimmedHeader.toLowerCase().includes('image')) {
+          rowData['First Image'] = value;
+        } else if (trimmedHeader.toLowerCase().includes('media links') || trimmedHeader.toLowerCase().includes('media')) {
+          rowData['Media Links'] = value;
+        } else {
+          rowData[trimmedHeader] = value;
+        }
       });
 
       const validationErrors = validateRow(rowData, i);
@@ -183,8 +220,12 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Import error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Import failed';
+    console.error('Error details:', errorMessage);
+    
     return new Response(JSON.stringify({ 
-      error: error instanceof Error ? error.message : 'Import failed' 
+      error: errorMessage,
+      details: 'Check function logs for more information'
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
