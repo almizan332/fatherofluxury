@@ -108,12 +108,13 @@ const ProductImportSimple = () => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
 
-      const response = await fetch('/api/import-csv', {
+      const response = await fetch(`https://zsptshspjdzvhgjmnjtl.supabase.co/functions/v1/bulk-import-products`, {
         method: 'POST',
         body: formData,
         signal: controller.signal,
         headers: {
           'Accept': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcHRzaHNwamR6dmhnam1uanRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkyMjcwNDYsImV4cCI6MjA1NDgwMzA0Nn0.Esrr86sLCB_938MG4l-cz9GGCBrmNeB3uAFpdaw3Cmg'}`,
         },
       });
 
