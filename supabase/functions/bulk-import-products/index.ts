@@ -99,13 +99,19 @@ serve(async (req) => {
     }
 
     const expectedHeaders = ['Product Name', 'FlyLink', 'Alibaba URL', 'DHgate URL', 'Category', 'Description', 'First Image', 'Media Links'];
-    const headers = rows[0];
+    const headers = rows[0].map(h => h.trim());
     
-    // Validate headers
-    const headerMismatch = expectedHeaders.some((expected, index) => headers[index]?.trim() !== expected);
-    if (headerMismatch) {
+    console.log('Headers received:', headers);
+    console.log('Expected headers:', expectedHeaders);
+    
+    // More flexible header validation - check for key required headers
+    const requiredHeaders = ['Product Name', 'Category', 'First Image'];
+    const missingRequired = requiredHeaders.filter(req => !headers.includes(req));
+    
+    if (missingRequired.length > 0) {
       return new Response(JSON.stringify({ 
-        error: `Invalid headers. Expected: ${expectedHeaders.join(', ')}` 
+        error: `Missing required headers: ${missingRequired.join(', ')}. Expected headers: ${expectedHeaders.join(', ')}`,
+        receivedHeaders: headers
       }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -125,8 +131,10 @@ serve(async (req) => {
       const row = dataRows[i];
       const rowData: Record<string, string> = {};
       
+      // Map headers to expected format
       headers.forEach((header, index) => {
-        rowData[header] = row[index] || '';
+        const trimmedHeader = header.trim();
+        rowData[trimmedHeader] = (row[index] || '').trim();
       });
 
       const validationErrors = validateRow(rowData, i);
@@ -138,18 +146,20 @@ serve(async (req) => {
 
       try {
         const productData = {
-          product_name: rowData['Product Name'].trim(),
+          product_name: rowData['Product Name'] || '',
           flylink: toNull(rowData['FlyLink']),
           alibaba_url: toNull(rowData['Alibaba URL']),
           dhgate_url: toNull(rowData['DHgate URL']),
-          category: rowData['Category'].trim(),
+          category: rowData['Category'] || '',
           description: toNull(rowData['Description']),
-          first_image: rowData['First Image'].trim(),
+          first_image: rowData['First Image'] || '',
           media_links: parseMediaLinks(rowData['Media Links']),
-          title: rowData['Product Name'].trim(),
-          slug: rowData['Product Name'].trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+          title: rowData['Product Name'] || '',
+          slug: (rowData['Product Name'] || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
           status: 'published'
         };
+
+        console.log(`Processing row ${i + 1}:`, productData);
 
         const { error } = await supabaseClient
           .from('products')
