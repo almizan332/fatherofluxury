@@ -26,10 +26,6 @@ function validateRow(row: Record<string, string>, rowIndex: number) {
     errors.push(`Row ${rowIndex + 1}: Product Name is required`);
   }
   
-  if (!row['Category']?.trim()) {
-    errors.push(`Row ${rowIndex + 1}: Category is required`);
-  }
-  
   if (!row['First Image']?.trim()) {
     errors.push(`Row ${rowIndex + 1}: First Image is required`);
   }
@@ -123,7 +119,7 @@ serve(async (req) => {
     console.log('Headers received:', headers);
     
     // More flexible header validation - check for key required headers
-    const requiredHeaders = ['Product Name', 'Category', 'First Image'];
+    const requiredHeaders = ['Product Name', 'First Image'];
     const missingRequired = requiredHeaders.filter(req => 
       !headers.some(h => h.toLowerCase().includes(req.toLowerCase()))
     );
@@ -132,7 +128,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({ 
         error: `Missing required headers: ${missingRequired.join(', ')}`,
         receivedHeaders: headers,
-        hint: 'Headers should include: Product Name, Category, First Image'
+        hint: 'Headers should include: Product Name, First Image'
       }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -192,7 +188,7 @@ serve(async (req) => {
           flylink: toNull(rowData['FlyLink']),
           alibaba_url: toNull(rowData['Alibaba URL']),
           dhgate_url: toNull(rowData['DHgate URL']),
-          category: rowData['Category'] || '',
+          category: rowData['Category'] || 'Uncategorized',
           description: toNull(rowData['Description']),
           first_image: rowData['First Image'] || '',
           media_links: parseMediaLinks(rowData['Media Links']),
