@@ -76,8 +76,13 @@ serve(async (req) => {
     const rows = text.split('\n').map(row => {
       if (!row.trim()) return [];
       
-      // Handle both comma and tab delimited CSV
-      const delimiter = row.includes('\t') ? '\t' : ',';
+      // Handle both comma and tab delimited CSV, also handle mixed delimiters
+      let delimiter = ',';
+      if (row.includes('\t')) {
+        delimiter = '\t';
+      }
+      
+      // Handle cases where there might be mixed delimiters or special characters
       const cells = [];
       let inQuotes = false;
       let currentCell = '';
@@ -86,16 +91,16 @@ serve(async (req) => {
         const char = row[i];
         if (char === '"') {
           inQuotes = !inQuotes;
-        } else if (char === delimiter && !inQuotes) {
-          cells.push(currentCell.trim());
+        } else if ((char === delimiter || char === ',' || char === '\t') && !inQuotes) {
+          cells.push(currentCell.trim().replace(/"/g, ''));
           currentCell = '';
         } else {
           currentCell += char;
         }
       }
-      cells.push(currentCell.trim());
+      cells.push(currentCell.trim().replace(/"/g, ''));
       
-      return cells;
+      return cells.filter(cell => cell.length > 0);
     }).filter(row => row.length > 0);
     
     if (rows.length === 0) {
