@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress'
 import { useToast } from '@/hooks/use-toast'
 import { ArrowLeft, Download, Upload, FileText } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { supabase } from '@/integrations/supabase/client'
 
 interface ImportResult {
   totalRows: number
@@ -105,37 +106,18 @@ const ProductImportSimple = () => {
       const formData = new FormData();
       formData.append('file', file);
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
-
-      const response = await fetch(`https://zsptshspjdzvhgjmnjtl.supabase.co/functions/v1/bulk-import-products`, {
-        method: 'POST',
+      const { data: result, error } = await supabase.functions.invoke('bulk-import-products', {
         body: formData,
-        signal: controller.signal,
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcHRzaHNwamR6dmhnam1uanRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkyMjcwNDYsImV4cCI6MjA1NDgwMzA0Nn0.Esrr86sLCB_938MG4l-cz9GGCBrmNeB3uAFpdaw3Cmg'}`,
-        },
       });
 
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        let errorData;
-        try {
-          errorData = await response.json();
-        } catch {
-          errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
-        }
-        throw new Error(errorData.error || 'Import failed');
+      if (error) {
+        throw new Error(error.message || 'Import failed');
       }
 
-      let result;
-      try {
-        result = await response.json();
-      } catch (parseError) {
-        throw new Error('Server returned invalid JSON response');
+      if (!result) {
+        throw new Error('No response from server');
       }
+
       setImportResults(result);
       
       if (result.insertedCount > 0) {
@@ -155,19 +137,11 @@ const ProductImportSimple = () => {
 
     } catch (error: any) {
       console.error('Import failed:', error);
-      if (error.name === 'AbortError') {
-        toast({
-          title: "Import Timeout",
-          description: "Import took too long and was cancelled. Try with a smaller file.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Import Failed",
-          description: error.message || "An error occurred during import",
-          variant: "destructive",
-        });
-      }
+      toast({
+        title: "Import Failed",
+        description: error.message || "An error occurred during import",
+        variant: "destructive",
+      });
     } finally {
       setIsProcessing(false);
       setProgress(100);
