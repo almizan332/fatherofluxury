@@ -27,7 +27,16 @@ function validateRow(row: Record<string, string>, rowIndex: number) {
   }
   
   // First Image is only required if there are no Media Links either
-  if (!row['First Image']?.trim() && !row['Media Links']?.trim()) {
+  const hasFirstImage = row['First Image']?.trim();
+  const hasMediaLinks = row['Media Links']?.trim();
+  
+  console.log(`Row ${rowIndex + 1} validation:`, {
+    'First Image': hasFirstImage ? 'YES' : 'NO',
+    'Media Links': hasMediaLinks ? 'YES' : 'NO',
+    allKeys: Object.keys(row)
+  });
+  
+  if (!hasFirstImage && !hasMediaLinks) {
     errors.push(`Row ${rowIndex + 1}: At least one image (First Image or Media Links) is required`);
   }
   
@@ -184,9 +193,16 @@ serve(async (req) => {
           rowData['Category'] = value;
         } else if (trimmedHeader.toLowerCase().includes('description')) {
           rowData['Description'] = value;
-        } else if (trimmedHeader.toLowerCase().includes('first image') || trimmedHeader.toLowerCase().includes('image')) {
+        } else if (trimmedHeader.toLowerCase().includes('first image') || 
+                   trimmedHeader.toLowerCase().includes('first_image') ||
+                   trimmedHeader.toLowerCase() === 'image' ||
+                   trimmedHeader.toLowerCase() === 'thumbnail') {
           rowData['First Image'] = value;
-        } else if (trimmedHeader.toLowerCase().includes('media links') || trimmedHeader.toLowerCase().includes('media')) {
+        } else if (trimmedHeader.toLowerCase().includes('media links') || 
+                   trimmedHeader.toLowerCase().includes('media_links') ||
+                   trimmedHeader.toLowerCase().includes('medialinks') ||
+                   trimmedHeader.toLowerCase() === 'media' ||
+                   trimmedHeader.toLowerCase() === 'gallery') {
           rowData['Media Links'] = value;
         } else {
           rowData[trimmedHeader] = value;
