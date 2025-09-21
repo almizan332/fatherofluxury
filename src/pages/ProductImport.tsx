@@ -162,20 +162,17 @@ const ProductImport = () => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
 
-      const response = await fetch('/api/import-csv', {
-        method: 'POST',
+      const response = await supabase.functions.invoke('bulk-import-products', {
         body: formData,
-        signal: controller.signal,
       });
 
       clearTimeout(timeoutId);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Import failed');
+      if (response.error) {
+        throw new Error(response.error.message || 'Import failed');
       }
 
-      const result = await response.json();
+      const result = response.data;
       setImportResult({
         created: result.insertedCount || 0,
         updated: 0,

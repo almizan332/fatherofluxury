@@ -26,8 +26,9 @@ function validateRow(row: Record<string, string>, rowIndex: number) {
     errors.push(`Row ${rowIndex + 1}: Product Name is required`);
   }
   
-  if (!row['First Image']?.trim()) {
-    errors.push(`Row ${rowIndex + 1}: First Image is required`);
+  // First Image is only required if there are no Media Links either
+  if (!row['First Image']?.trim() && !row['Media Links']?.trim()) {
+    errors.push(`Row ${rowIndex + 1}: At least one image (First Image or Media Links) is required`);
   }
   
   return errors;
@@ -119,16 +120,33 @@ serve(async (req) => {
     console.log('Headers received:', headers);
     
     // More flexible header validation - check for key required headers
-    const requiredHeaders = ['Product Name', 'First Image'];
+    const requiredHeaders = ['Product Name'];
+    const imageHeaders = ['First Image', 'Media Links'];
+    
     const missingRequired = requiredHeaders.filter(req => 
       !headers.some(h => h.toLowerCase().includes(req.toLowerCase()))
+    );
+    
+    const hasImageHeader = imageHeaders.some(imgHeader => 
+      headers.some(h => h.toLowerCase().includes(imgHeader.toLowerCase()))
     );
     
     if (missingRequired.length > 0) {
       return new Response(JSON.stringify({ 
         error: `Missing required headers: ${missingRequired.join(', ')}`,
         receivedHeaders: headers,
-        hint: 'Headers should include: Product Name, First Image'
+        hint: 'Headers should include: Product Name and at least one of: First Image, Media Links'
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+    
+    if (!hasImageHeader) {
+      return new Response(JSON.stringify({ 
+        error: 'Missing image headers: At least one of First Image or Media Links is required',
+        receivedHeaders: headers,
+        hint: 'Headers should include at least one of: First Image, Media Links'
       }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -175,6 +193,7 @@ serve(async (req) => {
         }
       });
 
+      // Validate after header mapping
       const validationErrors = validateRow(rowData, i);
       if (validationErrors.length > 0) {
         result.errors.push(...validationErrors);
