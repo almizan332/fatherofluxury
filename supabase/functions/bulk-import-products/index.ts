@@ -30,11 +30,18 @@ function validateRow(row: Record<string, string>, rowIndex: number) {
   const hasFirstImage = row['First Image']?.trim();
   const hasMediaLinks = row['Media Links']?.trim();
   
-  console.log(`Row ${rowIndex + 1} validation:`, {
-    'First Image': hasFirstImage ? 'YES' : 'NO',
-    'Media Links': hasMediaLinks ? 'YES' : 'NO',
-    allKeys: Object.keys(row)
-  });
+  // Log detailed validation info for first few rows
+  if (rowIndex < 3) {
+    console.log(`Row ${rowIndex + 1} detailed validation:`, {
+      'First Image': hasFirstImage ? `YES (${hasFirstImage.substring(0, 100)}...)` : 'NO',
+      'Media Links': hasMediaLinks ? `YES (${hasMediaLinks.substring(0, 100)}...)` : 'NO',
+      allKeys: Object.keys(row),
+      allValues: Object.entries(row).reduce((acc, [key, value]) => {
+        acc[key] = value ? `${value.toString().substring(0, 50)}...` : 'EMPTY';
+        return acc;
+      }, {} as Record<string, string>)
+    });
+  }
   
   if (!hasFirstImage && !hasMediaLinks) {
     errors.push(`Row ${rowIndex + 1}: At least one image (First Image or Media Links) is required`);
@@ -128,9 +135,12 @@ serve(async (req) => {
     const headers = rows[0].map(h => h.trim().replace(/"/g, ''));
     console.log('Headers received:', headers);
     
+    // Log actual headers received for debugging
+    console.log('Actual CSV headers:', headers);
+    
     // More flexible header validation - check for key required headers
     const requiredHeaders = ['Product Name'];
-    const imageHeaders = ['First Image', 'Media Links'];
+    const imageHeaders = ['First Image', 'Media Links', 'image', 'media', 'thumbnail', 'gallery'];
     
     const missingRequired = requiredHeaders.filter(req => 
       !headers.some(h => h.toLowerCase().includes(req.toLowerCase()))
@@ -180,31 +190,44 @@ serve(async (req) => {
         const trimmedHeader = header.trim().replace(/"/g, '');
         let value = (row[index] || '').trim().replace(/"/g, '');
         
-        // Map similar headers to expected format
-        if (trimmedHeader.toLowerCase().includes('product name') || trimmedHeader.toLowerCase() === 'name') {
+        // Log first row mapping for debugging
+        if (i === 0) {
+          console.log(`Mapping header "${trimmedHeader}" with value "${value ? value.substring(0, 50) + '...' : 'EMPTY'}"`);
+        }
+        
+        // Map similar headers to expected format with more flexible matching
+        const lowerHeader = trimmedHeader.toLowerCase();
+        
+        if (lowerHeader.includes('product name') || lowerHeader.includes('name') || lowerHeader === 'product_name') {
           rowData['Product Name'] = value;
-        } else if (trimmedHeader.toLowerCase().includes('flylink')) {
+        } else if (lowerHeader.includes('flylink') || lowerHeader.includes('fly_link')) {
           rowData['FlyLink'] = value;
-        } else if (trimmedHeader.toLowerCase().includes('alibaba')) {
+        } else if (lowerHeader.includes('alibaba') || lowerHeader.includes('alibaba_url')) {
           rowData['Alibaba URL'] = value;
-        } else if (trimmedHeader.toLowerCase().includes('dhgate')) {
+        } else if (lowerHeader.includes('dhgate') || lowerHeader.includes('dhgate_url')) {
           rowData['DHgate URL'] = value;
-        } else if (trimmedHeader.toLowerCase().includes('category')) {
+        } else if (lowerHeader.includes('category')) {
           rowData['Category'] = value;
-        } else if (trimmedHeader.toLowerCase().includes('description')) {
+        } else if (lowerHeader.includes('description')) {
           rowData['Description'] = value;
-        } else if (trimmedHeader.toLowerCase().includes('first image') || 
-                   trimmedHeader.toLowerCase().includes('first_image') ||
-                   trimmedHeader.toLowerCase() === 'image' ||
-                   trimmedHeader.toLowerCase() === 'thumbnail') {
+        } else if (lowerHeader.includes('first image') || 
+                   lowerHeader.includes('first_image') ||
+                   lowerHeader.includes('firstimage') ||
+                   lowerHeader === 'image' ||
+                   lowerHeader === 'thumbnail' ||
+                   lowerHeader.includes('main_image') ||
+                   lowerHeader.includes('primary_image')) {
           rowData['First Image'] = value;
-        } else if (trimmedHeader.toLowerCase().includes('media links') || 
-                   trimmedHeader.toLowerCase().includes('media_links') ||
-                   trimmedHeader.toLowerCase().includes('medialinks') ||
-                   trimmedHeader.toLowerCase() === 'media' ||
-                   trimmedHeader.toLowerCase() === 'gallery') {
+        } else if (lowerHeader.includes('media links') || 
+                   lowerHeader.includes('media_links') ||
+                   lowerHeader.includes('medialinks') ||
+                   lowerHeader === 'media' ||
+                   lowerHeader === 'gallery' ||
+                   lowerHeader.includes('additional_images') ||
+                   lowerHeader.includes('extra_images')) {
           rowData['Media Links'] = value;
         } else {
+          // Keep original header name for any unmapped columns
           rowData[trimmedHeader] = value;
         }
       });
