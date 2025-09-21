@@ -26,28 +26,45 @@ function validateRow(row: Record<string, string>, rowIndex: number) {
     errors.push(`Row ${rowIndex + 1}: Product Name is required`);
   }
   
-  // First Image is only required if there are no Media Links either
+  // Check for images in multiple ways
   const hasFirstImage = row['First Image']?.trim();
   const hasMediaLinks = row['Media Links']?.trim();
   
+  // Also check if any field contains what looks like image URLs
+  const allFields = Object.entries(row);
+  const imageUrlFields = allFields.filter(([key, value]) => {
+    if (!value) return false;
+    const lowerKey = key.toLowerCase();
+    const hasImageKeyword = lowerKey.includes('image') || lowerKey.includes('media') || 
+                           lowerKey.includes('photo') || lowerKey.includes('picture') ||
+                           lowerKey.includes('thumbnail') || lowerKey.includes('gallery');
+    const hasImageUrl = value.includes('http') && 
+                       (value.includes('.jpg') || value.includes('.png') || 
+                        value.includes('.jpeg') || value.includes('.webp') ||
+                        value.includes('digitaloceanspaces.com'));
+    return hasImageKeyword || hasImageUrl;
+  });
+  
   // Log detailed validation info for first few rows
   if (rowIndex < 3) {
-    console.log(`Row ${rowIndex + 1} detailed validation:`, {
-      'First Image': hasFirstImage ? `YES (${hasFirstImage.substring(0, 100)}...)` : 'NO',
-      'Media Links': hasMediaLinks ? `YES (${hasMediaLinks.substring(0, 100)}...)` : 'NO',
-      allKeys: Object.keys(row),
-      allValues: Object.entries(row).reduce((acc, [key, value]) => {
-        acc[key] = value ? `${value.toString().substring(0, 50)}...` : 'EMPTY';
-        return acc;
-      }, {} as Record<string, string>)
-    });
+    console.log(`=== Row ${rowIndex + 1} Validation Debug ===`);
+    console.log('All columns:', Object.keys(row));
+    console.log('First Image field:', hasFirstImage ? 'HAS DATA' : 'EMPTY');
+    console.log('Media Links field:', hasMediaLinks ? 'HAS DATA' : 'EMPTY');
+    console.log('Image URL fields found:', imageUrlFields.map(([k, v]) => `${k}: ${v.substring(0, 50)}...`));
+    console.log('Sample data from row:', allFields.slice(0, 3).map(([k, v]) => `${k}: ${v ? v.substring(0, 30) + '...' : 'EMPTY'}`));
+    console.log('=====================================');
   }
   
-  if (!hasFirstImage && !hasMediaLinks) {
+  // Accept if we have First Image, Media Links, OR any field with image URLs
+  const hasAnyImage = hasFirstImage || hasMediaLinks || imageUrlFields.length > 0;
+  
+  if (!hasAnyImage) {
     errors.push(`Row ${rowIndex + 1}: At least one image (First Image or Media Links) is required`);
   }
   
   return errors;
+}
 }
 
 serve(async (req) => {
@@ -133,10 +150,13 @@ serve(async (req) => {
     }
 
     const headers = rows[0].map(h => h.trim().replace(/"/g, ''));
-    console.log('Headers received:', headers);
     
-    // Log actual headers received for debugging
-    console.log('Actual CSV headers:', headers);
+    // Enhanced logging for debugging
+    console.log('=== CSV IMPORT DEBUG START ===');
+    console.log('Total CSV headers found:', headers.length);
+    console.log('CSV headers:', headers);
+    console.log('First few data rows:', rows.slice(1, 4).map((row, i) => `Row ${i+1}: ${row.slice(0, 3)}`));
+    console.log('================================');
     
     // More flexible header validation - check for key required headers
     const requiredHeaders = ['Product Name'];
