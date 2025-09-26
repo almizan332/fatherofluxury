@@ -26,41 +26,21 @@ function validateRow(row: Record<string, string>, rowIndex: number) {
     errors.push(`Row ${rowIndex + 1}: Product Name is required`);
   }
   
-  // Check for images in multiple ways
+  // Check for First Image field specifically (matching template)
   const hasFirstImage = row['First Image']?.trim();
-  const hasMediaLinks = row['Media Links']?.trim();
-  
-  // Also check if any field contains what looks like image URLs
-  const allFields = Object.entries(row);
-  const imageUrlFields = allFields.filter(([key, value]) => {
-    if (!value) return false;
-    const lowerKey = key.toLowerCase();
-    const hasImageKeyword = lowerKey.includes('image') || lowerKey.includes('media') || 
-                           lowerKey.includes('photo') || lowerKey.includes('picture') ||
-                           lowerKey.includes('thumbnail') || lowerKey.includes('gallery');
-    const hasImageUrl = value.includes('http') && 
-                       (value.includes('.jpg') || value.includes('.png') || 
-                        value.includes('.jpeg') || value.includes('.webp') ||
-                        value.includes('digitaloceanspaces.com'));
-    return hasImageKeyword || hasImageUrl;
-  });
   
   // Log detailed validation info for first few rows
   if (rowIndex < 3) {
     console.log(`=== Row ${rowIndex + 1} Validation Debug ===`);
     console.log('All columns:', Object.keys(row));
-    console.log('First Image field:', hasFirstImage ? 'HAS DATA' : 'EMPTY');
-    console.log('Media Links field:', hasMediaLinks ? 'HAS DATA' : 'EMPTY');
-    console.log('Image URL fields found:', imageUrlFields.map(([k, v]) => `${k}: ${v.substring(0, 50)}...`));
-    console.log('Sample data from row:', allFields.slice(0, 3).map(([k, v]) => `${k}: ${v ? v.substring(0, 30) + '...' : 'EMPTY'}`));
+    console.log('Row data:', row);
+    console.log('First Image value:', hasFirstImage || 'EMPTY');
     console.log('=====================================');
   }
   
-  // Accept if we have First Image, Media Links, OR any field with image URLs
-  const hasAnyImage = hasFirstImage || hasMediaLinks || imageUrlFields.length > 0;
-  
-  if (!hasAnyImage) {
-    errors.push(`Row ${rowIndex + 1}: At least one image (First Image or Media Links) is required`);
+  // For template compatibility, just require First Image field to have a value
+  if (!hasFirstImage) {
+    errors.push(`Row ${rowIndex + 1}: First Image is required`);
   }
   
   return errors;
@@ -159,32 +139,32 @@ serve(async (req) => {
     
     // More flexible header validation - check for key required headers
     const requiredHeaders = ['Product Name'];
-    const imageHeaders = ['First Image', 'Media Links', 'image', 'media', 'thumbnail', 'gallery'];
+    const expectedHeaders = ['Product Name', 'FlyLink', 'Alibaba URL', 'DHgate URL', 'Category', 'Description', 'First Image', 'Media Links'];
     
     const missingRequired = requiredHeaders.filter(req => 
       !headers.some(h => h.toLowerCase().includes(req.toLowerCase()))
     );
     
-    const hasImageHeader = imageHeaders.some(imgHeader => 
-      headers.some(h => h.toLowerCase().includes(imgHeader.toLowerCase()))
-    );
+    const hasFirstImageHeader = headers.some(h => h.toLowerCase().includes('first image'));
     
     if (missingRequired.length > 0) {
       return new Response(JSON.stringify({ 
         error: `Missing required headers: ${missingRequired.join(', ')}`,
         receivedHeaders: headers,
-        hint: 'Headers should include: Product Name and at least one of: First Image, Media Links'
+        expectedHeaders: expectedHeaders,
+        hint: 'Please use the downloaded template format'
       }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
     
-    if (!hasImageHeader) {
+    if (!hasFirstImageHeader) {
       return new Response(JSON.stringify({ 
-        error: 'Missing image headers: At least one of First Image or Media Links is required',
+        error: 'Missing First Image header',
         receivedHeaders: headers,
-        hint: 'Headers should include at least one of: First Image, Media Links'
+        expectedHeaders: expectedHeaders,
+        hint: 'Please use the downloaded template format with First Image column'
       }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }

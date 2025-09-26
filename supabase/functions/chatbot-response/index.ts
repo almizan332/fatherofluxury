@@ -220,7 +220,7 @@ async function handleTextQuery(supabase: any, message: string) {
         .limit(3);
 
       if (!error && data && data.length > 0) {
-        const productList = data.map(product => 
+        const productList = data.map((product: any) => 
           `**${product.name}**\nPrice: Contact for pricing\nLink: https://alihiddenproduct.com/product/${product.id}`
         ).join('\n\n');
 
@@ -249,7 +249,7 @@ async function handleTextQuery(supabase: any, message: string) {
         .limit(5);
 
       if (!error && data && data.length > 0) {
-        const categoryList = data.map(cat => 
+        const categoryList = data.map((cat: any) => 
           `• ${cat.name} (${cat.product_count || 0} products)`
         ).join('\n');
 
