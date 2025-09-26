@@ -4,9 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { useToast } from '@/hooks/use-toast'
-import { ArrowLeft, Download, Upload, FileText } from 'lucide-react'
+import { ArrowLeft, Download, Upload, FileText, Settings } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { supabase } from '@/integrations/supabase/client'
+import { fixCsvFormat } from '@/utils/csvProcessor'
 
 interface ImportResult {
   totalRows: number
@@ -86,6 +87,43 @@ const ProductImportSimple = () => {
       description: 'Use this template to format your product data'
     })
   }
+
+  // Fix CSV format for multi-line issues
+  const fixCsvFile = async () => {
+    if (!file) {
+      toast({
+        title: "No File Selected",
+        description: "Please select a CSV file to fix",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const text = await file.text();
+      const correctedContent = fixCsvFormat(text);
+      
+      // Download the corrected file
+      const blob = new Blob([correctedContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'corrected-' + file.name;
+      link.click();
+      URL.revokeObjectURL(link.href);
+      
+      toast({
+        title: "CSV Fixed",
+        description: "Downloaded corrected CSV file. Use this file for import.",
+      });
+    } catch (error) {
+      console.error('CSV fix failed:', error);
+      toast({
+        title: "Fix Failed",
+        description: "Could not fix the CSV file format",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Perform import
   const performImport = async () => {
@@ -180,6 +218,12 @@ const ProductImportSimple = () => {
                 <Download className="h-4 w-4 mr-2" />
                 Download Template
               </Button>
+              {file && (
+                <Button variant="outline" onClick={fixCsvFile}>
+                  <Settings className="h-4 w-4 mr-2" />
+                  Fix CSV Format
+                </Button>
+              )}
               <div className="relative">
                 <input
                   type="file"

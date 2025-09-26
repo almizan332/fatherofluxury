@@ -82,50 +82,58 @@ serve(async (req) => {
     const text = await file.text();
     console.log('File content preview:', text.substring(0, 200));
     
-    const rows = text.split('\n').map(row => {
-      if (!row.trim()) return [];
+    // Enhanced CSV parsing to handle multi-line fields properly
+    const lines = text.split('\n');
+    const rows = [];
+    let currentRow = [];
+    let inQuotes = false;
+    let currentField = '';
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (!line.trim() && !inQuotes) continue;
       
-      // Handle both comma and tab delimited CSV, also handle mixed delimiters
-      let delimiter = ',';
-      if (row.includes('\t')) {
-        delimiter = '\t';
-      }
-      
-      // Handle cases where there might be mixed delimiters or special characters
-      const cells = [];
-      let inQuotes = false;
-      let currentCell = '';
-      
-      for (let i = 0; i < row.length; i++) {
-        const char = row[i];
+      for (let j = 0; j < line.length; j++) {
+        const char = line[j];
+        
         if (char === '"') {
-          inQuotes = !inQuotes;
-        } else if ((char === delimiter || char === ',' || char === '\t') && !inQuotes) {
-          cells.push(currentCell.trim().replace(/"/g, ''));
-          currentCell = '';
+          if (inQuotes && line[j + 1] === '"') {
+            // Escaped quote
+            currentField += '"';
+            j++; // Skip next quote
+          } else {
+            // Toggle quote state
+            inQuotes = !inQuotes;
+          }
+        } else if (char === ',' && !inQuotes) {
+          // End of field
+          currentRow.push(currentField.trim());
+          currentField = '';
         } else {
-          currentCell += char;
+          currentField += char;
         }
       }
-      cells.push(currentCell.trim().replace(/"/g, ''));
       
-      return cells.filter(cell => cell.length > 0);
-    }).filter(row => row.length > 0);
-    
-    if (rows.length === 0) {
-      return new Response(JSON.stringify({ error: 'Empty CSV file' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+      if (!inQuotes) {
+        // End of row
+        if (currentField || currentRow.length > 0) {
+          currentRow.push(currentField.trim());
+        }
+        if (currentRow.length > 0) {
+          rows.push([...currentRow]);
+        }
+        currentRow = [];
+        currentField = '';
+      } else {
+        // Multi-line field, add line break
+        currentField += '\n';
+      }
     }
-
-    if (rows.length === 0) {
-      return new Response(JSON.stringify({ 
-        error: 'Empty CSV file or no valid rows found' 
-      }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+    
+    // Handle last row if exists
+    if (currentRow.length > 0 || currentField) {
+      if (currentField) currentRow.push(currentField.trim());
+      if (currentRow.length > 0) rows.push(currentRow);
     }
 
     const headers = rows[0].map(h => h.trim().replace(/"/g, ''));
