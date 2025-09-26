@@ -65,7 +65,6 @@ function validateRow(row: Record<string, string>, rowIndex: number) {
   
   return errors;
 }
-}
 
 serve(async (req) => {
   console.log('Request received:', req.method, req.url);
