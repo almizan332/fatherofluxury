@@ -210,7 +210,28 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
 export const getAllMedia = (product: Product): MediaType[] => {
   const media: MediaType[] = [];
   
-  // Add preview image if available
+  // Add first image if available
+  if (product.first_image) {
+    const cleanUrl = sanitizeImageUrl(product.first_image);
+    console.log('Adding first image:', { original: product.first_image, clean: cleanUrl });
+    media.push({ 
+      type: 'image', 
+      url: cleanUrl
+    });
+  }
+  
+  // Add media links if available
+  if (product.media_links && Array.isArray(product.media_links)) {
+    product.media_links.forEach((url, index) => {
+      if (url) {
+        const cleanUrl = sanitizeImageUrl(url);
+        console.log(`Adding media link ${index}:`, { original: url, clean: cleanUrl });
+        media.push({ type: 'image', url: cleanUrl });
+      }
+    });
+  }
+  
+  // Add legacy preview image if available (for compatibility)
   if (product.preview_image) {
     const cleanUrl = sanitizeImageUrl(product.preview_image);
     console.log('Adding preview image:', { original: product.preview_image, clean: cleanUrl });
@@ -220,7 +241,7 @@ export const getAllMedia = (product: Product): MediaType[] => {
     });
   }
   
-  // Add gallery images if available
+  // Add legacy gallery images if available (for compatibility)
   if (product.gallery_images && Array.isArray(product.gallery_images)) {
     product.gallery_images.forEach((url, index) => {
       if (url) {
