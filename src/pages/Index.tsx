@@ -97,14 +97,14 @@ const [products, setProducts] = useState<Product[]>([]);
       const todayEnd = new Date(todayStart);
       todayEnd.setDate(todayEnd.getDate() + 1);
       
-      // Fetch today's blog posts count
-      const { count: todayPosts } = await supabase
-        .from('blog_posts')
+      // Fetch today's products count (changed from blog_posts to products)
+      const { count: todayProducts } = await supabase
+        .from('products')
         .select('*', { count: 'exact', head: true })
         .gte('created_at', todayStart.toISOString())
         .lt('created_at', todayEnd.toISOString());
       
-      setTodayPostsCount(todayPosts || 0);
+      setTodayPostsCount(todayProducts || 0);
       
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -143,7 +143,7 @@ const [products, setProducts] = useState<Product[]>([]);
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-blue-300">Today's Posts</p>
+                    <p className="text-sm font-medium text-blue-300">Today's Products</p>
                     <p className="text-2xl font-bold text-blue-400">
                       {statsLoading ? "..." : todayPostsCount}
                     </p>
