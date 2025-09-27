@@ -17,16 +17,6 @@ export default defineConfig(({ mode }) => ({
       }
     }
   },
-  build: {
-    rollupOptions: {
-      output: {
-        // Force new filenames on each build to bust cache
-        entryFileNames: `assets/[name]-[hash]-${Date.now()}.js`,
-        chunkFileNames: `assets/[name]-[hash]-${Date.now()}.js`,
-        assetFileNames: `assets/[name]-[hash]-${Date.now()}.[ext]`
-      }
-    }
-  },
   plugins: [
     react(),
     mode === 'development' &&

@@ -81,7 +81,7 @@ const ProductFormDialog = ({ product, categories, onSuccess, onClose }: ProductF
   };
 
   return (
-    <Dialog open onOpenChange={onClose}>
+    <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>{product?.id ? 'Edit Product' : 'Add Product'}</DialogTitle>
