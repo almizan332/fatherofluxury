@@ -277,16 +277,24 @@ const [products, setProducts] = useState<Product[]>([]);
                       <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer bg-gray-900/50 border-gray-800">
                         <CardContent className="p-0">
                            <div className="aspect-square relative">
-                             <img
-                              src={sanitizeImageUrl(product.first_image) || 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80'}
-                              alt={product.product_name || product.title}
-                              className="w-full h-full object-cover"
-                              loading="lazy"
-                              onError={(e) => {
-                                console.log('Homepage image failed to load:', product.first_image);
-                                // Set fallback image
-                                e.currentTarget.src = 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80';
-                              }}
+                              <img
+                               src={sanitizeImageUrl(product.first_image) || 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80'}
+                               alt={product.product_name || product.title}
+                               className="w-full h-full object-cover"
+                               loading="lazy"
+                               referrerPolicy="no-referrer"
+                               onError={(e) => {
+                                 console.error('Image failed to load - CORS issue:', {
+                                   originalSrc: e.currentTarget.src,
+                                   productName: product.product_name,
+                                   userAgent: navigator.userAgent,
+                                   hostname: window.location.hostname,
+                                   protocol: window.location.protocol,
+                                   origin: window.location.origin
+                                 });
+                                 // Set fallback image
+                                 e.currentTarget.src = 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80';
+                               }}
                               onLoad={() => {
                                 console.log('Homepage image loaded:', product.first_image);
                               }}

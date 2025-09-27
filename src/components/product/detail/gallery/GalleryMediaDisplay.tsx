@@ -104,6 +104,7 @@ export const GalleryMediaDisplay = ({
           src={sanitizedUrl}
           alt={`${productName} - View ${selectedIndex + 1}`}
           className="max-w-full max-h-full object-contain"
+          referrerPolicy="no-referrer"
           onError={(e) => {
             console.error('Image failed to load:', sanitizedUrl);
             console.error('Original URL:', media.url);
