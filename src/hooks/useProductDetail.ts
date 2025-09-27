@@ -92,17 +92,25 @@ export function useProductDetail(id: string | undefined) {
           setProduct(productData);
           
           // Fetch related products from the same category
+          console.log('Fetching related products for category:', productData.category);
           const { data: relatedData, error: relatedError } = await supabase
             .from('products')
             .select('*')
             .neq('id', productData.id)
+            .eq('category', productData.category)
             .limit(6);
 
-          if (relatedError) throw relatedError;
+          if (relatedError) {
+            console.error('Error fetching related products:', relatedError);
+            throw relatedError;
+          }
+          
           const typedRelated = (relatedData || []).map(product => ({
             ...product,
             status: product.status as 'draft' | 'published'
           }));
+          
+          console.log('Found related products:', typedRelated.length, typedRelated);
           setRelatedProducts(typedRelated);
         } else {
           console.log('Product not found after all lookups');
