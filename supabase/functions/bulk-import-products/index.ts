@@ -265,27 +265,20 @@ serve(async (req) => {
     };
 
     const dataRows = rows.slice(1).filter(row => row.some(cell => cell.trim()));
-    const batchSize = 50; // Process 50 products at a time
-    
-    for (let batchStart = 0; batchStart < dataRows.length; batchStart += batchSize) {
-      const batch = dataRows.slice(batchStart, Math.min(batchStart + batchSize, dataRows.length));
-      const batchProducts = [];
 
-      // Prepare batch data
-      for (let i = 0; i < batch.length; i++) {
-        const row = batch[i];
-        const rowData: Record<string, string> = {};
-        const actualRowIndex = batchStart + i;
+    for (let i = 0; i < dataRows.length; i++) {
+      const row = dataRows[i];
+      const rowData: Record<string, string> = {};
+      
+      // Map headers to expected format with flexible matching
+      headers.forEach((header, index) => {
+        const trimmedHeader = header.trim().replace(/"/g, '');
+        let value = (row[index] || '').trim().replace(/"/g, '');
         
-        // Map headers to expected format with flexible matching
-        headers.forEach((header, index) => {
-          const trimmedHeader = header.trim().replace(/"/g, '');
-          let value = (row[index] || '').trim().replace(/"/g, '');
-          
-          // Log first row mapping for debugging
-          if (batchStart === 0 && i === 0) {
-            console.log(`Mapping header "${trimmedHeader}" with value "${value ? value.substring(0, 50) + '...' : 'EMPTY'}"`);
-          }
+        // Log first row mapping for debugging
+        if (i === 0) {
+          console.log(`Mapping header "${trimmedHeader}" with value "${value ? value.substring(0, 50) + '...' : 'EMPTY'}"`);
+        }
         
         // Map similar headers to expected format with more flexible matching
         const lowerHeader = trimmedHeader.toLowerCase();
@@ -322,16 +315,17 @@ serve(async (req) => {
           // Keep original header name for any unmapped columns
           rowData[trimmedHeader] = value;
         }
-          });
+      });
 
-        // Validate after header mapping
-        const validationErrors = validateRow(rowData, actualRowIndex);
-        if (validationErrors.length > 0) {
-          result.errors.push(...validationErrors);
-          result.skippedCount++;
-          continue;
-        }
+      // Validate after header mapping
+      const validationErrors = validateRow(rowData, i);
+      if (validationErrors.length > 0) {
+        result.errors.push(...validationErrors);
+        result.skippedCount++;
+        continue;
+      }
 
+      try {
         const productData = {
           product_name: rowData['Product Name'] || '',
           flylink: toNull(rowData['FlyLink']),
@@ -346,45 +340,21 @@ serve(async (req) => {
           status: 'published'
         };
 
-        batchProducts.push(productData);
-      }
+        console.log(`Processing row ${i + 1}:`, productData);
 
-      // Insert batch to database
-      if (batchProducts.length > 0) {
-        try {
-          console.log(`Processing batch ${Math.floor(batchStart / batchSize) + 1}: ${batchProducts.length} products (rows ${batchStart + 1}-${batchStart + batchProducts.length})`);
-          
-          const { error } = await supabaseClient
-            .from('products')
-            .insert(batchProducts);
+        const { error } = await supabaseClient
+          .from('products')
+          .insert(productData);
 
-          if (error) {
-            // If batch insert fails, try individual inserts
-            console.log('Batch insert failed, trying individual inserts:', error.message);
-            for (let j = 0; j < batchProducts.length; j++) {
-              try {
-                const { error: individualError } = await supabaseClient
-                  .from('products')
-                  .insert(batchProducts[j]);
-                
-                if (individualError) {
-                  result.errors.push(`Row ${batchStart + j + 1}: ${individualError.message}`);
-                  result.skippedCount++;
-                } else {
-                  result.insertedCount++;
-                }
-              } catch (individualErrorCatch: any) {
-                result.errors.push(`Row ${batchStart + j + 1}: ${individualErrorCatch.message}`);
-                result.skippedCount++;
-              }
-            }
-          } else {
-            result.insertedCount += batchProducts.length;
-          }
-        } catch (batchError: any) {
-          result.errors.push(`Batch error: ${batchError.message}`);
-          result.skippedCount += batchProducts.length;
+        if (error) {
+          result.errors.push(`Row ${i + 1}: Database error - ${error.message}`);
+          result.skippedCount++;
+        } else {
+          result.insertedCount++;
         }
+      } catch (error: any) {
+        result.errors.push(`Row ${i + 1}: ${error.message || 'Unknown error'}`);
+        result.skippedCount++;
       }
     }
 

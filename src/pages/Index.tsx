@@ -216,32 +216,12 @@ const [products, setProducts] = useState<Product[]>([]);
                     >
                       <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer bg-gray-900/50 border-gray-800">
                         <CardContent className="p-0">
-                           <div className="aspect-square relative">
+                          <div className="aspect-square relative">
                              <img
-                              src={product.first_image || product.thumbnail || 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80'}
-                              alt={product.product_name || product.title}
+                              src={product.thumbnail || 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80'}
+                              alt={product.title}
                               className="w-full h-full object-cover"
                               loading="lazy"
-                              crossOrigin="anonymous"
-                              onError={(e) => {
-                                console.log('Image failed to load:', product.first_image || product.thumbnail);
-                                console.log('Error details:', e);
-                                // Try encoding the URL if it has special characters
-                                const originalSrc = product.first_image || product.thumbnail;
-                                if (originalSrc && originalSrc.includes(' ') || originalSrc?.includes('$')) {
-                                  const encodedUrl = originalSrc.replace(/\s+/g, '%20').replace(/\$/g, '%24');
-                                  if (e.currentTarget.src !== encodedUrl) {
-                                    console.log('Trying encoded URL:', encodedUrl);
-                                    e.currentTarget.src = encodedUrl;
-                                    return;
-                                  }
-                                }
-                                // Final fallback to placeholder
-                                e.currentTarget.src = 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80';
-                              }}
-                              onLoad={() => {
-                                console.log('Image loaded successfully:', product.first_image || product.thumbnail);
-                              }}
                             />
                           </div>
                           <div className="p-3">

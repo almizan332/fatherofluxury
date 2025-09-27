@@ -13,17 +13,14 @@ interface ProductCardProps {
 const ProductCard = ({ product, onDelete, showDeleteButton }: ProductCardProps) => {
   return (
     <Card className="p-4 space-y-2">
-      {(product.first_image || product.thumbnail) && (
+      {product.thumbnail && (
         <img 
-          src={product.first_image || product.thumbnail || ''} 
-          alt={product.product_name || product.title || 'Product image'} 
+          src={product.thumbnail} 
+          alt={product.title} 
           className="w-full h-32 object-cover rounded" 
-          onError={(e) => {
-            e.currentTarget.style.display = 'none';
-          }}
         />
       )}
-      <h3 className="font-medium text-sm truncate">{product.product_name || product.title}</h3>
+      <h3 className="font-medium text-sm truncate">{product.title}</h3>
       <p className="text-xs text-muted-foreground truncate">
         {product.description || "No description"}
       </p>
