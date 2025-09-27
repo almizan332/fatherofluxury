@@ -202,14 +202,14 @@ const ChatbotWidget = () => {
         settings.position === 'top-right' ? 'top-6 right-6' : 
         settings.position === 'top-left' ? 'top-6 left-6' : 
         'bottom-6 right-6'
-      } z-50 transition-all duration-300 ease-in-out`}>
+      } z-[9999] transition-all duration-300 ease-in-out`}>
         <Button
           onClick={() => setIsOpen(!isOpen)}
-          className="rounded-full w-14 h-14 shadow-lg hover:scale-105 transition-transform duration-200"
+          className="rounded-full w-16 h-16 shadow-2xl hover:scale-110 transition-all duration-200 ring-4 ring-white/20 animate-pulse hover:animate-none"
           style={{ backgroundColor: settings.theme_color }}
           size="icon"
         >
-          {isOpen ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
+          {isOpen ? <X className="h-7 w-7 text-white" /> : <MessageCircle className="h-7 w-7 text-white" />}
         </Button>
       </div>
 
