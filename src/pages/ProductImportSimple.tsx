@@ -156,6 +156,11 @@ const ProductImportSimple = () => {
         throw new Error('No response from server');
       }
 
+      // Check if the result contains an error
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
       setImportResults(result);
       
       if (result.insertedCount > 0) {

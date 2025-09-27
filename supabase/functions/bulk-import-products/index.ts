@@ -75,8 +75,14 @@ serve(async (req) => {
     const file = formData.get('file') as File;
 
     if (!file) {
-      return new Response(JSON.stringify({ error: 'No file provided' }), {
-        status: 400,
+      return new Response(JSON.stringify({ 
+        error: 'No file provided',
+        totalRows: 0,
+        insertedCount: 0,
+        skippedCount: 0,
+        errors: ['No file provided'] 
+      }), {
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
@@ -222,11 +228,15 @@ serve(async (req) => {
     if (missingRequired.length > 0) {
       return new Response(JSON.stringify({ 
         error: `Missing required headers: ${missingRequired.join(', ')}`,
+        totalRows: 0,
+        insertedCount: 0,
+        skippedCount: 0,
+        errors: [`Missing required headers: ${missingRequired.join(', ')}`],
         receivedHeaders: headers,
         expectedHeaders: expectedHeaders,
         hint: 'Please use the downloaded template format'
       }), {
-        status: 400,
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
@@ -234,11 +244,15 @@ serve(async (req) => {
     if (!hasFirstImageHeader) {
       return new Response(JSON.stringify({ 
         error: 'Missing First Image header',
+        totalRows: 0,
+        insertedCount: 0,
+        skippedCount: 0,
+        errors: ['Missing First Image header'],
         receivedHeaders: headers,
         expectedHeaders: expectedHeaders,
         hint: 'Please use the downloaded template format with First Image column'
       }), {
-        status: 400,
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
@@ -345,6 +359,7 @@ serve(async (req) => {
     }
 
     return new Response(JSON.stringify(result), {
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
 
@@ -355,9 +370,13 @@ serve(async (req) => {
     
     return new Response(JSON.stringify({ 
       error: errorMessage,
+      totalRows: 0,
+      insertedCount: 0,
+      skippedCount: 0,
+      errors: [errorMessage],
       details: 'Check function logs for more information'
     }), {
-      status: 500,
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
