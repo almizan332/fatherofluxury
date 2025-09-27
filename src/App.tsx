@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -31,85 +30,105 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <BrowserRouter>
-          <TooltipProvider>
-            <div className="min-h-screen w-full bg-background text-foreground antialiased">
-              <Toaster />
-              <Sonner />
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/categories" element={<Categories />} />
-                <Route path="/category/:category" element={<SubCategory />} />
-                <Route path="/blog" element={<Blog />} />
-                <Route path="/blog/:id" element={<BlogPost />} />
-                <Route path="/product/:id" element={<ProductDetail />} />
-                
-                {/* Auth routes */}
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                
-                {/* Legacy redirects */}
-                <Route path="/almizan" element={<Navigate to="/login" replace />} />
-                <Route path="/admin" element={<Navigate to="/login" replace />} />
-                
-                {/* Protected dashboard routes */}
-                <Route path="/dashboard" element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                } />
-                <Route path="/dashboard/categories" element={
-                  <ProtectedRoute>
-                    <ProductCategories />
-                  </ProtectedRoute>
-                } />
-                <Route path="/dashboard/products" element={
-                  <ProtectedRoute>
-                    <ProductList />
-                  </ProtectedRoute>
-                } />
-                <Route path="/dashboard/products/import" element={
-                  <ProtectedRoute>
-                    <ProductImportSimple />
-                  </ProtectedRoute>
-                } />
-                <Route path="/dashboard/blog-management" element={
-                  <ProtectedRoute>
-                    <BlogManagement />
-                  </ProtectedRoute>
-                } />
-                <Route path="/dashboard/blog-management/add-blog" element={
-                  <ProtectedRoute>
-                    <BlogPostFormPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/dashboard/blog-management/edit/:id" element={
-                  <ProtectedRoute>
-                    <BlogPostFormPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/dashboard/web-contents" element={
-                  <ProtectedRoute>
-                    <WebContentsManagement />
-                  </ProtectedRoute>
-                } />
-                <Route path="/dashboard/yupoo-upload" element={
-                  <ProtectedRoute>
-                    <YupooUpload />
-                  </ProtectedRoute>
-                } />
-                <Route path="/dashboard/chatbot" element={
-                  <ProtectedRoute>
-                    <ChatbotManagement />
-                  </ProtectedRoute>
-                } />
-              </Routes>
-            </div>
-          </TooltipProvider>
-        </BrowserRouter>
-      </AuthProvider>
+      <BrowserRouter>
+        <TooltipProvider>
+          <div className="min-h-screen w-full bg-background text-foreground antialiased">
+            <Toaster />
+            <Sonner />
+            <Routes>
+              {/* PUBLIC ROUTES - NO AUTH PROVIDER WRAPPER */}
+              <Route path="/" element={<Index />} />
+              <Route path="/categories" element={<Categories />} />
+              <Route path="/category/:category" element={<SubCategory />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:id" element={<BlogPost />} />
+              <Route path="/product/:id" element={<ProductDetail />} />
+              
+              {/* AUTH ROUTES - WITH AUTH PROVIDER WRAPPER */}
+              <Route path="/auth/*" element={
+                <AuthProvider>
+                  <Routes>
+                    <Route path="login" element={<LoginPage />} />
+                    <Route path="forgot-password" element={<ForgotPassword />} />
+                    <Route path="reset-password" element={<ResetPassword />} />
+                  </Routes>
+                </AuthProvider>
+              } />
+              
+              {/* ADMIN ROUTES - WITH AUTH PROVIDER + PROTECTED ROUTE */}
+              <Route path="/admin/*" element={
+                <AuthProvider>
+                  <Routes>
+                    <Route path="dashboard" element={
+                      <ProtectedRoute>
+                        <Dashboard />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="categories" element={
+                      <ProtectedRoute>
+                        <ProductCategories />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="products" element={
+                      <ProtectedRoute>
+                        <ProductList />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="blog-management" element={
+                      <ProtectedRoute>
+                        <BlogManagement />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="blog/new" element={
+                      <ProtectedRoute>
+                        <BlogPostFormPage />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="blog/edit/:id" element={
+                      <ProtectedRoute>
+                        <BlogPostFormPage />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="web-contents" element={
+                      <ProtectedRoute>
+                        <WebContentsManagement />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="yupoo-upload" element={
+                      <ProtectedRoute>
+                        <YupooUpload />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="chatbot" element={
+                      <ProtectedRoute>
+                        <ChatbotManagement />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="import" element={
+                      <ProtectedRoute>
+                        <ProductImportSimple />
+                      </ProtectedRoute>
+                    } />
+                  </Routes>
+                </AuthProvider>
+              } />
+              
+              {/* LEGACY REDIRECTS */}
+              <Route path="/login" element={<Navigate to="/auth/login" replace />} />
+              <Route path="/forgot-password" element={<Navigate to="/auth/forgot-password" replace />} />
+              <Route path="/reset-password" element={<Navigate to="/auth/reset-password" replace />} />
+              <Route path="/dashboard" element={<Navigate to="/admin/dashboard" replace />} />
+              <Route path="/product-categories" element={<Navigate to="/admin/categories" replace />} />
+              <Route path="/product-list" element={<Navigate to="/admin/products" replace />} />
+              <Route path="/blog-management" element={<Navigate to="/admin/blog-management" replace />} />
+              <Route path="/web-contents" element={<Navigate to="/admin/web-contents" replace />} />
+              <Route path="/yupoo-upload" element={<Navigate to="/admin/yupoo-upload" replace />} />
+              <Route path="/chatbot-management" element={<Navigate to="/admin/chatbot" replace />} />
+              <Route path="/product-import-simple" element={<Navigate to="/admin/import" replace />} />
+            </Routes>
+          </div>
+        </TooltipProvider>
+      </BrowserRouter>
     </QueryClientProvider>
   );
 }
