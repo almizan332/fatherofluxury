@@ -24,6 +24,31 @@ import ChatbotWidget from "@/components/ChatbotWidget";
 
 const ITEMS_PER_BATCH = 120;
 
+// Helper function to sanitize and handle image URLs
+const sanitizeImageUrl = (url: string): string => {
+  if (!url) return '';
+  
+  // Remove any quotes that might be in the URL
+  let cleanUrl = url.replace(/['"]/g, '').trim();
+  
+  // Handle DigitalOcean Spaces URLs - ensure proper encoding
+  if (cleanUrl.includes('digitaloceanspaces.com')) {
+    try {
+      // Don't re-encode if URL is already encoded
+      if (!cleanUrl.includes('%')) {
+        // Parse the URL to handle encoding properly
+        const urlObj = new URL(cleanUrl);
+        // Reconstruct with properly encoded pathname
+        cleanUrl = `${urlObj.protocol}//${urlObj.host}${encodeURI(urlObj.pathname)}${urlObj.search}${urlObj.hash}`;
+      }
+    } catch (error) {
+      console.log('URL parsing failed, using original:', cleanUrl);
+    }
+  }
+  
+  return cleanUrl;
+};
+
 const Index = () => {
 const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
@@ -216,12 +241,17 @@ const [products, setProducts] = useState<Product[]>([]);
                     >
                       <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer bg-gray-900/50 border-gray-800">
                         <CardContent className="p-0">
-                          <div className="aspect-square relative">
+                           <div className="aspect-square relative">
                              <img
-                              src={product.thumbnail || 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80'}
+                              src={product.thumbnail ? sanitizeImageUrl(product.thumbnail) : 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80'}
                               alt={product.title}
                               className="w-full h-full object-cover"
                               loading="lazy"
+                              referrerPolicy="no-referrer"
+                              onError={(e) => {
+                                console.error('Image failed to load:', product.thumbnail);
+                                e.currentTarget.src = 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80';
+                              }}
                             />
                           </div>
                           <div className="p-3">
