@@ -23,46 +23,66 @@ import { Product } from "@/types/product";
 import ChatbotWidget from "@/components/ChatbotWidget";
 import { getAnonymousClient } from "@/utils/supabaseAnonymous";
 
-// Utility function to sanitize image URLs
+// Enhanced utility function to sanitize image URLs for cross-browser compatibility
 const sanitizeImageUrl = (url: string): string => {
   if (!url) return '';
   
   // Remove any quotes and trim
   let cleanUrl = url.replace(/['"]/g, '').trim();
   
-  // Handle DigitalOcean Spaces URL encoding
+  // Ensure HTTPS for security (fix mixed content issues)
+  if (cleanUrl.startsWith('http://')) {
+    cleanUrl = cleanUrl.replace('http://', 'https://');
+  }
+  
+  // Handle DigitalOcean Spaces URL encoding issues
   if (cleanUrl.includes('digitaloceanspaces.com')) {
     try {
-      // Split URL into parts to handle mixed encoding states
-      const urlParts = cleanUrl.split('/');
-      const protocol = urlParts[0];
-      const domain = urlParts[2];
-      const pathParts = urlParts.slice(3);
+      // Create URL object to properly handle encoding
+      const urlObj = new URL(cleanUrl);
       
-      // Decode each path part if it's encoded, then properly encode it
-      const encodedParts = pathParts.map(part => {
-        if (!part) return part;
+      // Split path into segments for proper encoding
+      const pathSegments = urlObj.pathname.split('/').filter(segment => segment);
+      
+      // Properly encode each segment while preserving structure
+      const encodedSegments = pathSegments.map(segment => {
         try {
-          // First decode if it contains encoded characters
-          const decoded = part.includes('%') ? decodeURIComponent(part) : part;
-          // Then properly encode special characters
-          return encodeURIComponent(decoded).replace(/%2F/g, '/');
+          // First try to decode if already encoded, then re-encode properly
+          let decoded = segment;
+          if (segment.includes('%')) {
+            try {
+              decoded = decodeURIComponent(segment);
+            } catch (decodeError) {
+              // If decode fails, use original
+              decoded = segment;
+            }
+          }
+          
+          // Encode with proper URI encoding
+          return encodeURIComponent(decoded);
         } catch (e) {
-          // If decoding fails, just encode the original part
-          return encodeURIComponent(part).replace(/%2F/g, '/');
+          // Fallback to original segment if encoding fails
+          console.warn('Failed to encode URL segment:', segment, e);
+          return segment;
         }
       });
       
-      cleanUrl = `${protocol}//${domain}/${encodedParts.join('/')}`;
+      // Reconstruct the URL with properly encoded path
+      const reconstructedUrl = `${urlObj.protocol}//${urlObj.host}/${encodedSegments.join('/')}`;
+      
+      console.log('URL sanitization:', {
+        original: url,
+        reconstructed: reconstructedUrl,
+        hostname: window.location.hostname,
+        userAgent: navigator.userAgent.slice(0, 50)
+      });
+      
+      return reconstructedUrl;
+      
     } catch (e) {
-      console.log('URL encoding error:', e);
-      // Fallback: just encode the whole path part
-      try {
-        const urlObj = new URL(cleanUrl);
-        cleanUrl = `${urlObj.protocol}//${urlObj.host}${encodeURI(decodeURI(urlObj.pathname))}${urlObj.search}${urlObj.hash}`;
-      } catch (fallbackError) {
-        console.log('URL fallback encoding failed:', fallbackError);
-      }
+      console.error('URL sanitization failed:', e);
+      // Return original URL if all encoding attempts fail
+      return cleanUrl;
     }
   }
   
@@ -284,15 +304,39 @@ const [products, setProducts] = useState<Product[]>([]);
                                loading="lazy"
                                referrerPolicy="no-referrer"
                                onError={(e) => {
-                                 console.error('Image failed to load - CORS issue:', {
+                                 // Comprehensive error logging for debugging
+                                 const errorDetails = {
                                    originalSrc: e.currentTarget.src,
                                    productName: product.product_name,
                                    userAgent: navigator.userAgent,
                                    hostname: window.location.hostname,
                                    protocol: window.location.protocol,
-                                   origin: window.location.origin
-                                 });
-                                 // Set fallback image
+                                   origin: window.location.origin,
+                                   timestamp: new Date().toISOString(),
+                                   errorType: 'IMAGE_LOAD_FAILED',
+                                   // Check if it's likely a CORS issue
+                                   likelyCORS: e.currentTarget.src.includes('digitaloceanspaces.com'),
+                                   // Check if URL looks malformed
+                                   suspiciousChars: /[^\w\-._~:/?#[\]@!$&'()*+,;=%]/.test(e.currentTarget.src)
+                                 };
+                                 
+                                 console.error('🚨 Image Load Error - Cross-browser issue detected:', errorDetails);
+                                 
+                                 // Try alternative loading strategy first
+                                 if (!e.currentTarget.dataset.retried && product.first_image) {
+                                   e.currentTarget.dataset.retried = 'true';
+                                   // Try with different approach - construct a clean URL manually
+                                   const cleanUrl = product.first_image.split('/').map(part => 
+                                     encodeURIComponent(decodeURIComponent(part.replace(/['"]/g, '')))
+                                   ).join('/').replace(/%3A/g, ':').replace(/%2F/g, '/');
+                                   
+                                   console.log('🔄 Retrying with cleaned URL:', cleanUrl);
+                                   e.currentTarget.src = cleanUrl;
+                                   return;
+                                 }
+                                 
+                                 // Final fallback to placeholder
+                                 console.log('🎨 Using fallback placeholder image');
                                  e.currentTarget.src = 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80';
                                }}
                               onLoad={() => {

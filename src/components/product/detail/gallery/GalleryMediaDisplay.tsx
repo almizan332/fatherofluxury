@@ -10,45 +10,59 @@ interface GalleryMediaDisplayProps {
   handleZoom: () => void;
 }
 
-// Helper function to sanitize and handle image URLs
+// Enhanced helper function to sanitize and handle image URLs for cross-browser compatibility
 const sanitizeImageUrl = (url: string): string => {
   if (!url) return '';
   
   // Remove any quotes that might be in the URL
   let cleanUrl = url.replace(/['"]/g, '').trim();
   
+  // Ensure HTTPS for security
+  if (cleanUrl.startsWith('http://')) {
+    cleanUrl = cleanUrl.replace('http://', 'https://');
+  }
+  
   // Handle DigitalOcean Spaces URLs - ensure proper encoding
   if (cleanUrl.includes('digitaloceanspaces.com')) {
     try {
-      // Split URL into parts to handle mixed encoding states
-      const urlParts = cleanUrl.split('/');
-      const protocol = urlParts[0];
-      const domain = urlParts[2];
-      const pathParts = urlParts.slice(3);
+      // Use URL constructor for proper parsing
+      const urlObj = new URL(cleanUrl);
       
-      // Decode each path part if it's encoded, then properly encode it
-      const encodedParts = pathParts.map(part => {
-        if (!part) return part;
+      // Split path into segments for proper encoding
+      const pathSegments = urlObj.pathname.split('/').filter(segment => segment);
+      
+      // Properly encode each segment while preserving structure
+      const encodedSegments = pathSegments.map(segment => {
         try {
-          // First decode if it contains encoded characters
-          const decoded = part.includes('%') ? decodeURIComponent(part) : part;
-          // Then properly encode special characters
-          return encodeURIComponent(decoded).replace(/%2F/g, '/');
+          // First try to decode if already encoded, then re-encode properly
+          let decoded = segment;
+          if (segment.includes('%')) {
+            try {
+              decoded = decodeURIComponent(segment);
+            } catch (decodeError) {
+              decoded = segment;
+            }
+          }
+          
+          // Encode with proper URI encoding
+          return encodeURIComponent(decoded);
         } catch (e) {
-          // If decoding fails, just encode the original part
-          return encodeURIComponent(part).replace(/%2F/g, '/');
+          console.warn('Failed to encode URL segment:', segment, e);
+          return segment;
         }
       });
       
-      cleanUrl = `${protocol}//${domain}/${encodedParts.join('/')}`;
+      // Reconstruct the URL with properly encoded path
+      cleanUrl = `${urlObj.protocol}//${urlObj.host}/${encodedSegments.join('/')}`;
+      
     } catch (e) {
-      console.log('URL encoding error:', e);
-      // Fallback: just encode the whole path part
+      console.error('URL encoding error:', e);
+      // Fallback: try simpler approach
       try {
         const urlObj = new URL(cleanUrl);
         cleanUrl = `${urlObj.protocol}//${urlObj.host}${encodeURI(decodeURI(urlObj.pathname))}${urlObj.search}${urlObj.hash}`;
       } catch (fallbackError) {
-        console.log('URL fallback encoding failed:', fallbackError);
+        console.error('URL fallback encoding failed:', fallbackError);
       }
     }
   }
