@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Product } from "@/types/product";
+import { getAnonymousClient } from "@/utils/supabaseAnonymous";
 
 const isUUID = (str: string) => {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -26,20 +27,9 @@ export function useProductDetail(id: string | undefined) {
         setError(null);
         let productData = null;
 
-        // Create anonymous client for public access
-        console.log('Creating anonymous client for product detail...');
-        const { createClient } = await import('@supabase/supabase-js');
-        const anonClient = createClient(
-          'https://zsptshspjdzvhgjmnjtl.supabase.co',
-          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcHRzaHNwamR6dmhnam1uanRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkyMjcwNDYsImV4cCI6MjA1NDgwMzA0Nn0.Esrr86sLCB_938MG4l-cz9GGCBrmNeB3uAFpdaw3Cmg',
-          {
-            auth: {
-              persistSession: false,
-              autoRefreshToken: false,
-              detectSessionInUrl: false
-            }
-          }
-        );
+        // Use single anonymous client instance
+        console.log('Using single anonymous client for product detail...');
+        const anonClient = getAnonymousClient();
 
         // First try UUID lookup
         if (isUUID(id!)) {

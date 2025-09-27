@@ -21,6 +21,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Product } from "@/types/product";
 import ChatbotWidget from "@/components/ChatbotWidget";
+import { getAnonymousClient } from "@/utils/supabaseAnonymous";
 
 // Utility function to sanitize image URLs
 const sanitizeImageUrl = (url: string): string => {
@@ -91,19 +92,8 @@ const [products, setProducts] = useState<Product[]>([]);
       setLoading(true);
       console.log('Fetching products for anonymous access...');
       
-      // Create a fresh client instance for anonymous access
-      const { createClient } = await import('@supabase/supabase-js');
-      const anonClient = createClient(
-        'https://zsptshspjdzvhgjmnjtl.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcHRzaHNwamR6dmhnam1uanRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkyMjcwNDYsImV4cCI6MjA1NDgwMzA0Nn0.Esrr86sLCB_938MG4l-cz9GGCBrmNeB3uAFpdaw3Cmg',
-        {
-          auth: {
-            persistSession: false,
-            autoRefreshToken: false,
-            detectSessionInUrl: false
-          }
-        }
-      );
+      // Use single anonymous client instance
+      const anonClient = getAnonymousClient();
       
       // First get the total count
       const { count } = await anonClient
@@ -157,19 +147,8 @@ const [products, setProducts] = useState<Product[]>([]);
       setStatsLoading(true);
       console.log('Fetching stats for anonymous access...');
       
-      // Create a fresh client for stats
-      const { createClient } = await import('@supabase/supabase-js');
-      const anonClient = createClient(
-        'https://zsptshspjdzvhgjmnjtl.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcHRzaHNwamR6dmhnam1uanRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkyMjcwNDYsImV4cCI6MjA1NDgwMzA0Nn0.Esrr86sLCB_938MG4l-cz9GGCBrmNeB3uAFpdaw3Cmg',
-        {
-          auth: {
-            persistSession: false,
-            autoRefreshToken: false,
-            detectSessionInUrl: false
-          }
-        }
-      );
+      // Use single anonymous client instance
+      const anonClient = getAnonymousClient();
       
       // Get today's date in YYYY-MM-DD format
       const today = new Date();
