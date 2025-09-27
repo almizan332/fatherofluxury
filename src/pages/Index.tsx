@@ -22,6 +22,27 @@ import { supabase } from "@/integrations/supabase/client";
 import { Product } from "@/types/product";
 import ChatbotWidget from "@/components/ChatbotWidget";
 
+// Utility function to sanitize image URLs
+const sanitizeImageUrl = (url: string): string => {
+  if (!url) return '';
+  
+  // Remove any quotes and trim
+  let cleanUrl = url.replace(/['"]/g, '').trim();
+  
+  // Handle DigitalOcean Spaces URL encoding
+  if (cleanUrl.includes('digitaloceanspaces.com')) {
+    // Decode and re-encode properly
+    try {
+      cleanUrl = decodeURIComponent(cleanUrl);
+      cleanUrl = encodeURI(cleanUrl);
+    } catch (e) {
+      console.log('URL encoding error:', e);
+    }
+  }
+  
+  return cleanUrl;
+};
+
 const ITEMS_PER_BATCH = 120;
 
 const Index = () => {
@@ -68,12 +89,12 @@ const [products, setProducts] = useState<Product[]>([]);
           ...product,
           // Map new fields to legacy fields for compatibility
           title: product.product_name,
-          thumbnail: product.first_image,
           name: product.product_name,
           status: 'published' as const
         }));
         setProducts(typedProducts);
         console.log(`Homepage loaded page ${page}: ${data.length} products of ${count} total`);
+        console.log('First product image URL:', data[0]?.first_image);
       }
     } catch (error: any) {
       console.error('Error fetching products:', error);
@@ -218,32 +239,20 @@ const [products, setProducts] = useState<Product[]>([]);
                         <CardContent className="p-0">
                            <div className="aspect-square relative">
                              <img
-                              src={product.first_image || product.thumbnail || 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80'}
+                              src={sanitizeImageUrl(product.first_image) || 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80'}
                               alt={product.product_name || product.title}
                               className="w-full h-full object-cover"
                               loading="lazy"
-                              crossOrigin="anonymous"
                               onError={(e) => {
-                                console.log('Image failed to load:', product.first_image || product.thumbnail);
-                                console.log('Error details:', e);
-                                // Try encoding the URL if it has special characters
-                                const originalSrc = product.first_image || product.thumbnail;
-                                if (originalSrc && originalSrc.includes(' ') || originalSrc?.includes('$')) {
-                                  const encodedUrl = originalSrc.replace(/\s+/g, '%20').replace(/\$/g, '%24');
-                                  if (e.currentTarget.src !== encodedUrl) {
-                                    console.log('Trying encoded URL:', encodedUrl);
-                                    e.currentTarget.src = encodedUrl;
-                                    return;
-                                  }
-                                }
-                                // Final fallback to placeholder
+                                console.log('Homepage image failed to load:', product.first_image);
+                                // Set fallback image
                                 e.currentTarget.src = 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80';
                               }}
                               onLoad={() => {
-                                console.log('Image loaded successfully:', product.first_image || product.thumbnail);
+                                console.log('Homepage image loaded:', product.first_image);
                               }}
                             />
-                          </div>
+                           </div>
                           <div className="p-3">
                              <h3 className="text-sm font-medium text-gray-200 line-clamp-2">{product.title}</h3>
                              <div className="flex justify-between items-center mt-2">
