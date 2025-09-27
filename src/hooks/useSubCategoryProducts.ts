@@ -17,41 +17,40 @@ export const useSubCategoryProducts = (category: string | undefined) => {
   const fetchProducts = async (page: number) => {
     try {
       setLoading(true);
-      const { data: categoryData, error: categoryError } = await supabase
-        .from('categories')
-        .select('id')
-        .ilike('name', decodeURIComponent(category || ''))
-        .single();
+      const categoryName = decodeURIComponent(category || '');
+      
+      // Get total count for products in this category
+      const { count } = await supabase
+        .from('products')
+        .select('*', { count: 'exact', head: true })
+        .eq('category', categoryName);
+      
+      setTotalCount(count || 0);
 
-      if (categoryError) throw categoryError;
+      // Calculate pagination range
+      const startRange = (page - 1) * ITEMS_PER_PAGE;
+      const endRange = startRange + ITEMS_PER_PAGE - 1;
 
-      if (categoryData) {
-        // Get total count
-        const { count } = await supabase
-          .from('products')
-          .select('*', { count: 'exact', head: true });
-        
-        setTotalCount(count || 0);
+      // Fetch products for current page filtered by category
+      const { data: productsData, error: productsError } = await supabase
+        .from('products')
+        .select('*')
+        .eq('category', categoryName)
+        .order('created_at', { ascending: true })
+        .range(startRange, endRange);
 
-        // Calculate pagination range
-        const startRange = (page - 1) * ITEMS_PER_PAGE;
-        const endRange = startRange + ITEMS_PER_PAGE - 1;
-
-        // Fetch products for current page
-        const { data: productsData, error: productsError } = await supabase
-          .from('products')
-          .select('*')
-          .order('created_at', { ascending: true })
-          .range(startRange, endRange);
-
-        if (productsError) throw productsError;
-        const typedProducts = (productsData || []).map(product => ({
-          ...product,
-          status: product.status as 'draft' | 'published'
-        }));
-        setProducts(typedProducts);
-        console.log(`Category ${category} loaded page ${page}: ${productsData?.length} products of ${count} total`);
-      }
+      if (productsError) throw productsError;
+      
+      const typedProducts = (productsData || []).map(product => ({
+        ...product,
+        // Legacy compatibility fields
+        name: product.product_name || product.title,
+        preview_image: product.first_image || product.thumbnail,
+        status: product.status as 'draft' | 'published'
+      }));
+      
+      setProducts(typedProducts);
+      console.log(`Category ${categoryName} loaded page ${page}: ${productsData?.length} products of ${count} total`);
     } catch (error) {
       console.error('Error fetching products:', error);
       toast({
