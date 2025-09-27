@@ -64,8 +64,24 @@ const [products, setProducts] = useState<Product[]>([]);
   const fetchProducts = async (page: number) => {
     try {
       setLoading(true);
+      console.log('Fetching products for anonymous access...');
+      
+      // Create a fresh client instance for anonymous access
+      const { createClient } = await import('@supabase/supabase-js');
+      const anonClient = createClient(
+        'https://zsptshspjdzvhgjmnjtl.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcHRzaHNwamR6dmhnam1uanRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkyMjcwNDYsImV4cCI6MjA1NDgwMzA0Nn0.Esrr86sLCB_938MG4l-cz9GGCBrmNeB3uAFpdaw3Cmg',
+        {
+          auth: {
+            persistSession: false,
+            autoRefreshToken: false,
+            detectSessionInUrl: false
+          }
+        }
+      );
+      
       // First get the total count
-      const { count } = await supabase
+      const { count } = await anonClient
         .from('products')
         .select('*', { count: 'exact', head: true });
       
@@ -76,13 +92,16 @@ const [products, setProducts] = useState<Product[]>([]);
       const endRange = startRange + ITEMS_PER_BATCH - 1;
       
       // Fetch products for current page
-      const { data, error } = await supabase
+      const { data, error } = await anonClient
         .from('products')
         .select('*')
         .order('created_at', { ascending: false })
         .range(startRange, endRange);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Anonymous fetch error:', error);
+        throw error;
+      }
 
       if (data) {
         const typedProducts = data.map(product => ({
@@ -93,7 +112,7 @@ const [products, setProducts] = useState<Product[]>([]);
           status: 'published' as const
         }));
         setProducts(typedProducts);
-        console.log(`Homepage loaded page ${page}: ${data.length} products of ${count} total`);
+        console.log(`Anonymous access: loaded ${data.length} products of ${count} total`);
         console.log('First product image URL:', data[0]?.first_image);
       }
     } catch (error: any) {
@@ -111,6 +130,21 @@ const [products, setProducts] = useState<Product[]>([]);
   const fetchStats = async () => {
     try {
       setStatsLoading(true);
+      console.log('Fetching stats for anonymous access...');
+      
+      // Create a fresh client for stats
+      const { createClient } = await import('@supabase/supabase-js');
+      const anonClient = createClient(
+        'https://zsptshspjdzvhgjmnjtl.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcHRzaHNwamR6dmhnam1uanRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkyMjcwNDYsImV4cCI6MjA1NDgwMzA0Nn0.Esrr86sLCB_938MG4l-cz9GGCBrmNeB3uAFpdaw3Cmg',
+        {
+          auth: {
+            persistSession: false,
+            autoRefreshToken: false,
+            detectSessionInUrl: false
+          }
+        }
+      );
       
       // Get today's date in YYYY-MM-DD format
       const today = new Date();
@@ -118,14 +152,15 @@ const [products, setProducts] = useState<Product[]>([]);
       const todayEnd = new Date(todayStart);
       todayEnd.setDate(todayEnd.getDate() + 1);
       
-      // Fetch today's products count (changed from blog_posts to products)
-      const { count: todayProducts } = await supabase
+      // Fetch today's products count
+      const { count: todayProducts } = await anonClient
         .from('products')
         .select('*', { count: 'exact', head: true })
         .gte('created_at', todayStart.toISOString())
         .lt('created_at', todayEnd.toISOString());
       
       setTodayPostsCount(todayProducts || 0);
+      console.log('Anonymous stats loaded: today products =', todayProducts);
       
     } catch (error) {
       console.error('Error fetching stats:', error);
