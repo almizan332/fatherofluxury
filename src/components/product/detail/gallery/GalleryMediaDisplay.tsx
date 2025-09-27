@@ -17,18 +17,18 @@ const sanitizeImageUrl = (url: string): string => {
   // Remove any quotes that might be in the URL
   let cleanUrl = url.replace(/['"]/g, '').trim();
   
-  // Handle DigitalOcean Spaces URLs - ensure proper encoding
+  // Fix DigitalOcean Spaces URL format - remove incorrect .com subdomain
   if (cleanUrl.includes('digitaloceanspaces.com')) {
+    // Fix incorrect URL format: fatherofluxury.com.sgp1.digitaloceanspaces.com -> fatherofluxury.sgp1.digitaloceanspaces.com
+    cleanUrl = cleanUrl.replace(/([^.]+)\.com\.([^.]+\.digitaloceanspaces\.com)/, '$1.$2');
+    
     try {
-      // Don't re-encode if URL is already encoded
-      if (!cleanUrl.includes('%')) {
-        // Parse the URL to handle encoding properly
-        const urlObj = new URL(cleanUrl);
-        // Reconstruct with properly encoded pathname
-        cleanUrl = `${urlObj.protocol}//${urlObj.host}${encodeURI(urlObj.pathname)}${urlObj.search}${urlObj.hash}`;
-      }
+      // Ensure proper URL encoding for special characters
+      const urlObj = new URL(cleanUrl);
+      // Reconstruct with properly encoded pathname
+      cleanUrl = `${urlObj.protocol}//${urlObj.host}${encodeURI(urlObj.pathname)}${urlObj.search}${urlObj.hash}`;
     } catch (error) {
-      console.log('URL parsing failed, using original:', cleanUrl);
+      console.log('URL parsing failed, using cleaned URL:', cleanUrl);
     }
   }
   
