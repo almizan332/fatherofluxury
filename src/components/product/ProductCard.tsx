@@ -38,15 +38,15 @@ interface ProductCardProps {
 const ProductCard = ({ product, onDelete, showDeleteButton }: ProductCardProps) => {
   return (
     <Card className="p-4 space-y-2">
-      {product.thumbnail && (
+      {(product.first_image || product.thumbnail) && (
         <img 
-          src={sanitizeImageUrl(product.thumbnail)} 
+          src={sanitizeImageUrl(product.first_image || product.thumbnail)} 
           alt={product.title} 
           className="w-full h-32 object-cover rounded"
           referrerPolicy="no-referrer"
           crossOrigin="anonymous"
           onError={(e) => {
-            console.error('ProductCard image failed to load:', product.thumbnail);
+            console.error('ProductCard image failed to load:', product.first_image || product.thumbnail);
             e.currentTarget.src = 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80';
           }}
         />

@@ -242,17 +242,18 @@ const [products, setProducts] = useState<Product[]>([]);
                       <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer bg-gray-900/50 border-gray-800">
                         <CardContent className="p-0">
                            <div className="aspect-square relative">
-                             <img
-                              src={product.thumbnail ? sanitizeImageUrl(product.thumbnail) : 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80'}
-                              alt={product.title}
-                              className="w-full h-full object-cover"
-                              loading="lazy"
-                              referrerPolicy="no-referrer"
-                              onError={(e) => {
-                                console.error('Image failed to load:', product.thumbnail);
-                                e.currentTarget.src = 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80';
-                              }}
-                            />
+                            <img
+                               src={sanitizeImageUrl(product.first_image || product.thumbnail || 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80')}
+                               alt={product.title}
+                               className="w-full h-full object-cover"
+                               loading="lazy"
+                               referrerPolicy="no-referrer"
+                               crossOrigin="anonymous"
+                               onError={(e) => {
+                                 console.error('Image failed to load:', product.first_image || product.thumbnail);
+                                 e.currentTarget.src = 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80';
+                               }}
+                             />
                           </div>
                           <div className="p-3">
                              <h3 className="text-sm font-medium text-gray-200 line-clamp-2">{product.title}</h3>
