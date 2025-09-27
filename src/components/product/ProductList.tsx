@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Category } from "@/components/category/types";
 import { Product } from "@/types/product";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabaseClient";
 import ProductFormDialog from "./ProductFormDialog";
 import ProductListHeader from "./list/ProductListHeader";
 import ProductListTable from "./list/ProductListTable";
