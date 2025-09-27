@@ -8,8 +8,10 @@ const corsHeaders = {
 
 function parseMediaLinks(input: string) {
   if (!input?.trim()) return null;
+  // Handle both semicolon and comma separated links
+  const separator = input.includes(';') ? ';' : ',';
   return input
-    .split(';')
+    .split(separator)
     .map(url => url.trim())
     .filter(url => url.length > 0);
 }
@@ -82,58 +84,120 @@ serve(async (req) => {
     const text = await file.text();
     console.log('File content preview:', text.substring(0, 200));
     
-    // Enhanced CSV parsing to handle multi-line fields properly
+    // Special parsing for the specific CSV format with multi-line descriptions
     const lines = text.split('\n');
     const rows = [];
-    let currentRow = [];
-    let inQuotes = false;
-    let currentField = '';
     
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      if (!line.trim() && !inQuotes) continue;
+    // Add header row
+    if (lines.length > 0) {
+      const headerLine = lines[0];
+      const headers = headerLine.split(',').map(h => h.trim().replace(/"/g, ''));
+      rows.push(headers);
+    }
+    
+    let i = 1; // Skip header
+    while (i < lines.length) {
+      const line = lines[i].trim();
+      if (!line) {
+        i++;
+        continue;
+      }
+      
+      // Parse the main product line
+      const fields = [];
+      let currentField = '';
+      let inQuotes = false;
+      let fieldIndex = 0;
       
       for (let j = 0; j < line.length; j++) {
         const char = line[j];
         
         if (char === '"') {
-          if (inQuotes && line[j + 1] === '"') {
-            // Escaped quote
-            currentField += '"';
-            j++; // Skip next quote
-          } else {
-            // Toggle quote state
-            inQuotes = !inQuotes;
+          inQuotes = !inQuotes;
+          if (inQuotes && fieldIndex === 5) {
+            // Starting description field - we'll handle multi-line
+            currentField = '';
           }
         } else if (char === ',' && !inQuotes) {
-          // End of field
-          currentRow.push(currentField.trim());
+          fields.push(currentField.trim());
           currentField = '';
+          fieldIndex++;
         } else {
           currentField += char;
         }
       }
       
-      if (!inQuotes) {
-        // End of row
-        if (currentField || currentRow.length > 0) {
-          currentRow.push(currentField.trim());
+      // If we're in quotes at end of line, it means description continues
+      if (inQuotes && fieldIndex === 5) {
+        // Collect multi-line description
+        let description = currentField;
+        i++;
+        
+        while (i < lines.length) {
+          const nextLine = lines[i].trim();
+          if (!nextLine) {
+            description += '\n';
+            i++;
+            continue;
+          }
+          
+          // Check if this line contains the image URL (digitaloceanspaces.com)
+          if (nextLine.includes('digitaloceanspaces.com')) {
+            // This line contains the image and media links
+            // Find where the description ends (look for closing quote before the URL)
+            const parts = nextLine.split(',');
+            let descriptionEnd = '';
+            let imageStart = 0;
+            
+            for (let p = 0; p < parts.length; p++) {
+              if (parts[p].includes('digitaloceanspaces.com')) {
+                imageStart = p;
+                break;
+              } else {
+                if (descriptionEnd) descriptionEnd += ',';
+                descriptionEnd += parts[p];
+              }
+            }
+            
+            // Clean up description end
+            descriptionEnd = descriptionEnd.replace(/["]/g, '').trim();
+            if (descriptionEnd) {
+              description += '\n' + descriptionEnd;
+            }
+            
+            // Add description to fields
+            fields.push(description.trim());
+            
+            // Add first image
+            const firstImage = parts[imageStart] ? parts[imageStart].trim() : '';
+            fields.push(firstImage);
+            
+            // Add media links (semicolon separated)
+            const mediaLinks = parts.slice(imageStart + 1).join(',');
+            fields.push(mediaLinks);
+            
+            break;
+          } else {
+            // Continue building description
+            description += '\n' + nextLine;
+            i++;
+          }
         }
-        if (currentRow.length > 0) {
-          rows.push([...currentRow]);
-        }
-        currentRow = [];
-        currentField = '';
       } else {
-        // Multi-line field, add line break
-        currentField += '\n';
+        // Regular single-line processing
+        fields.push(currentField.trim());
       }
-    }
-    
-    // Handle last row if exists
-    if (currentRow.length > 0 || currentField) {
-      if (currentField) currentRow.push(currentField.trim());
-      if (currentRow.length > 0) rows.push(currentRow);
+      
+      // Make sure we have 8 fields
+      while (fields.length < 8) {
+        fields.push('');
+      }
+      
+      if (fields.length > 0 && fields[0]) {
+        rows.push(fields);
+      }
+      
+      i++;
     }
 
     const headers = rows[0].map(h => h.trim().replace(/"/g, ''));
