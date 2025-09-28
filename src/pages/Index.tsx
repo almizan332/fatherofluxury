@@ -21,33 +21,75 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Product } from "@/types/product";
 import ChatbotWidget from "@/components/ChatbotWidget";
+import { getAnonymousClient } from "@/utils/supabaseAnonymous";
 
-const ITEMS_PER_BATCH = 120;
-
-// Helper function to sanitize and handle image URLs
+// Enhanced utility function to sanitize image URLs for cross-browser compatibility
 const sanitizeImageUrl = (url: string): string => {
   if (!url) return '';
   
-  // Remove any quotes that might be in the URL
+  // Remove any quotes and trim
   let cleanUrl = url.replace(/['"]/g, '').trim();
   
-  // Handle DigitalOcean Spaces URLs - ensure proper encoding
+  // Ensure HTTPS for security (fix mixed content issues)
+  if (cleanUrl.startsWith('http://')) {
+    cleanUrl = cleanUrl.replace('http://', 'https://');
+  }
+  
+  // Handle DigitalOcean Spaces URL encoding issues
   if (cleanUrl.includes('digitaloceanspaces.com')) {
     try {
-      // Don't re-encode if URL is already encoded
-      if (!cleanUrl.includes('%')) {
-        // Parse the URL to handle encoding properly
-        const urlObj = new URL(cleanUrl);
-        // Reconstruct with properly encoded pathname
-        cleanUrl = `${urlObj.protocol}//${urlObj.host}${encodeURI(urlObj.pathname)}${urlObj.search}${urlObj.hash}`;
-      }
-    } catch (error) {
-      console.log('URL parsing failed, using original:', cleanUrl);
+      // Create URL object to properly handle encoding
+      const urlObj = new URL(cleanUrl);
+      
+      // Split path into segments for proper encoding
+      const pathSegments = urlObj.pathname.split('/').filter(segment => segment);
+      
+      // Properly encode each segment while preserving structure
+      const encodedSegments = pathSegments.map(segment => {
+        try {
+          // First try to decode if already encoded, then re-encode properly
+          let decoded = segment;
+          if (segment.includes('%')) {
+            try {
+              decoded = decodeURIComponent(segment);
+            } catch (decodeError) {
+              // If decode fails, use original
+              decoded = segment;
+            }
+          }
+          
+          // Encode with proper URI encoding
+          return encodeURIComponent(decoded);
+        } catch (e) {
+          // Fallback to original segment if encoding fails
+          console.warn('Failed to encode URL segment:', segment, e);
+          return segment;
+        }
+      });
+      
+      // Reconstruct the URL with properly encoded path
+      const reconstructedUrl = `${urlObj.protocol}//${urlObj.host}/${encodedSegments.join('/')}`;
+      
+      console.log('URL sanitization:', {
+        original: url,
+        reconstructed: reconstructedUrl,
+        hostname: window.location.hostname,
+        userAgent: navigator.userAgent.slice(0, 50)
+      });
+      
+      return reconstructedUrl;
+      
+    } catch (e) {
+      console.error('URL sanitization failed:', e);
+      // Return original URL if all encoding attempts fail
+      return cleanUrl;
     }
   }
   
   return cleanUrl;
 };
+
+const ITEMS_PER_BATCH = 120;
 
 const Index = () => {
 const [products, setProducts] = useState<Product[]>([]);
@@ -68,8 +110,13 @@ const [products, setProducts] = useState<Product[]>([]);
   const fetchProducts = async (page: number) => {
     try {
       setLoading(true);
+      console.log('Fetching products for anonymous access...');
+      
+      // Use single anonymous client instance
+      const anonClient = getAnonymousClient();
+      
       // First get the total count
-      const { count } = await supabase
+      const { count } = await anonClient
         .from('products')
         .select('*', { count: 'exact', head: true });
       
@@ -80,25 +127,28 @@ const [products, setProducts] = useState<Product[]>([]);
       const endRange = startRange + ITEMS_PER_BATCH - 1;
       
       // Fetch products for current page
-      const { data, error } = await supabase
+      const { data, error } = await anonClient
         .from('products')
         .select('*')
         .order('created_at', { ascending: false })
         .range(startRange, endRange);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Anonymous fetch error:', error);
+        throw error;
+      }
 
       if (data) {
         const typedProducts = data.map(product => ({
           ...product,
           // Map new fields to legacy fields for compatibility
           title: product.product_name,
-          thumbnail: product.first_image,
           name: product.product_name,
           status: 'published' as const
         }));
         setProducts(typedProducts);
-        console.log(`Homepage loaded page ${page}: ${data.length} products of ${count} total`);
+        console.log(`Anonymous access: loaded ${data.length} products of ${count} total`);
+        console.log('First product image URL:', data[0]?.first_image);
       }
     } catch (error: any) {
       console.error('Error fetching products:', error);
@@ -115,6 +165,10 @@ const [products, setProducts] = useState<Product[]>([]);
   const fetchStats = async () => {
     try {
       setStatsLoading(true);
+      console.log('Fetching stats for anonymous access...');
+      
+      // Use single anonymous client instance
+      const anonClient = getAnonymousClient();
       
       // Get today's date in YYYY-MM-DD format
       const today = new Date();
@@ -122,14 +176,15 @@ const [products, setProducts] = useState<Product[]>([]);
       const todayEnd = new Date(todayStart);
       todayEnd.setDate(todayEnd.getDate() + 1);
       
-      // Fetch today's products count (changed from blog_posts to products)
-      const { count: todayProducts } = await supabase
+      // Fetch today's products count
+      const { count: todayProducts } = await anonClient
         .from('products')
         .select('*', { count: 'exact', head: true })
         .gte('created_at', todayStart.toISOString())
         .lt('created_at', todayEnd.toISOString());
       
       setTodayPostsCount(todayProducts || 0);
+      console.log('Anonymous stats loaded: today products =', todayProducts);
       
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -242,18 +297,53 @@ const [products, setProducts] = useState<Product[]>([]);
                       <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer bg-gray-900/50 border-gray-800">
                         <CardContent className="p-0">
                            <div className="aspect-square relative">
-                             <img
-                              src={product.thumbnail ? sanitizeImageUrl(product.thumbnail) : 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80'}
-                              alt={product.title}
-                              className="w-full h-full object-cover"
-                              loading="lazy"
-                              referrerPolicy="no-referrer"
-                              onError={(e) => {
-                                console.error('Image failed to load:', product.thumbnail);
-                                e.currentTarget.src = 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80';
+                              <img
+                               src={sanitizeImageUrl(product.first_image) || 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80'}
+                               alt={product.product_name || product.title}
+                               className="w-full h-full object-cover"
+                               loading="lazy"
+                               referrerPolicy="no-referrer"
+                               onError={(e) => {
+                                 // Comprehensive error logging for debugging
+                                 const errorDetails = {
+                                   originalSrc: e.currentTarget.src,
+                                   productName: product.product_name,
+                                   userAgent: navigator.userAgent,
+                                   hostname: window.location.hostname,
+                                   protocol: window.location.protocol,
+                                   origin: window.location.origin,
+                                   timestamp: new Date().toISOString(),
+                                   errorType: 'IMAGE_LOAD_FAILED',
+                                   // Check if it's likely a CORS issue
+                                   likelyCORS: e.currentTarget.src.includes('digitaloceanspaces.com'),
+                                   // Check if URL looks malformed
+                                   suspiciousChars: /[^\w\-._~:/?#[\]@!$&'()*+,;=%]/.test(e.currentTarget.src)
+                                 };
+                                 
+                                 console.error('🚨 Image Load Error - Cross-browser issue detected:', errorDetails);
+                                 
+                                 // Try alternative loading strategy first
+                                 if (!e.currentTarget.dataset.retried && product.first_image) {
+                                   e.currentTarget.dataset.retried = 'true';
+                                   // Try with different approach - construct a clean URL manually
+                                   const cleanUrl = product.first_image.split('/').map(part => 
+                                     encodeURIComponent(decodeURIComponent(part.replace(/['"]/g, '')))
+                                   ).join('/').replace(/%3A/g, ':').replace(/%2F/g, '/');
+                                   
+                                   console.log('🔄 Retrying with cleaned URL:', cleanUrl);
+                                   e.currentTarget.src = cleanUrl;
+                                   return;
+                                 }
+                                 
+                                 // Final fallback to placeholder
+                                 console.log('🎨 Using fallback placeholder image');
+                                 e.currentTarget.src = 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80';
+                               }}
+                              onLoad={() => {
+                                console.log('Homepage image loaded:', product.first_image);
                               }}
                             />
-                          </div>
+                           </div>
                           <div className="p-3">
                              <h3 className="text-sm font-medium text-gray-200 line-clamp-2">{product.title}</h3>
                              <div className="flex justify-between items-center mt-2">

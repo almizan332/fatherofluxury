@@ -10,25 +10,60 @@ interface GalleryMediaDisplayProps {
   handleZoom: () => void;
 }
 
-// Helper function to sanitize and handle image URLs
+// Enhanced helper function to sanitize and handle image URLs for cross-browser compatibility
 const sanitizeImageUrl = (url: string): string => {
   if (!url) return '';
   
   // Remove any quotes that might be in the URL
   let cleanUrl = url.replace(/['"]/g, '').trim();
   
+  // Ensure HTTPS for security
+  if (cleanUrl.startsWith('http://')) {
+    cleanUrl = cleanUrl.replace('http://', 'https://');
+  }
+  
   // Handle DigitalOcean Spaces URLs - ensure proper encoding
   if (cleanUrl.includes('digitaloceanspaces.com')) {
     try {
-      // Don't re-encode if URL is already encoded
-      if (!cleanUrl.includes('%')) {
-        // Parse the URL to handle encoding properly
+      // Use URL constructor for proper parsing
+      const urlObj = new URL(cleanUrl);
+      
+      // Split path into segments for proper encoding
+      const pathSegments = urlObj.pathname.split('/').filter(segment => segment);
+      
+      // Properly encode each segment while preserving structure
+      const encodedSegments = pathSegments.map(segment => {
+        try {
+          // First try to decode if already encoded, then re-encode properly
+          let decoded = segment;
+          if (segment.includes('%')) {
+            try {
+              decoded = decodeURIComponent(segment);
+            } catch (decodeError) {
+              decoded = segment;
+            }
+          }
+          
+          // Encode with proper URI encoding
+          return encodeURIComponent(decoded);
+        } catch (e) {
+          console.warn('Failed to encode URL segment:', segment, e);
+          return segment;
+        }
+      });
+      
+      // Reconstruct the URL with properly encoded path
+      cleanUrl = `${urlObj.protocol}//${urlObj.host}/${encodedSegments.join('/')}`;
+      
+    } catch (e) {
+      console.error('URL encoding error:', e);
+      // Fallback: try simpler approach
+      try {
         const urlObj = new URL(cleanUrl);
-        // Reconstruct with properly encoded pathname
-        cleanUrl = `${urlObj.protocol}//${urlObj.host}${encodeURI(urlObj.pathname)}${urlObj.search}${urlObj.hash}`;
+        cleanUrl = `${urlObj.protocol}//${urlObj.host}${encodeURI(decodeURI(urlObj.pathname))}${urlObj.search}${urlObj.hash}`;
+      } catch (fallbackError) {
+        console.error('URL fallback encoding failed:', fallbackError);
       }
-    } catch (error) {
-      console.log('URL parsing failed, using original:', cleanUrl);
     }
   }
   
@@ -84,7 +119,6 @@ export const GalleryMediaDisplay = ({
           alt={`${productName} - View ${selectedIndex + 1}`}
           className="max-w-full max-h-full object-contain"
           referrerPolicy="no-referrer"
-          crossOrigin="anonymous"
           onError={(e) => {
             console.error('Image failed to load:', sanitizedUrl);
             console.error('Original URL:', media.url);

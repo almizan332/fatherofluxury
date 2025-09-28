@@ -26,15 +26,36 @@ const sanitizeImageUrl = (url: string): string => {
   // Handle DigitalOcean Spaces URLs - ensure proper encoding
   if (cleanUrl.includes('digitaloceanspaces.com')) {
     try {
-      // Don't re-encode if URL is already encoded
-      if (!cleanUrl.includes('%')) {
-        // Parse the URL to handle encoding properly
+      // Split URL into parts to handle mixed encoding states
+      const urlParts = cleanUrl.split('/');
+      const protocol = urlParts[0];
+      const domain = urlParts[2];
+      const pathParts = urlParts.slice(3);
+      
+      // Decode each path part if it's encoded, then properly encode it
+      const encodedParts = pathParts.map(part => {
+        if (!part) return part;
+        try {
+          // First decode if it contains encoded characters
+          const decoded = part.includes('%') ? decodeURIComponent(part) : part;
+          // Then properly encode special characters
+          return encodeURIComponent(decoded).replace(/%2F/g, '/');
+        } catch (e) {
+          // If decoding fails, just encode the original part
+          return encodeURIComponent(part).replace(/%2F/g, '/');
+        }
+      });
+      
+      cleanUrl = `${protocol}//${domain}/${encodedParts.join('/')}`;
+    } catch (e) {
+      console.log('URL encoding error:', e);
+      // Fallback: just encode the whole path part
+      try {
         const urlObj = new URL(cleanUrl);
-        // Reconstruct with properly encoded pathname
-        cleanUrl = `${urlObj.protocol}//${urlObj.host}${encodeURI(urlObj.pathname)}${urlObj.search}${urlObj.hash}`;
+        cleanUrl = `${urlObj.protocol}//${urlObj.host}${encodeURI(decodeURI(urlObj.pathname))}${urlObj.search}${urlObj.hash}`;
+      } catch (fallbackError) {
+        console.log('URL fallback encoding failed:', fallbackError);
       }
-    } catch (error) {
-      console.log('URL parsing failed, using original:', cleanUrl);
     }
   }
   

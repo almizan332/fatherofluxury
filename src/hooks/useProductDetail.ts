@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Product } from "@/types/product";
+import { getAnonymousClient } from "@/utils/supabaseAnonymous";
 
 const isUUID = (str: string) => {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -26,10 +27,14 @@ export function useProductDetail(id: string | undefined) {
         setError(null);
         let productData = null;
 
+        // Use single anonymous client instance
+        console.log('Using single anonymous client for product detail...');
+        const anonClient = getAnonymousClient();
+
         // First try UUID lookup
         if (isUUID(id!)) {
           console.log('Attempting UUID lookup for:', id);
-          const { data, error } = await supabase
+          const { data, error } = await anonClient
             .from('products')
             .select('*')
             .eq('id', id)
@@ -55,7 +60,7 @@ export function useProductDetail(id: string | undefined) {
               const numericId = parseInt(match[0]);
               if (!isNaN(numericId) && numericId <= 2147483647) { // Max PostgreSQL integer value
                 console.log('Attempting display_id lookup with:', numericId);
-                const { data: displayIdData, error: displayIdError } = await supabase
+                const { data: displayIdData, error: displayIdError } = await anonClient
                   .from('products')
                   .select('*')
                   .eq('id', numericId.toString())
@@ -74,7 +79,7 @@ export function useProductDetail(id: string | undefined) {
             const cleanName = decodedName.replace(/[^\w\s-]/g, '').trim();
             console.log('Trying match with cleaned name:', cleanName);
             
-            const { data: nameData, error: nameError } = await supabase
+            const { data: nameData, error: nameError } = await anonClient
               .from('products')
               .select('*')
               .ilike('title', `%${cleanName}%`)
@@ -93,7 +98,7 @@ export function useProductDetail(id: string | undefined) {
           
           // Fetch related products from the same category
           console.log('Fetching related products for category:', productData.category);
-          const { data: relatedData, error: relatedError } = await supabase
+          const { data: relatedData, error: relatedError } = await anonClient
             .from('products')
             .select('*')
             .neq('id', productData.id)
