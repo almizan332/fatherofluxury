@@ -23,18 +23,18 @@ const sanitizeImageUrl = (url: string): string => {
   // Remove any quotes that might be in the URL
   let cleanUrl = url.replace(/['"]/g, '').trim();
   
-  // Fix DigitalOcean Spaces URL format - remove incorrect .com subdomain
+  // Handle DigitalOcean Spaces URLs - ensure proper encoding
   if (cleanUrl.includes('digitaloceanspaces.com')) {
-    // Fix incorrect URL format: fatherofluxury.com.sgp1.digitaloceanspaces.com -> fatherofluxury.sgp1.digitaloceanspaces.com
-    cleanUrl = cleanUrl.replace(/([^.]+)\.com\.([^.]+\.digitaloceanspaces\.com)/, '$1.$2');
-    
     try {
-      // Ensure proper URL encoding for special characters
-      const urlObj = new URL(cleanUrl);
-      // Reconstruct with properly encoded pathname
-      cleanUrl = `${urlObj.protocol}//${urlObj.host}${encodeURI(urlObj.pathname)}${urlObj.search}${urlObj.hash}`;
+      // Don't re-encode if URL is already encoded
+      if (!cleanUrl.includes('%')) {
+        // Parse the URL to handle encoding properly
+        const urlObj = new URL(cleanUrl);
+        // Reconstruct with properly encoded pathname
+        cleanUrl = `${urlObj.protocol}//${urlObj.host}${encodeURI(urlObj.pathname)}${urlObj.search}${urlObj.hash}`;
+      }
     } catch (error) {
-      console.log('URL parsing failed, using cleaned URL:', cleanUrl);
+      console.log('URL parsing failed, using original:', cleanUrl);
     }
   }
   
@@ -69,11 +69,9 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
           ) : (
             <>
               <img
-                src={sanitizeImageUrl(allMedia[selectedMediaIndex].url)}
+                src={allMedia[selectedMediaIndex].url}
                 alt={`${product.name} - View ${selectedMediaIndex + 1}`}
                 className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
-                referrerPolicy="no-referrer"
-                crossOrigin="anonymous"
                 onError={(e) => {
                   console.error('Main gallery image failed to load:', allMedia[selectedMediaIndex].url);
                   // Show fallback instead of hiding
@@ -132,11 +130,9 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
                     </div>
                   ) : (
                     <img
-                      src={sanitizeImageUrl(media.url)}
+                      src={media.url}
                       alt={`${product.name} thumbnail ${index + 1}`}
                       className="w-full h-full object-cover"
-                      referrerPolicy="no-referrer"
-                      crossOrigin="anonymous"
                       onError={(e) => {
                         console.log('Mobile thumbnail failed to load:', media.url);
                         e.currentTarget.style.display = 'none';
@@ -182,11 +178,9 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
             ) : (
               <>
                 <img
-                  src={sanitizeImageUrl(media.url)}
+                  src={media.url}
                   alt={`${product.name} thumbnail ${index + 1}`}
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                  referrerPolicy="no-referrer"
-                  crossOrigin="anonymous"
                   onError={(e) => {
                     console.log('Desktop thumbnail failed to load:', media.url);
                     e.currentTarget.style.display = 'none';

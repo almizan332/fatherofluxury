@@ -31,18 +31,18 @@ const sanitizeImageUrl = (url: string): string => {
   // Remove any quotes that might be in the URL
   let cleanUrl = url.replace(/['"]/g, '').trim();
   
-  // Fix DigitalOcean Spaces URL format - remove incorrect .com subdomain
+  // Handle DigitalOcean Spaces URLs - ensure proper encoding
   if (cleanUrl.includes('digitaloceanspaces.com')) {
-    // Fix incorrect URL format: fatherofluxury.com.sgp1.digitaloceanspaces.com -> fatherofluxury.sgp1.digitaloceanspaces.com
-    cleanUrl = cleanUrl.replace(/([^.]+)\.com\.([^.]+\.digitaloceanspaces\.com)/, '$1.$2');
-    
     try {
-      // Ensure proper URL encoding for special characters
-      const urlObj = new URL(cleanUrl);
-      // Reconstruct with properly encoded pathname
-      cleanUrl = `${urlObj.protocol}//${urlObj.host}${encodeURI(urlObj.pathname)}${urlObj.search}${urlObj.hash}`;
+      // Don't re-encode if URL is already encoded
+      if (!cleanUrl.includes('%')) {
+        // Parse the URL to handle encoding properly
+        const urlObj = new URL(cleanUrl);
+        // Reconstruct with properly encoded pathname
+        cleanUrl = `${urlObj.protocol}//${urlObj.host}${encodeURI(urlObj.pathname)}${urlObj.search}${urlObj.hash}`;
+      }
     } catch (error) {
-      console.log('URL parsing failed, using cleaned URL:', cleanUrl);
+      console.log('URL parsing failed, using original:', cleanUrl);
     }
   }
   
@@ -242,18 +242,17 @@ const [products, setProducts] = useState<Product[]>([]);
                       <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer bg-gray-900/50 border-gray-800">
                         <CardContent className="p-0">
                            <div className="aspect-square relative">
-                            <img
-                               src={sanitizeImageUrl(product.first_image || product.thumbnail || 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80')}
-                               alt={product.title}
-                               className="w-full h-full object-cover"
-                               loading="lazy"
-                               referrerPolicy="no-referrer"
-                               crossOrigin="anonymous"
-                               onError={(e) => {
-                                 console.error('Image failed to load:', product.first_image || product.thumbnail);
-                                 e.currentTarget.src = 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80';
-                               }}
-                             />
+                             <img
+                              src={product.thumbnail ? sanitizeImageUrl(product.thumbnail) : 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80'}
+                              alt={product.title}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                              referrerPolicy="no-referrer"
+                              onError={(e) => {
+                                console.error('Image failed to load:', product.thumbnail);
+                                e.currentTarget.src = 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80';
+                              }}
+                            />
                           </div>
                           <div className="p-3">
                              <h3 className="text-sm font-medium text-gray-200 line-clamp-2">{product.title}</h3>
