@@ -151,24 +151,6 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
           How to Buy
         </Button>
       </div>
-
-      {/* Media Gallery */}
-      {product.media_links?.length ? (
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Additional Images</h3>
-          <div className="grid grid-cols-3 gap-3">
-            {product.media_links.map((src, i) => (
-              <img
-                key={i}
-                src={src}
-                alt={`${product.product_name} - Image ${i + 1}`}
-                className="rounded-xl object-cover w-full h-32 cursor-pointer hover:opacity-75 transition-opacity"
-                onClick={() => window.open(src, '_blank')}
-              />
-            ))}
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 };
