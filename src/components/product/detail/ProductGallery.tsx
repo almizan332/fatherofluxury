@@ -72,10 +72,10 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
   console.log('ProductGallery - Current media:', allMedia[selectedMediaIndex]);
 
   return (
-    <div className="space-y-6">
-      {/* Main Image Display */}
+    <div className="space-y-8">
+      {/* Main Image Display - Made larger and more cinematic */}
       <div 
-        className="aspect-square relative rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 shadow-lg cursor-pointer group"
+        className="aspect-[4/3] relative rounded-2xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 shadow-2xl cursor-pointer group"
         onClick={() => setIsGalleryOpen(true)}
       >
         {allMedia.length > 0 && allMedia[selectedMediaIndex] ? (
@@ -124,21 +124,21 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
         )}
       </div>
 
-      {/* Thumbnail Carousel for Mobile */}
+      {/* Thumbnail Carousel for Mobile - Made bigger */}
       <div className="block md:hidden">
         <Carousel className="w-full">
           <CarouselContent>
             {allMedia.slice(0, 100).map((media, index) => (
-              <CarouselItem key={index} className="basis-1/4">
+              <CarouselItem key={index} className="basis-1/3">
                 <div
                   onClick={() => {
                     console.log('Mobile thumbnail clicked:', index, media);
                     setSelectedMediaIndex(index);
                   }}
-                  className={`aspect-square relative rounded-md overflow-hidden cursor-pointer ${
+                  className={`aspect-square relative rounded-xl overflow-hidden cursor-pointer shadow-lg transform transition-all duration-300 hover:scale-105 ${
                     selectedMediaIndex === index 
-                      ? 'ring-2 ring-primary border border-primary' 
-                      : 'border border-gray-200'
+                      ? 'ring-3 ring-primary border-2 border-primary scale-105 shadow-xl' 
+                      : 'border border-gray-200 hover:border-primary/50'
                   }`}
                 >
                   {media.type === 'video' ? (
@@ -169,8 +169,8 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
         </Carousel>
       </div>
 
-      {/* Thumbnail Grid for Desktop */}
-      <div className="hidden md:grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 max-h-[400px] overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+      {/* Thumbnail Grid for Desktop - Made bigger and more stylish */}
+      <div className="hidden md:grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 gap-4 max-h-[500px] overflow-y-auto p-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 bg-gradient-to-br from-gray-50/50 to-white rounded-2xl border border-gray-100">
         {allMedia.slice(0, 100).map((media, index) => (
           <div
             key={index}
@@ -178,10 +178,10 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
               console.log('Desktop thumbnail clicked:', index, media);
               setSelectedMediaIndex(index);
             }}
-            className={`aspect-square relative rounded-lg overflow-hidden cursor-pointer group transition-all duration-200 transform hover:-translate-y-1 hover:shadow-lg ${
+            className={`aspect-square relative rounded-xl overflow-hidden cursor-pointer group transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl ${
               selectedMediaIndex === index 
-                ? 'ring-2 ring-primary border border-primary scale-105 shadow-md z-10' 
-                : 'border border-gray-200'
+                ? 'ring-3 ring-primary border-2 border-primary scale-110 shadow-2xl z-10' 
+                : 'border border-gray-200 hover:border-primary/50 shadow-lg'
             }`}
           >
             {media.type === 'video' ? (
@@ -214,7 +214,7 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
         ))}
       </div>
 
-      <h2 className="text-2xl font-bold mt-8 pt-4 border-t border-gray-200">Photos & Videos</h2>
+      
 
       <MediaGalleryDialog
         isOpen={isGalleryOpen}
