@@ -70,7 +70,7 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
   }, []);
 
   const whatsappUrl = "https://wa.me/8801609966905";
-  const youtubeHowToBuyUrl = "https://youtu.be/I-5asuZ1d4U";
+  const youtubeHowToBuyUrl = "https://youtube.com/watch?v=I-5asuZ1d4U&feature=youtu.be";
 
   const handleButtonClick = (url?: string | null) => {
     if (url) {
