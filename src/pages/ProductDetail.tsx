@@ -72,13 +72,19 @@ const ProductDetail = () => {
             </nav>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-            <ProductGallery product={product} />
-            <ProductInfo product={product} />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+            <div className="lg:col-span-2">
+              <ProductGallery product={product} />
+            </div>
+            <div className="lg:col-span-1">
+              <ProductInfo product={product} />
+            </div>
           </div>
 
           {relatedProducts.length > 0 && (
-            <RelatedProducts products={relatedProducts} />
+            <div className="mt-16">
+              <RelatedProducts products={relatedProducts} />
+            </div>
           )}
         </div>
       </main>
