@@ -23,67 +23,16 @@ import { Product } from "@/types/product";
 import ChatbotWidget from "@/components/ChatbotWidget";
 import { getAnonymousClient } from "@/utils/supabaseAnonymous";
 
-// Enhanced utility function to sanitize image URLs for cross-browser compatibility
+// Simple function to clean image URLs - just return as-is since they're already properly encoded
 const sanitizeImageUrl = (url: string): string => {
   if (!url) return '';
   
   // Remove any quotes and trim
   let cleanUrl = url.replace(/['"]/g, '').trim();
   
-  // Ensure HTTPS for security (fix mixed content issues)
+  // Ensure HTTPS for security
   if (cleanUrl.startsWith('http://')) {
     cleanUrl = cleanUrl.replace('http://', 'https://');
-  }
-  
-  // Handle DigitalOcean Spaces URL encoding issues
-  if (cleanUrl.includes('digitaloceanspaces.com')) {
-    try {
-      // Create URL object to properly handle encoding
-      const urlObj = new URL(cleanUrl);
-      
-      // Split path into segments for proper encoding
-      const pathSegments = urlObj.pathname.split('/').filter(segment => segment);
-      
-      // Properly encode each segment while preserving structure
-      const encodedSegments = pathSegments.map(segment => {
-        try {
-          // First try to decode if already encoded, then re-encode properly
-          let decoded = segment;
-          if (segment.includes('%')) {
-            try {
-              decoded = decodeURIComponent(segment);
-            } catch (decodeError) {
-              // If decode fails, use original
-              decoded = segment;
-            }
-          }
-          
-          // Encode with proper URI encoding
-          return encodeURIComponent(decoded);
-        } catch (e) {
-          // Fallback to original segment if encoding fails
-          console.warn('Failed to encode URL segment:', segment, e);
-          return segment;
-        }
-      });
-      
-      // Reconstruct the URL with properly encoded path
-      const reconstructedUrl = `${urlObj.protocol}//${urlObj.host}/${encodedSegments.join('/')}`;
-      
-      console.log('URL sanitization:', {
-        original: url,
-        reconstructed: reconstructedUrl,
-        hostname: window.location.hostname,
-        userAgent: navigator.userAgent.slice(0, 50)
-      });
-      
-      return reconstructedUrl;
-      
-    } catch (e) {
-      console.error('URL sanitization failed:', e);
-      // Return original URL if all encoding attempts fail
-      return cleanUrl;
-    }
   }
   
   return cleanUrl;

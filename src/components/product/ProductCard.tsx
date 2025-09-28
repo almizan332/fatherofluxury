@@ -18,7 +18,10 @@ const ProductCard = ({ product, onDelete, showDeleteButton }: ProductCardProps) 
           src={product.first_image || product.thumbnail || ''} 
           alt={product.product_name || product.title || 'Product image'} 
           className="w-full h-32 object-cover rounded" 
+          referrerPolicy="no-referrer"
+          crossOrigin="anonymous"
           onError={(e) => {
+            console.error('ProductCard image failed to load:', product.first_image || product.thumbnail);
             e.currentTarget.style.display = 'none';
           }}
         />
