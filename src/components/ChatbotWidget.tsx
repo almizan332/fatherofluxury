@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect, useRef } from "react";
-import { MessageCircle, X, Send, Upload, Minimize2 } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { MessageCircle, X, Send, Minimize2, Bot, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -24,13 +24,12 @@ const ChatbotWidget = () => {
   const [inputValue, setInputValue] = useState("");
   const [settings, setSettings] = useState({
     enabled: true,
-    welcome_message: "Hello! How can I help you today? I can assist you with product information, orders, and general inquiries. You can also upload an image to find similar products!",
+    welcome_message: "Hello! How can I help you today? I can assist you with product information, orders, and general inquiries.",
     theme_color: "#8B5CF6",
     position: "bottom-right",
-    image_search_enabled: true
+    image_search_enabled: false
   });
   const [isLoading, setIsLoading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
@@ -110,80 +109,6 @@ const ChatbotWidget = () => {
     }
   };
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      toast({
-        title: "Invalid file type",
-        description: "Please upload an image file.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      // Convert image to base64
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const base64 = e.target?.result as string;
-        
-        const userMessage: Message = {
-          id: Date.now().toString(),
-          text: "Looking for similar products...",
-          isBot: false,
-          timestamp: new Date(),
-          image: base64
-        };
-
-        setMessages(prev => [...prev, userMessage]);
-
-        try {
-          const { data, error } = await supabase.functions.invoke('chatbot-response', {
-            body: { image: base64, type: 'image' }
-          });
-
-          if (error) throw error;
-
-          const botMessage: Message = {
-            id: (Date.now() + 1).toString(),
-            text: data.response || "Sorry, I couldn't find similar products for this image.",
-            isBot: true,
-            timestamp: new Date()
-          };
-          setMessages(prev => [...prev, botMessage]);
-        } catch (error) {
-          console.error('Error processing image:', error);
-          const errorMessage: Message = {
-            id: (Date.now() + 1).toString(),
-            text: "Sorry, I couldn't process this image. Please try again later.",
-            isBot: true,
-            timestamp: new Date()
-          };
-          setMessages(prev => [...prev, errorMessage]);
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      reader.readAsDataURL(file);
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      setIsLoading(false);
-      toast({
-        title: "Upload failed",
-        description: "Failed to upload image. Please try again.",
-        variant: "destructive",
-      });
-    }
-
-    // Reset file input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -195,42 +120,51 @@ const ChatbotWidget = () => {
 
   return (
     <>
-      {/* Chat Widget Button */}
+      {/* Modern Chat Widget Button */}
       <div className={`fixed ${
         isMobile ? 'bottom-6 right-6' : 
         settings.position === 'bottom-left' ? 'bottom-6 left-6' : 
         settings.position === 'top-right' ? 'top-6 right-6' : 
         settings.position === 'top-left' ? 'top-6 left-6' : 
         'bottom-6 right-6'
-      } z-[9999] transition-all duration-300 ease-in-out`}>
-        <Button
-          onClick={() => setIsOpen(!isOpen)}
-          className="rounded-full w-16 h-16 shadow-2xl hover:scale-110 transition-all duration-200 ring-4 ring-white/20 animate-pulse hover:animate-none"
-          style={{ backgroundColor: settings.theme_color }}
-          size="icon"
-        >
-          {isOpen ? <X className="h-7 w-7 text-white" /> : <MessageCircle className="h-7 w-7 text-white" />}
-        </Button>
+      } z-[9999] transition-all duration-500 ease-out`}>
+        <div className="relative group">
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full blur-xl opacity-60 group-hover:opacity-80 transition-all duration-500 animate-pulse"></div>
+          <Button
+            onClick={() => setIsOpen(!isOpen)}
+            className="relative rounded-full w-16 h-16 shadow-2xl hover:scale-110 transition-all duration-300 bg-gradient-to-r from-purple-600 to-blue-600 border border-white/20 backdrop-blur-sm hover:shadow-purple-500/25"
+            size="icon"
+          >
+            {isOpen ? (
+              <X className="h-7 w-7 text-white" />
+            ) : (
+              <div className="relative">
+                <Bot className="h-7 w-7 text-white" />
+                <Sparkles className="absolute -top-1 -right-1 h-4 w-4 text-yellow-300 animate-pulse" />
+              </div>
+            )}
+          </Button>
+        </div>
       </div>
 
-      {/* Chat Window */}
+      {/* Modern Chat Window */}
       {isOpen && (
         <>
-          {/* Mobile Overlay */}
+          {/* Mobile Overlay with Blur */}
           {isMobile && (
             <div 
-              className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300"
+              className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 transition-all duration-500"
               onClick={() => setIsOpen(false)}
             />
           )}
           
           <div className={`
-            fixed z-50 transition-all duration-300 ease-in-out
+            fixed z-50 transition-all duration-500 ease-out
             ${isMobile 
               ? 'inset-x-4 bottom-4 top-20' 
               : isMinimized 
-                ? 'w-80 h-12' 
-                : 'w-80 max-w-sm h-[500px] max-h-[80vh]'
+                ? 'w-96 h-16' 
+                : 'w-96 max-w-sm h-[550px] max-h-[85vh]'
             }
             ${!isMobile && settings.position === 'bottom-left' ? 'bottom-24 left-6' : 
               !isMobile && settings.position === 'top-right' ? 'top-24 right-6' : 
@@ -238,15 +172,18 @@ const ChatbotWidget = () => {
               !isMobile ? 'bottom-24 right-6' : ''
             }
           `}>
-            <Card className="h-full flex flex-col bg-background shadow-2xl border animate-fade-in">
-              <CardHeader 
-                className="text-white rounded-t-lg flex-shrink-0 p-4" 
-                style={{ backgroundColor: settings.theme_color }}
-              >
-                <CardTitle className="text-lg flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <MessageCircle className="h-5 w-5" />
-                    Support Chat
+            <Card className="h-full flex flex-col bg-white/95 backdrop-blur-xl shadow-2xl border border-white/20 rounded-2xl overflow-hidden animate-scale-in">
+              <CardHeader className="relative overflow-hidden rounded-t-2xl flex-shrink-0 p-6 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700">
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-600/80 to-blue-600/80 backdrop-blur-sm"></div>
+                <CardTitle className="relative text-lg flex items-center justify-between text-white">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
+                      <Bot className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">AI Assistant</h3>
+                      <p className="text-xs text-white/80">Online • Ready to help</p>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     {!isMobile && (
@@ -254,7 +191,7 @@ const ChatbotWidget = () => {
                         variant="ghost"
                         size="icon"
                         onClick={() => setIsMinimized(!isMinimized)}
-                        className="h-8 w-8 text-white hover:bg-white/20"
+                        className="h-8 w-8 text-white hover:bg-white/20 rounded-xl transition-all duration-200"
                       >
                         <Minimize2 className="h-4 w-4" />
                       </Button>
@@ -263,7 +200,7 @@ const ChatbotWidget = () => {
                       variant="ghost"
                       size="icon"
                       onClick={() => setIsOpen(false)}
-                      className="h-8 w-8 text-white hover:bg-white/20"
+                      className="h-8 w-8 text-white hover:bg-white/20 rounded-xl transition-all duration-200"
                     >
                       <X className="h-4 w-4" />
                     </Button>
@@ -272,33 +209,23 @@ const ChatbotWidget = () => {
               </CardHeader>
               
               {!isMinimized && (
-                <CardContent className="flex-1 flex flex-col p-0 min-h-0">
-                  <ScrollArea className="flex-1 p-4">
+                <CardContent className="flex-1 flex flex-col p-0 min-h-0 bg-gradient-to-b from-gray-50/50 to-white/50">
+                  <ScrollArea className="flex-1 p-6">
                     <div className="space-y-4">
                       {messages.map((message) => (
                         <div
                           key={message.id}
-                          className={`flex ${message.isBot ? 'justify-start' : 'justify-end'}`}
+                          className={`flex ${message.isBot ? 'justify-start' : 'justify-end'} animate-fade-in`}
                         >
                           <div
-                            className={`max-w-[85%] p-3 rounded-lg break-words ${
+                            className={`max-w-[85%] p-4 rounded-2xl break-words backdrop-blur-sm transition-all duration-300 hover:shadow-lg ${
                               message.isBot
-                                ? 'bg-muted text-foreground'
-                                : 'text-white'
+                                ? 'bg-white/80 text-gray-800 border border-gray-200/50 shadow-sm'
+                                : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
                             }`}
-                            style={!message.isBot ? { backgroundColor: settings.theme_color } : {}}
                           >
-                            {message.image && (
-                              <div className="mb-2 max-w-48">
-                                <img 
-                                  src={message.image} 
-                                  alt="Uploaded" 
-                                  className="w-full h-auto rounded-md object-cover max-h-32" 
-                                />
-                              </div>
-                            )}
-                            <p className="text-sm leading-relaxed">{message.text}</p>
-                            <p className="text-xs opacity-70 mt-1">
+                            <p className="text-sm leading-relaxed font-medium">{message.text}</p>
+                            <p className="text-xs opacity-70 mt-2 font-normal">
                               {message.timestamp.toLocaleTimeString([], {
                                 hour: '2-digit',
                                 minute: '2-digit'
@@ -308,15 +235,15 @@ const ChatbotWidget = () => {
                         </div>
                       ))}
                       {isLoading && (
-                        <div className="flex justify-start">
-                          <div className="bg-muted text-foreground p-3 rounded-lg">
-                            <div className="flex items-center gap-2">
+                        <div className="flex justify-start animate-fade-in">
+                          <div className="bg-white/80 backdrop-blur-sm text-gray-800 p-4 rounded-2xl border border-gray-200/50 shadow-sm">
+                            <div className="flex items-center gap-3">
                               <div className="flex space-x-1">
-                                <div className="w-2 h-2 bg-current rounded-full animate-pulse"></div>
-                                <div className="w-2 h-2 bg-current rounded-full animate-pulse delay-75"></div>
-                                <div className="w-2 h-2 bg-current rounded-full animate-pulse delay-150"></div>
+                                <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce"></div>
+                                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce delay-100"></div>
+                                <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce delay-200"></div>
                               </div>
-                              <p className="text-sm">Typing...</p>
+                              <p className="text-sm font-medium">AI is thinking...</p>
                             </div>
                           </div>
                         </div>
@@ -324,43 +251,23 @@ const ChatbotWidget = () => {
                     </div>
                   </ScrollArea>
                   
-                  <div className="p-4 border-t flex-shrink-0">
-                    <div className="flex gap-2">
-                      <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleImageUpload}
-                        accept="image/*"
-                        className="hidden"
-                      />
-                      {settings.image_search_enabled && (
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => fileInputRef.current?.click()}
-                          disabled={isLoading}
-                          className="shrink-0 hover:scale-105 transition-transform duration-200"
-                          title="Upload image to find similar products"
-                        >
-                          <Upload className="h-4 w-4" />
-                        </Button>
-                      )}
+                  <div className="p-6 bg-white/60 backdrop-blur-xl border-t border-gray-200/50 flex-shrink-0">
+                    <div className="flex gap-3">
                       <Input
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         onKeyPress={handleKeyPress}
-                        placeholder={isMobile ? "Type message..." : "Type your message or upload an image..."}
-                        className="flex-1"
+                        placeholder="Type your message..."
+                        className="flex-1 bg-white/80 backdrop-blur-sm border-gray-200/50 rounded-xl px-4 py-3 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500/50 transition-all duration-200"
                         disabled={isLoading}
                       />
                       <Button 
                         onClick={handleSendMessage}
                         size="icon"
-                        style={{ backgroundColor: settings.theme_color }}
                         disabled={isLoading}
-                        className="hover:scale-105 transition-transform duration-200"
+                        className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl p-3 hover:scale-105 transition-all duration-200 shadow-lg"
                       >
-                        <Send className="h-4 w-4" />
+                        <Send className="h-5 w-5" />
                       </Button>
                     </div>
                   </div>
