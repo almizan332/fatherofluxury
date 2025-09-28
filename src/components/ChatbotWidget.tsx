@@ -258,7 +258,7 @@ const ChatbotWidget = () => {
                         onChange={(e) => setInputValue(e.target.value)}
                         onKeyPress={handleKeyPress}
                         placeholder="Type your message..."
-                        className="flex-1 bg-white/80 backdrop-blur-sm border-gray-200/50 rounded-xl px-4 py-3 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500/50 transition-all duration-200"
+                        className="flex-1 bg-white/80 backdrop-blur-sm border-gray-200/50 rounded-xl px-4 py-3 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500/50 transition-all duration-200 text-gray-900 placeholder:text-gray-500"
                         disabled={isLoading}
                       />
                       <Button 
