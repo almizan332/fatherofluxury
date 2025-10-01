@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from "react";
-import { MessageCircle, X, Send, Minimize2, Bot, Sparkles } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { MessageCircle, X, Send, Minimize2, Bot, Sparkles, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -27,9 +27,11 @@ const ChatbotWidget = () => {
     welcome_message: "Hello! How can I help you today? I can assist you with product information, orders, and general inquiries.",
     theme_color: "#8B5CF6",
     position: "bottom-right",
-    image_search_enabled: false
+    image_search_enabled: true
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
@@ -63,6 +65,74 @@ const ChatbotWidget = () => {
       }
     } catch (error) {
       console.error('Error fetching chatbot settings:', error);
+    }
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file",
+        description: "Please upload an image file",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64Image = event.target?.result as string;
+      setSelectedImage(base64Image);
+      
+      // Auto-send the image
+      handleSendImageMessage(base64Image);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSendImageMessage = async (imageData: string) => {
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      text: "🖼️ Image uploaded",
+      isBot: false,
+      timestamp: new Date(),
+      image: imageData
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setIsLoading(true);
+    setSelectedImage(null);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('chatbot-response', {
+        body: { 
+          image: imageData, 
+          type: 'image' 
+        }
+      });
+
+      if (error) throw error;
+
+      const botMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: data.response || "I found some products that might match your image.",
+        isBot: true,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, botMessage]);
+    } catch (error) {
+      console.error('Error with image search:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: "Sorry, I couldn't process that image. Please try again.",
+        isBot: true,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -224,7 +294,14 @@ const ChatbotWidget = () => {
                                 : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
                             }`}
                           >
-                            <p className="text-sm leading-relaxed font-medium">{message.text}</p>
+                            {message.image && (
+                              <img 
+                                src={message.image} 
+                                alt="Uploaded" 
+                                className="max-w-full h-auto rounded-lg mb-2"
+                              />
+                            )}
+                            <p className="text-sm leading-relaxed font-medium whitespace-pre-line">{message.text}</p>
                             <p className="text-xs opacity-70 mt-2 font-normal">
                               {message.timestamp.toLocaleTimeString([], {
                                 hour: '2-digit',
@@ -253,6 +330,25 @@ const ChatbotWidget = () => {
                   
                   <div className="p-6 bg-white/60 backdrop-blur-xl border-t border-gray-200/50 flex-shrink-0">
                     <div className="flex gap-3">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+                      {settings.image_search_enabled && (
+                        <Button 
+                          onClick={() => fileInputRef.current?.click()}
+                          size="icon"
+                          variant="outline"
+                          disabled={isLoading}
+                          className="rounded-xl border-gray-200/50 hover:bg-purple-50 transition-all duration-200"
+                          title="Upload image to search"
+                        >
+                          <ImageIcon className="h-5 w-5 text-purple-600" />
+                        </Button>
+                      )}
                       <Input
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
