@@ -153,24 +153,24 @@ const Dashboard = () => {
   ];
 
   const mainMenuItems = [
-    { title: "Dashboard", icon: LayoutDashboard, url: "/dashboard" },
+    { title: "Dashboard", icon: LayoutDashboard, url: "/admin/dashboard" },
   ];
 
   const adminMenuItems = [
-    { title: "Website Contents", icon: MonitorDot, url: "/dashboard/web-contents" },
+    { title: "Website Contents", icon: MonitorDot, url: "/admin/web-contents" },
     { title: "User List", icon: Users2, url: "#" },
     { 
       title: "Product", 
       icon: ShoppingBag,
       url: "#",
       submenu: [
-        { title: "Category List", icon: ListPlus, url: "/dashboard/categories" },
-        { title: "Product List", icon: Upload, url: "/dashboard/products" },
-        { title: "Upload from Yupoo", icon: ExternalLink, url: "/dashboard/yupoo-upload" }
+        { title: "Category List", icon: ListPlus, url: "/admin/categories" },
+        { title: "Product List", icon: Upload, url: "/admin/products" },
+        { title: "Upload from Yupoo", icon: ExternalLink, url: "/admin/yupoo-upload" }
       ]
     },
-    { title: "Blog Management", icon: Files, url: "/dashboard/blog-management" },
-    { title: "Chatbot Management", icon: MonitorDot, url: "/dashboard/chatbot" },
+    { title: "Blog Management", icon: Files, url: "/admin/blog-management" },
+    { title: "Chatbot Management", icon: MonitorDot, url: "/admin/chatbot" },
     { title: "Dynamic Pages", icon: Boxes, url: "#" },
     { title: "SEO Pages", icon: Search, url: "#" },
     { title: "Mail-settings", icon: Mail, url: "#" },
