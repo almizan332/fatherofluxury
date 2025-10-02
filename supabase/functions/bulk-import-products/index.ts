@@ -1,413 +1,268 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-function parseMediaLinks(input: string) {
-  if (!input?.trim()) return null;
-  // Handle both semicolon and comma separated links
-  const separator = input.includes(';') ? ';' : ',';
+// Parse media links (semicolon or comma separated)
+function parseMediaLinks(input: string): string[] {
+  if (!input || typeof input !== 'string') return [];
+  
+  // Split by semicolon or comma, filter out empty strings
   return input
-    .split(separator)
+    .split(/[;,]/)
     .map(url => url.trim())
     .filter(url => url.length > 0);
 }
 
-function toNull(s: string) {
-  const trimmed = (s ?? '').trim();
-  return trimmed.length ? trimmed : null;
+// Helper to convert empty strings to null
+function toNull(s: string): string | null {
+  return s && s.trim() !== '' ? s.trim() : null;
 }
 
-function validateRow(row: Record<string, string>, rowIndex: number) {
-  const errors = [];
-  
-  if (!row['Product Name']?.trim()) {
-    errors.push(`Row ${rowIndex + 1}: Product Name is required`);
+// Validate required fields
+function validateRow(row: Record<string, string>, rowIndex: number): string | null {
+  if (!row['Product Name'] || row['Product Name'].trim() === '') {
+    return `Row ${rowIndex}: Product Name is required`;
   }
-  
-  // Check for First Image field specifically (matching template)
-  const hasFirstImage = row['First Image']?.trim();
-  
-  // Log detailed validation info for first few rows
-  if (rowIndex < 3) {
-    console.log(`=== Row ${rowIndex + 1} Validation Debug ===`);
-    console.log('All columns:', Object.keys(row));
-    console.log('Row data:', row);
-    console.log('First Image value:', hasFirstImage || 'EMPTY');
-    console.log('=====================================');
+  if (!row['First Image'] || row['First Image'].trim() === '') {
+    return `Row ${rowIndex}: First Image is required`;
   }
-  
-  // For template compatibility, just require First Image field to have a value
-  if (!hasFirstImage) {
-    errors.push(`Row ${rowIndex + 1}: First Image is required`);
-  }
-  
-  return errors;
+  return null;
 }
 
 serve(async (req) => {
-  console.log('Request received:', req.method, req.url);
-  
-  // Handle CORS preflight requests
+  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Health check endpoint
+  // Health check
   if (req.method === 'GET') {
-    return new Response(JSON.stringify({ ok: true, ping: "pong" }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    return new Response(JSON.stringify({ status: 'ok' }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 
   try {
-    // Initialize Supabase client
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Parse multipart form data
+    // Get form data with file
     const formData = await req.formData();
     const file = formData.get('file') as File;
 
     if (!file) {
-      return new Response(JSON.stringify({ 
-        error: 'No file provided',
-        totalRows: 0,
-        insertedCount: 0,
-        skippedCount: 0,
-        errors: ['No file provided'] 
-      }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+      return new Response(
+        JSON.stringify({ error: 'No file uploaded' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
+    // Read file content
     const text = await file.text();
-    console.log('File content preview:', text.substring(0, 200));
     
-    // Special parsing for the specific CSV format with multi-line descriptions
-    const lines = text.split('\n');
-    const rows = [];
+    // Parse CSV manually to handle multi-line descriptions
+    const lines: string[] = [];
+    let currentLine = '';
+    let insideQuotes = false;
     
-    // Add header row
-    if (lines.length > 0) {
-      const headerLine = lines[0];
-      const headers = headerLine.split(',').map(h => h.trim().replace(/"/g, ''));
-      rows.push(headers);
-    }
-    
-    let i = 1; // Skip header
-    while (i < lines.length) {
-      const line = lines[i].trim();
-      if (!line) {
-        i++;
-        continue;
-      }
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
       
-      // Parse the main product line
-      const fields = [];
-      let currentField = '';
-      let inQuotes = false;
-      let fieldIndex = 0;
-      
-      for (let j = 0; j < line.length; j++) {
-        const char = line[j];
-        
-        if (char === '"') {
-          inQuotes = !inQuotes;
-          if (inQuotes && fieldIndex === 5) {
-            // Starting description field - we'll handle multi-line
-            currentField = '';
-          }
-        } else if (char === ',' && !inQuotes) {
-          fields.push(currentField.trim());
-          currentField = '';
-          fieldIndex++;
-        } else {
-          currentField += char;
+      if (char === '"') {
+        insideQuotes = !insideQuotes;
+        currentLine += char;
+      } else if (char === '\n' && !insideQuotes) {
+        if (currentLine.trim()) {
+          lines.push(currentLine);
         }
-      }
-      
-      // If we're in quotes at end of line, it means description continues
-      if (inQuotes && fieldIndex === 5) {
-        // Collect multi-line description
-        let description = currentField;
-        i++;
-        
-        while (i < lines.length) {
-          const nextLine = lines[i].trim();
-          if (!nextLine) {
-            description += '\n';
-            i++;
-            continue;
-          }
-          
-          // Check if this line contains the image URL (digitaloceanspaces.com)
-          if (nextLine.includes('digitaloceanspaces.com')) {
-            // This line contains the image and media links
-            // Find where the description ends (look for closing quote before the URL)
-            const parts = nextLine.split(',');
-            let descriptionEnd = '';
-            let imageStart = 0;
-            
-            for (let p = 0; p < parts.length; p++) {
-              if (parts[p].includes('digitaloceanspaces.com')) {
-                imageStart = p;
-                break;
-              } else {
-                if (descriptionEnd) descriptionEnd += ',';
-                descriptionEnd += parts[p];
-              }
-            }
-            
-            // Clean up description end
-            descriptionEnd = descriptionEnd.replace(/["]/g, '').trim();
-            if (descriptionEnd) {
-              description += '\n' + descriptionEnd;
-            }
-            
-            // Add description to fields
-            fields.push(description.trim());
-            
-            // Add first image
-            const firstImage = parts[imageStart] ? parts[imageStart].trim() : '';
-            fields.push(firstImage);
-            
-            // Add media links (semicolon separated)
-            const mediaLinks = parts.slice(imageStart + 1).join(',');
-            fields.push(mediaLinks);
-            
-            break;
-          } else {
-            // Continue building description
-            description += '\n' + nextLine;
-            i++;
-          }
-        }
+        currentLine = '';
       } else {
-        // Regular single-line processing
-        fields.push(currentField.trim());
+        currentLine += char;
       }
-      
-      // Make sure we have 8 fields
-      while (fields.length < 8) {
-        fields.push('');
-      }
-      
-      if (fields.length > 0 && fields[0]) {
-        rows.push(fields);
-      }
-      
-      i++;
-    }
-
-    const headers = rows[0].map(h => h.trim().replace(/"/g, ''));
-    
-    // Enhanced logging for debugging
-    console.log('=== CSV IMPORT DEBUG START ===');
-    console.log('Total CSV headers found:', headers.length);
-    console.log('CSV headers:', headers);
-    console.log('First few data rows:', rows.slice(1, 4).map((row, i) => `Row ${i+1}: ${row.slice(0, 3)}`));
-    console.log('================================');
-    
-    // More flexible header validation - check for key required headers
-    const requiredHeaders = ['Product Name'];
-    const expectedHeaders = ['Product Name', 'FlyLink', 'Alibaba URL', 'DHgate URL', 'Category', 'Description', 'First Image', 'Media Links'];
-    
-    const missingRequired = requiredHeaders.filter(req => 
-      !headers.some(h => h.toLowerCase().includes(req.toLowerCase()))
-    );
-    
-    const hasFirstImageHeader = headers.some(h => h.toLowerCase().includes('first image'));
-    
-    if (missingRequired.length > 0) {
-      return new Response(JSON.stringify({ 
-        error: `Missing required headers: ${missingRequired.join(', ')}`,
-        totalRows: 0,
-        insertedCount: 0,
-        skippedCount: 0,
-        errors: [`Missing required headers: ${missingRequired.join(', ')}`],
-        receivedHeaders: headers,
-        expectedHeaders: expectedHeaders,
-        hint: 'Please use the downloaded template format'
-      }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
     }
     
-    if (!hasFirstImageHeader) {
-      return new Response(JSON.stringify({ 
-        error: 'Missing First Image header',
-        totalRows: 0,
-        insertedCount: 0,
-        skippedCount: 0,
-        errors: ['Missing First Image header'],
-        receivedHeaders: headers,
-        expectedHeaders: expectedHeaders,
-        hint: 'Please use the downloaded template format with First Image column'
-      }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+    // Add the last line if it exists
+    if (currentLine.trim()) {
+      lines.push(currentLine);
     }
 
-    const result = {
-      totalRows: rows.length - 1,
-      insertedCount: 0,
-      skippedCount: 0,
-      errors: [] as string[]
-    };
+    if (lines.length < 2) {
+      return new Response(
+        JSON.stringify({ error: 'CSV file must contain headers and at least one data row' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-    const dataRows = rows.slice(1).filter(row => row.some(cell => cell.trim()));
-    const batchSize = 50; // Process 50 products at a time
+    // Parse headers
+    const headerLine = lines[0];
+    const headers = headerLine.split(',').map(h => h.trim().replace(/^"|"$/g, ''));
     
-    for (let batchStart = 0; batchStart < dataRows.length; batchStart += batchSize) {
-      const batch = dataRows.slice(batchStart, Math.min(batchStart + batchSize, dataRows.length));
-      const batchProducts = [];
+    // Validate required headers
+    const requiredHeaders = ['Product Name', 'First Image'];
+    const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
+    
+    if (missingHeaders.length > 0) {
+      return new Response(
+        JSON.stringify({ error: `Missing required headers: ${missingHeaders.join(', ')}` }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-      // Prepare batch data
-      for (let i = 0; i < batch.length; i++) {
-        const row = batch[i];
-        const rowData: Record<string, string> = {};
-        const actualRowIndex = batchStart + i;
-        
-        // Map headers to expected format with flexible matching
-        headers.forEach((header, index) => {
-          const trimmedHeader = header.trim().replace(/"/g, '');
-          let value = (row[index] || '').trim().replace(/"/g, '');
-          
-          // Log first row mapping for debugging
-          if (batchStart === 0 && i === 0) {
-            console.log(`Mapping header "${trimmedHeader}" with value "${value ? value.substring(0, 50) + '...' : 'EMPTY'}"`);
+    console.log('CSV Headers:', headers);
+    console.log(`Processing ${lines.length - 1} data rows`);
+
+    // Process data in batches
+    const BATCH_SIZE = 50;
+    const dataLines = lines.slice(1); // Skip header row
+    
+    let insertedCount = 0;
+    let skippedCount = 0;
+    const errors: string[] = [];
+
+    // Process batches
+    for (let i = 0; i < dataLines.length; i += BATCH_SIZE) {
+      const batch = dataLines.slice(i, Math.min(i + BATCH_SIZE, dataLines.length));
+      const productsToInsert: any[] = [];
+
+      for (let j = 0; j < batch.length; j++) {
+        const rowIndex = i + j + 2; // +2 because: +1 for header row, +1 for 1-based indexing
+        const line = batch[j];
+
+        // Parse CSV line handling quoted values
+        const values: string[] = [];
+        let currentValue = '';
+        let insideQuotes = false;
+
+        for (let k = 0; k < line.length; k++) {
+          const char = line[k];
+
+          if (char === '"') {
+            insideQuotes = !insideQuotes;
+          } else if (char === ',' && !insideQuotes) {
+            values.push(currentValue.trim().replace(/^"|"$/g, ''));
+            currentValue = '';
+          } else {
+            currentValue += char;
           }
-        
-        // Map similar headers to expected format with more flexible matching
-        const lowerHeader = trimmedHeader.toLowerCase();
-        
-        if (lowerHeader.includes('product name') || lowerHeader.includes('name') || lowerHeader === 'product_name') {
-          rowData['Product Name'] = value;
-        } else if (lowerHeader.includes('flylink') || lowerHeader.includes('fly_link')) {
-          rowData['FlyLink'] = value;
-        } else if (lowerHeader.includes('alibaba') || lowerHeader.includes('alibaba_url')) {
-          rowData['Alibaba URL'] = value;
-        } else if (lowerHeader.includes('dhgate') || lowerHeader.includes('dhgate_url')) {
-          rowData['DHgate URL'] = value;
-        } else if (lowerHeader.includes('category')) {
-          rowData['Category'] = value;
-        } else if (lowerHeader.includes('description')) {
-          rowData['Description'] = value;
-        } else if (lowerHeader.includes('first image') || 
-                   lowerHeader.includes('first_image') ||
-                   lowerHeader.includes('firstimage') ||
-                   lowerHeader === 'image' ||
-                   lowerHeader === 'thumbnail' ||
-                   lowerHeader.includes('main_image') ||
-                   lowerHeader.includes('primary_image')) {
-          rowData['First Image'] = value;
-        } else if (lowerHeader.includes('media links') || 
-                   lowerHeader.includes('media_links') ||
-                   lowerHeader.includes('medialinks') ||
-                   lowerHeader === 'media' ||
-                   lowerHeader === 'gallery' ||
-                   lowerHeader.includes('additional_images') ||
-                   lowerHeader.includes('extra_images')) {
-          rowData['Media Links'] = value;
-        } else {
-          // Keep original header name for any unmapped columns
-          rowData[trimmedHeader] = value;
         }
-          });
+        values.push(currentValue.trim().replace(/^"|"$/g, ''));
 
-        // Validate after header mapping
-        const validationErrors = validateRow(rowData, actualRowIndex);
-        if (validationErrors.length > 0) {
-          result.errors.push(...validationErrors);
-          result.skippedCount++;
+        // Create row object
+        const row: Record<string, string> = {};
+        headers.forEach((header, idx) => {
+          row[header] = values[idx] || '';
+        });
+
+        // Validate row
+        const validationError = validateRow(row, rowIndex);
+        if (validationError) {
+          errors.push(validationError);
+          skippedCount++;
           continue;
         }
 
-        const productData = {
-          product_name: rowData['Product Name'] || '',
-          flylink: toNull(rowData['FlyLink']),
-          alibaba_url: toNull(rowData['Alibaba URL']),
-          dhgate_url: toNull(rowData['DHgate URL']),
-          category: rowData['Category'] || 'Uncategorized',
-          description: toNull(rowData['Description']),
-          first_image: rowData['First Image'] || '',
-          media_links: parseMediaLinks(rowData['Media Links']),
-          title: rowData['Product Name'] || '',
-          slug: '', // Will be auto-generated by database trigger
-          status: 'published'
-        };
+        // Map to product data with flexible header matching
+        const productName = row['Product Name'] || row['product_name'] || '';
+        const flylink = toNull(row['FlyLink'] || row['flylink'] || row['Flylinking URL'] || '');
+        const alibabaUrl = toNull(row['Alibaba URL'] || row['alibaba_url'] || '');
+        const dhgateUrl = toNull(row['DHgate URL'] || row['dhgate_url'] || '');
+        const category = toNull(row['Category'] || row['category'] || '');
+        const description = toNull(row['Description'] || row['description'] || '');
+        const firstImage = toNull(row['First Image'] || row['first_image'] || '');
+        const mediaLinksStr = row['Media Links'] || row['media_links'] || '';
+        const mediaLinks = parseMediaLinks(mediaLinksStr);
 
-        batchProducts.push(productData);
+        // Generate slug
+        const slug = productName
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '');
+
+        productsToInsert.push({
+          product_name: productName,
+          title: productName,
+          slug: slug,
+          flylink: flylink,
+          alibaba_url: alibabaUrl,
+          dhgate_url: dhgateUrl,
+          category: category,
+          description: description,
+          first_image: firstImage,
+          media_links: mediaLinks.length > 0 ? mediaLinks : null,
+          status: 'published'
+        });
       }
 
-      // Insert batch to database
-      if (batchProducts.length > 0) {
+      // Insert batch
+      if (productsToInsert.length > 0) {
         try {
-          console.log(`Processing batch ${Math.floor(batchStart / batchSize) + 1}: ${batchProducts.length} products (rows ${batchStart + 1}-${batchStart + batchProducts.length})`);
-          
-          const { error } = await supabaseClient
+          const { data, error } = await supabase
             .from('products')
-            .insert(batchProducts);
+            .insert(productsToInsert)
+            .select();
 
           if (error) {
-            // If batch insert fails, try individual inserts
-            console.log('Batch insert failed, trying individual inserts:', error.message);
-            for (let j = 0; j < batchProducts.length; j++) {
-              try {
-                const { error: individualError } = await supabaseClient
-                  .from('products')
-                  .insert(batchProducts[j]);
-                
-                if (individualError) {
-                  result.errors.push(`Row ${batchStart + j + 1}: ${individualError.message}`);
-                  result.skippedCount++;
-                } else {
-                  result.insertedCount++;
-                }
-              } catch (individualErrorCatch: any) {
-                result.errors.push(`Row ${batchStart + j + 1}: ${individualErrorCatch.message}`);
-                result.skippedCount++;
+            console.error('Batch insert error:', error);
+            
+            // Try inserting individually to identify which rows failed
+            for (const product of productsToInsert) {
+              const { error: individualError } = await supabase
+                .from('products')
+                .insert([product]);
+
+              if (individualError) {
+                errors.push(`Failed to insert "${product.product_name}": ${individualError.message}`);
+                skippedCount++;
+              } else {
+                insertedCount++;
               }
             }
           } else {
-            result.insertedCount += batchProducts.length;
+            insertedCount += data.length;
+            console.log(`Batch ${Math.floor(i / BATCH_SIZE) + 1}: Inserted ${data.length} products`);
           }
-        } catch (batchError: any) {
-          result.errors.push(`Batch error: ${batchError.message}`);
-          result.skippedCount += batchProducts.length;
+        } catch (error: any) {
+          console.error('Batch insert exception:', error);
+          errors.push(`Batch insert failed: ${error.message}`);
+          skippedCount += productsToInsert.length;
         }
       }
     }
 
-    return new Response(JSON.stringify(result), {
-      status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
+    console.log(`Import complete: ${insertedCount} inserted, ${skippedCount} skipped, ${errors.length} errors`);
 
-  } catch (error) {
-    console.error('Import error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Import failed';
-    console.error('Error details:', errorMessage);
-    
-    return new Response(JSON.stringify({ 
-      error: errorMessage,
-      totalRows: 0,
-      insertedCount: 0,
-      skippedCount: 0,
-      errors: [errorMessage],
-      details: 'Check function logs for more information'
-    }), {
-      status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
+    return new Response(
+      JSON.stringify({
+        totalRows: dataLines.length,
+        insertedCount,
+        skippedCount,
+        errors: errors.slice(0, 10) // Return first 10 errors
+      }),
+      { 
+        status: 200, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    );
+
+  } catch (error: any) {
+    console.error('Import function error:', error);
+    return new Response(
+      JSON.stringify({ 
+        error: error.message || 'Import failed',
+        totalRows: 0,
+        insertedCount: 0,
+        skippedCount: 0,
+        errors: [error.message]
+      }),
+      { 
+        status: 500, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    );
   }
-})
+});

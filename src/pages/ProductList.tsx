@@ -116,7 +116,7 @@ const ProductList = () => {
           <div className="flex gap-2">
             <Button 
               variant="outline" 
-              onClick={() => navigate('/dashboard/products/import')}
+              onClick={() => navigate('/admin/import')}
             >
               <Upload className="h-4 w-4 mr-2" />
               Import CSV
