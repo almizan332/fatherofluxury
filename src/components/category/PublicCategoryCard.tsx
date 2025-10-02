@@ -14,9 +14,15 @@ const PublicCategoryCard = ({ category }: PublicCategoryCardProps) => {
           <div className="relative aspect-[4/3] overflow-hidden">
             <div className={`absolute inset-0 bg-gradient-to-br ${category.gradient} opacity-80`}></div>
             <img
-              src={category.image_url}
+              src={category.image_url || 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80'}
               alt={category.name}
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+              referrerPolicy="no-referrer"
+              crossOrigin="anonymous"
+              onError={(e) => {
+                console.error('Category image failed to load:', category.image_url);
+                e.currentTarget.src = 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80';
+              }}
             />
             <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300"></div>
           </div>
