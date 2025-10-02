@@ -10,7 +10,7 @@ interface GalleryMediaDisplayProps {
   handleZoom: () => void;
 }
 
-// Enhanced helper function to sanitize and handle image URLs for cross-browser compatibility
+// Helper function to sanitize and handle image URLs for cross-browser compatibility
 const sanitizeImageUrl = (url: string): string => {
   if (!url) return '';
   
@@ -22,49 +22,17 @@ const sanitizeImageUrl = (url: string): string => {
     cleanUrl = cleanUrl.replace('http://', 'https://');
   }
   
-  // Handle DigitalOcean Spaces URLs - ensure proper encoding
+  // Ensure URL starts with https
+  if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
+    cleanUrl = 'https://' + cleanUrl;
+  }
+  
+  // For DigitalOcean Spaces URLs, we need to handle spaces and special characters carefully
+  // The browser will automatically encode the URL when making the request
+  // We just need to make sure spaces are replaced with %20
   if (cleanUrl.includes('digitaloceanspaces.com')) {
-    try {
-      // Use URL constructor for proper parsing
-      const urlObj = new URL(cleanUrl);
-      
-      // Split path into segments for proper encoding
-      const pathSegments = urlObj.pathname.split('/').filter(segment => segment);
-      
-      // Properly encode each segment while preserving structure
-      const encodedSegments = pathSegments.map(segment => {
-        try {
-          // First try to decode if already encoded, then re-encode properly
-          let decoded = segment;
-          if (segment.includes('%')) {
-            try {
-              decoded = decodeURIComponent(segment);
-            } catch (decodeError) {
-              decoded = segment;
-            }
-          }
-          
-          // Encode with proper URI encoding
-          return encodeURIComponent(decoded);
-        } catch (e) {
-          console.warn('Failed to encode URL segment:', segment, e);
-          return segment;
-        }
-      });
-      
-      // Reconstruct the URL with properly encoded path
-      cleanUrl = `${urlObj.protocol}//${urlObj.host}/${encodedSegments.join('/')}`;
-      
-    } catch (e) {
-      console.error('URL encoding error:', e);
-      // Fallback: try simpler approach
-      try {
-        const urlObj = new URL(cleanUrl);
-        cleanUrl = `${urlObj.protocol}//${urlObj.host}${encodeURI(decodeURI(urlObj.pathname))}${urlObj.search}${urlObj.hash}`;
-      } catch (fallbackError) {
-        console.error('URL fallback encoding failed:', fallbackError);
-      }
-    }
+    // Simple approach: just replace spaces with %20, let the browser handle the rest
+    cleanUrl = cleanUrl.replace(/ /g, '%20');
   }
   
   return cleanUrl;

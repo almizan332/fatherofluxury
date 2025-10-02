@@ -23,40 +23,17 @@ const sanitizeImageUrl = (url: string): string => {
   // Remove any quotes that might be in the URL
   let cleanUrl = url.replace(/['"]/g, '').trim();
   
-  // Handle DigitalOcean Spaces URLs - ensure proper encoding
+  // Ensure URL starts with https
+  if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
+    cleanUrl = 'https://' + cleanUrl;
+  }
+  
+  // For DigitalOcean Spaces URLs, we need to handle spaces and special characters carefully
+  // The browser will automatically encode the URL when making the request
+  // We just need to make sure spaces are replaced with %20
   if (cleanUrl.includes('digitaloceanspaces.com')) {
-    try {
-      // Split URL into parts to handle mixed encoding states
-      const urlParts = cleanUrl.split('/');
-      const protocol = urlParts[0];
-      const domain = urlParts[2];
-      const pathParts = urlParts.slice(3);
-      
-      // Decode each path part if it's encoded, then properly encode it
-      const encodedParts = pathParts.map(part => {
-        if (!part) return part;
-        try {
-          // First decode if it contains encoded characters
-          const decoded = part.includes('%') ? decodeURIComponent(part) : part;
-          // Then properly encode special characters
-          return encodeURIComponent(decoded).replace(/%2F/g, '/');
-        } catch (e) {
-          // If decoding fails, just encode the original part
-          return encodeURIComponent(part).replace(/%2F/g, '/');
-        }
-      });
-      
-      cleanUrl = `${protocol}//${domain}/${encodedParts.join('/')}`;
-    } catch (e) {
-      console.log('URL encoding error:', e);
-      // Fallback: just encode the whole path part
-      try {
-        const urlObj = new URL(cleanUrl);
-        cleanUrl = `${urlObj.protocol}//${urlObj.host}${encodeURI(decodeURI(urlObj.pathname))}${urlObj.search}${urlObj.hash}`;
-      } catch (fallbackError) {
-        console.log('URL fallback encoding failed:', fallbackError);
-      }
-    }
+    // Simple approach: just replace spaces with %20, let the browser handle the rest
+    cleanUrl = cleanUrl.replace(/ /g, '%20');
   }
   
   return cleanUrl;
