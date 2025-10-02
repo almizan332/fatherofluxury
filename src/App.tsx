@@ -118,6 +118,7 @@ function App() {
               <Route path="/forgot-password" element={<Navigate to="/auth/forgot-password" replace />} />
               <Route path="/reset-password" element={<Navigate to="/auth/reset-password" replace />} />
               <Route path="/dashboard" element={<Navigate to="/admin/dashboard" replace />} />
+              <Route path="/dashboard/products/import" element={<Navigate to="/admin/import" replace />} />
               <Route path="/product-categories" element={<Navigate to="/admin/categories" replace />} />
               <Route path="/product-list" element={<Navigate to="/admin/products" replace />} />
               <Route path="/blog-management" element={<Navigate to="/admin/blog-management" replace />} />
