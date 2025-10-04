@@ -11,11 +11,11 @@ const BlogManagement = () => {
   const { blogPosts, handleDelete } = useBlogPosts();
 
   const handleCreatePost = () => {
-    navigate("/dashboard/blog-management/add-blog");
+    navigate("/admin/blog/new");
   };
 
   const handleEditPost = (post: BlogPost) => {
-    navigate(`/dashboard/blog-management/edit/${post.id}`);
+    navigate(`/admin/blog/edit/${post.id}`);
   };
 
   const handleDeletePost = (id: string) => {

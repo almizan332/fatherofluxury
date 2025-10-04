@@ -26,26 +26,39 @@ const BlogPostFormPage = () => {
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
-      <div className="mb-6">
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/dashboard/blog-management")}
-          className="mb-4"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Blog List
-        </Button>
-        <h1 className="text-3xl font-bold">{id ? "Edit Blog Post" : "Create New Blog Post"}</h1>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-background via-[hsl(240_10%_5%)] to-background">
+      <div className="container mx-auto px-6 py-12 max-w-5xl">
+        {/* Header */}
+        <div className="mb-12">
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/admin/blog-management")}
+            className="mb-6 hover:bg-secondary/50 group"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2 transition-transform group-hover:-translate-x-1" />
+            Back to Blog Management
+          </Button>
+          <div className="space-y-2">
+            <h1 className="text-5xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent">
+              {id ? "Edit Blog Post" : "Create New Blog Post"}
+            </h1>
+            <p className="text-muted-foreground text-lg">
+              {id ? "Update your luxury content" : "Share your story with the world"}
+            </p>
+          </div>
+        </div>
 
-      <Card className="p-6">
-        <BlogPostForm
-          initialData={null}
-          onSave={onSave}
-          onCancel={() => navigate("/dashboard/blog-management")}
-        />
-      </Card>
+        {/* Form Card */}
+        <Card className="border-border/50 bg-card/50 backdrop-blur-xl shadow-[var(--shadow-elegant)]">
+          <div className="p-8 lg:p-12">
+            <BlogPostForm
+              initialData={null}
+              onSave={onSave}
+              onCancel={() => navigate("/admin/blog-management")}
+            />
+          </div>
+        </Card>
+      </div>
     </div>
   );
 };
