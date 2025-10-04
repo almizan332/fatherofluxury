@@ -18,6 +18,8 @@ import ProductCategories from "./pages/ProductCategories";
 import ProductList from "./pages/ProductList";
 import BlogManagement from "./pages/BlogManagement";
 import BlogPostFormPage from "./pages/BlogPostFormPage";
+import Reviews from "./pages/Reviews";
+import ReviewManagement from "./pages/ReviewManagement";
 import WebContentsManagement from "./pages/WebContentsManagement";
 import YupooUpload from "./pages/YupooUpload";
 import ChatbotManagement from "./pages/ChatbotManagement";
@@ -42,6 +44,7 @@ function App() {
               <Route path="/category/:category" element={<SubCategory />} />
               <Route path="/blog" element={<Blog />} />
               <Route path="/blog/:id" element={<BlogPost />} />
+              <Route path="/reviews" element={<Reviews />} />
               <Route path="/product/:id" element={<ProductDetail />} />
               
               {/* AUTH ROUTES - WITH AUTH PROVIDER WRAPPER */}
@@ -107,6 +110,11 @@ function App() {
                     <Route path="import" element={
                       <ProtectedRoute>
                         <ProductImportSimple />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="reviews" element={
+                      <ProtectedRoute>
+                        <ReviewManagement />
                       </ProtectedRoute>
                     } />
                   </Routes>

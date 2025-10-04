@@ -48,6 +48,7 @@ const Navbar = () => {
                   <Link to="/" className="text-lg hover:text-[#9b87f5] transition-colors text-center">Home</Link>
                   <Link to="/categories" className="text-lg hover:text-[#9b87f5] transition-colors text-center">Categories</Link>
                   <Link to="/blog" className="text-lg hover:text-[#9b87f5] transition-colors text-center">Blog</Link>
+                  <Link to="/reviews" className="text-lg hover:text-[#9b87f5] transition-colors text-center">Reviews</Link>
                   <a 
                     href="https://t.me/+pcnB8fU7jwo0MmNl" 
                     target="_blank" 
@@ -87,6 +88,7 @@ const Navbar = () => {
           <Link to="/" className="hover:text-[#9b87f5] transition-colors duration-300">Home</Link>
           <Link to="/categories" className="hover:text-[#9b87f5] transition-colors duration-300">Categories</Link>
           <Link to="/blog" className="hover:text-[#9b87f5] transition-colors duration-300">Blog</Link>
+          <Link to="/reviews" className="hover:text-[#9b87f5] transition-colors duration-300">Reviews</Link>
           <a 
             href="https://t.me/+pcnB8fU7jwo0MmNl" 
             target="_blank" 

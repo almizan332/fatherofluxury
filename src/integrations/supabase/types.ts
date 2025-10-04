@@ -430,6 +430,54 @@ export type Database = {
         }
         Relationships: []
       }
+      reviews: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          id: string
+          product_link: string | null
+          product_name: string
+          rating: number | null
+          review_text: string | null
+          screenshot_url: string
+          status: string
+          updated_at: string
+          user_email: string | null
+          user_name: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          id?: string
+          product_link?: string | null
+          product_name: string
+          rating?: number | null
+          review_text?: string | null
+          screenshot_url: string
+          status?: string
+          updated_at?: string
+          user_email?: string | null
+          user_name?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          id?: string
+          product_link?: string | null
+          product_name?: string
+          rating?: number | null
+          review_text?: string | null
+          screenshot_url?: string
+          status?: string
+          updated_at?: string
+          user_email?: string | null
+          user_name?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
