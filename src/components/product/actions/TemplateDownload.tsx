@@ -15,6 +15,7 @@ const TemplateDownload = () => {
       productExcelHeaders.join('\t'), // Headers with tab separation
       ...sampleExcelData.map(row => [
         row['Product Name'],
+        row['Seller'] || '',
         row['Flylinking URL'] || '',
         row['Alibaba URL'] || '',
         row['DHgate URL'] || '',

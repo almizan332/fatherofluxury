@@ -1,6 +1,7 @@
 
 export const productExcelHeaders = [
   'Product Name',
+  'Seller',
   'Flylinking URL',
   'Alibaba URL',
   'DHgate URL',
@@ -13,6 +14,7 @@ export const productExcelHeaders = [
 export const sampleExcelData = [
   {
     'Product Name': 'AN4376 ALO SUIT',
+    'Seller': 'Yaya Fashion',
     'Flylinking URL': 'https://flylink.com/an4376-alo-suit',
     'Alibaba URL': '',
     'DHgate URL': 'https://dhgate.com/an4376-alo-suit',
@@ -23,6 +25,7 @@ export const sampleExcelData = [
   },
   {
     'Product Name': 'Designer Bag Premium',
+    'Seller': 'Luxury Outlet',
     'Flylinking URL': 'https://flylink.com/designer-bag',
     'Alibaba URL': 'https://alibaba.com/designer-bag',
     'DHgate URL': '',

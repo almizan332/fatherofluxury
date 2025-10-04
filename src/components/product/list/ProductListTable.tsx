@@ -39,6 +39,7 @@ const ProductListTable = ({
             />
           </TableHead>
           <TableHead>Product Name</TableHead>
+          <TableHead>Seller</TableHead>
           <TableHead>Category</TableHead>
           <TableHead>Description</TableHead>
           <TableHead>Preview Image</TableHead>
@@ -56,6 +57,7 @@ const ProductListTable = ({
               />
             </TableCell>
             <TableCell>{product.name}</TableCell>
+            <TableCell>{(product as any).seller || '-'}</TableCell>
             <TableCell>{(product as any).categories?.name}</TableCell>
             <TableCell>{product.description}</TableCell>
             <TableCell>

@@ -365,6 +365,7 @@ export type Database = {
           id: string
           media_links: string[] | null
           product_name: string | null
+          seller: string | null
           slug: string
           status: string
           thumbnail: string | null
@@ -383,6 +384,7 @@ export type Database = {
           id?: string
           media_links?: string[] | null
           product_name?: string | null
+          seller?: string | null
           slug: string
           status?: string
           thumbnail?: string | null
@@ -401,6 +403,7 @@ export type Database = {
           id?: string
           media_links?: string[] | null
           product_name?: string | null
+          seller?: string | null
           slug?: string
           status?: string
           thumbnail?: string | null

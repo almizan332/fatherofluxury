@@ -8,6 +8,7 @@ import ProductFormDialog from "./ProductFormDialog";
 import ProductListHeader from "./list/ProductListHeader";
 import ProductListTable from "./list/ProductListTable";
 import EmptyProductState from "./list/EmptyProductState";
+import SellerFilter from "./SellerFilter";
 import { productExcelHeaders, sampleExcelData } from "@/utils/excelTemplate";
 
 const ProductList = () => {
@@ -16,6 +17,7 @@ const ProductList = () => {
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedSeller, setSelectedSeller] = useState<string>("all");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -77,7 +79,7 @@ const ProductList = () => {
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedProducts(products.map(p => p.id));
+      setSelectedProducts(filteredProducts.map(p => p.id));
     } else {
       setSelectedProducts([]);
     }
@@ -177,16 +179,69 @@ const ProductList = () => {
     setIsDialogOpen(true);
   };
 
+  const handleDeleteBySeller = async () => {
+    if (selectedSeller === "all") return;
+    
+    const productsToDelete = filteredProducts.map(p => p.id);
+    
+    if (productsToDelete.length === 0) {
+      toast({
+        title: "No products to delete",
+        description: `No products found for seller: ${selectedSeller}`,
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .in('id', productsToDelete);
+
+      if (error) throw error;
+
+      setSelectedProducts([]);
+      toast({
+        title: "Products deleted",
+        description: `All ${productsToDelete.length} products from ${selectedSeller} have been deleted`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error deleting products",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Get unique sellers
+  const sellers = Array.from(new Set(products.map(p => (p as any).seller).filter(Boolean)));
+  
+  // Filter products by seller
+  const filteredProducts = selectedSeller === "all" 
+    ? products 
+    : products.filter(p => (p as any).seller === selectedSeller);
+
   return (
     <div className="p-6">
       <div className="mb-4">
         <h1 className="text-2xl font-bold mb-2">Product Management</h1>
         <p className="text-muted-foreground">
           Manage all {products.length} products in your catalog
+          {selectedSeller !== "all" && ` (Showing ${filteredProducts.length} products from ${selectedSeller})`}
         </p>
       </div>
 
-      <ProductListHeader 
+      <div className="mb-4">
+        <SellerFilter 
+          sellers={sellers}
+          selectedSeller={selectedSeller}
+          onSellerChange={setSelectedSeller}
+          onDeleteAllBySeller={handleDeleteBySeller}
+        />
+      </div>
+
+      <ProductListHeader
         selectedProducts={selectedProducts}
         onDownloadTemplate={downloadExcelTemplate}
         onDeleteSelected={handleDeleteSelected}
@@ -196,9 +251,9 @@ const ProductList = () => {
       />
 
       <Card className="p-6">
-        {products.length > 0 ? (
+        {filteredProducts.length > 0 ? (
           <ProductListTable 
-            products={products}
+            products={filteredProducts}
             selectedProducts={selectedProducts}
             onSelectAll={handleSelectAll}
             onSelectProduct={handleSelectProduct}

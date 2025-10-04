@@ -168,6 +168,7 @@ serve(async (req) => {
 
         // Map to product data with flexible header matching
         const productName = row['Product Name'] || row['product_name'] || '';
+        const seller = toNull(row['Seller'] || row['seller'] || '');
         const flylink = toNull(row['FlyLink'] || row['flylink'] || row['Flylinking URL'] || '');
         const alibabaUrl = toNull(row['Alibaba URL'] || row['alibaba_url'] || '');
         const dhgateUrl = toNull(row['DHgate URL'] || row['dhgate_url'] || '');
@@ -187,6 +188,7 @@ serve(async (req) => {
           product_name: productName,
           title: productName,
           slug: slug,
+          seller: seller,
           flylink: flylink,
           alibaba_url: alibabaUrl,
           dhgate_url: dhgateUrl,
