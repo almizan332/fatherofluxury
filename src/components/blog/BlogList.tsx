@@ -2,9 +2,10 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Plus, ArrowUpDown } from "lucide-react";
+import { Plus, ArrowUpDown, Eye } from "lucide-react";
 import { BlogPost } from "@/hooks/blog/useBlogPosts";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface BlogListProps {
   posts: BlogPost[];
@@ -14,6 +15,7 @@ interface BlogListProps {
 }
 
 const BlogList = ({ posts, onCreatePost, onEdit, onDelete }: BlogListProps) => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState("5");
   const [sortColumn, setSortColumn] = useState<keyof BlogPost>("created_at");
@@ -113,6 +115,15 @@ const BlogList = ({ posts, onCreatePost, onEdit, onDelete }: BlogListProps) => {
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate(`/blog/${post.id}`)}
+                      className="gap-1"
+                    >
+                      <Eye className="h-3 w-3" />
+                      View
+                    </Button>
                     <Button
                       variant="outline"
                       size="sm"
