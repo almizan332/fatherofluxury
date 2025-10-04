@@ -96,14 +96,19 @@ export function useProductDetail(id: string | undefined) {
           console.log('Found product:', productData);
           setProduct(productData);
           
-          // Fetch related products from the same category
+          // Fetch related products
           console.log('Fetching related products for category:', productData.category);
-          const { data: relatedData, error: relatedError } = await anonClient
+          let relatedQuery = anonClient
             .from('products')
             .select('*')
-            .neq('id', productData.id)
-            .eq('category', productData.category)
-            .limit(6);
+            .neq('id', productData.id);
+
+          // If category exists, filter by category, otherwise get random products
+          if (productData.category && productData.category !== null) {
+            relatedQuery = relatedQuery.eq('category', productData.category);
+          }
+
+          const { data: relatedData, error: relatedError } = await relatedQuery.limit(6);
 
           if (relatedError) {
             console.error('Error fetching related products:', relatedError);
