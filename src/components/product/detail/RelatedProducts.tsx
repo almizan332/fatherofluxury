@@ -11,25 +11,31 @@ export const RelatedProducts = ({ products }: RelatedProductsProps) => {
   if (products.length === 0) return null;
 
   return (
-    <div className="mt-12">
-      <h2 className="text-2xl font-bold mb-6">Related Products</h2>
+    <div>
+      <div className="flex items-center gap-3 mb-8">
+        <div className="h-1 w-12 bg-gradient-to-r from-primary to-primary/50 rounded-full"></div>
+        <h2 className="text-3xl font-bold">Related Products</h2>
+      </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
         {products.map((product) => (
-          <Link to={`/product/${product.id}`} key={product.id}>
-            <Card className="overflow-hidden hover:shadow-lg transition-all duration-300">
+          <Link to={`/product/${product.id}`} key={product.id} className="group">
+            <Card className="overflow-hidden border-border/50 hover:border-primary/50 hover:shadow-2xl transition-all duration-500 group-hover:-translate-y-2">
               <CardContent className="p-0">
-                <div className="aspect-square relative">
+                <div className="aspect-square relative overflow-hidden">
                   <img
                     src={product.first_image || product.preview_image || ''}
                     alt={product.product_name || product.title || product.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     onError={(e) => {
                       e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjZjNmNGY2Ii8+CjxwYXRoIGQ9Ik0xMDAgNTBMMTEwIDkwTDE1MCA5MEwxMTAgMTEwTDEyMCAxNTBMMTAwIDEzMEw4MCAxNTBMOTAgMTEwTDUwIDkwTDkwIDkwTDEwMCA1MFoiIGZpbGw9IiNjY2MiLz4KPHR4ZSB4PSIxMDAiIHk9IjE3NSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+Cjwvc3ZnPgo=';
                     }}
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </div>
                 <div className="p-4">
-                  <h3 className="font-medium line-clamp-2">{product.product_name || product.title || product.name}</h3>
+                  <h3 className="font-medium line-clamp-2 text-sm group-hover:text-primary transition-colors duration-300">
+                    {product.product_name || product.title || product.name}
+                  </h3>
                 </div>
               </CardContent>
             </Card>

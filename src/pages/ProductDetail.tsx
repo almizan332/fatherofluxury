@@ -57,32 +57,45 @@ const ProductDetail = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      <main className="container py-4 flex-grow">
+      <main className="container py-8 flex-grow">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-4">
-            <nav className="text-sm text-gray-400">
-              <Link to="/">Home</Link> / 
-              <Link to="/categories" className="mx-1">Categories</Link> /
-              {product.categories && (
-                <Link to={`/category/${product.categories.name}`} className="mx-1">
+          {/* Breadcrumb with Modern Style */}
+          <nav className="mb-8 flex items-center gap-2 text-sm">
+            <Link to="/" className="text-muted-foreground hover:text-primary transition-colors">
+              Home
+            </Link>
+            <span className="text-muted-foreground">/</span>
+            <Link to="/categories" className="text-muted-foreground hover:text-primary transition-colors">
+              Categories
+            </Link>
+            {product.categories && (
+              <>
+                <span className="text-muted-foreground">/</span>
+                <Link 
+                  to={`/category/${product.categories.name}`} 
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
                   {product.categories.name}
                 </Link>
-              )} / 
-              <span className="ml-1">{product.name}</span>
-            </nav>
-          </div>
+              </>
+            )}
+            <span className="text-muted-foreground">/</span>
+            <span className="text-foreground font-medium truncate">{product.name}</span>
+          </nav>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-            <div className="lg:col-span-2">
+          {/* Product Content with Modern Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+            <div className="lg:sticky lg:top-8 h-fit">
               <ProductGallery product={product} />
             </div>
-            <div className="lg:col-span-1">
+            <div>
               <ProductInfo product={product} />
             </div>
           </div>
 
+          {/* Related Products Section */}
           {relatedProducts.length > 0 && (
-            <div className="mt-16">
+            <div className="mt-20">
               <RelatedProducts products={relatedProducts} />
             </div>
           )}

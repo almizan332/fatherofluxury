@@ -24,33 +24,36 @@ function BuyButtons({ product }: { product: Product }) {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold">Purchase Options</h3>
+      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Purchase Options</h3>
       <div className="flex flex-wrap gap-3">
         {product.flylink && (
           <Button
             onClick={() => handleButtonClick(product.flylink)}
-            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+            size="lg"
+            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
           >
-            <ShoppingCart className="w-4 h-4 mr-2" />
-            Buy (FlyLink)
+            <ShoppingCart className="w-5 h-5 mr-2" />
+            Buy via FlyLink
           </Button>
         )}
         {product.alibaba_url && (
           <Button
             onClick={() => handleButtonClick(product.alibaba_url)}
-            className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
+            size="lg"
+            className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
           >
-            <ShoppingCart className="w-4 h-4 mr-2" />
-            Buy (Alibaba)
+            <ShoppingCart className="w-5 h-5 mr-2" />
+            Buy via Alibaba
           </Button>
         )}
         {product.dhgate_url && (
           <Button
             onClick={() => handleButtonClick(product.dhgate_url)}
-            className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
+            size="lg"
+            className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
           >
-            <ShoppingCart className="w-4 h-4 mr-2" />
-            Buy (DHgate)
+            <ShoppingCart className="w-5 h-5 mr-2" />
+            Buy via DHgate
           </Button>
         )}
       </div>
@@ -79,17 +82,25 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold mb-2">{product.product_name}</h1>
-        <p className="text-sm text-muted-foreground mb-4">{product.category}</p>
+    <div className="space-y-8">
+      {/* Product Header with Glass Effect */}
+      <div className="space-y-4">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 backdrop-blur-sm border border-primary/20">
+          {product.category ? (
+            <span className="text-sm font-medium text-primary">{product.category}</span>
+          ) : (
+            <span className="text-sm font-medium text-muted-foreground">Uncategorized</span>
+          )}
+        </div>
+        
+        <h1 className="text-4xl lg:text-5xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+          {product.product_name}
+        </h1>
         
         {product.description ? (
-          <div className="prose prose-sm max-w-none">
-            <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
-              {product.description}
-            </p>
-          </div>
+          <p className="text-lg text-muted-foreground leading-relaxed whitespace-pre-wrap">
+            {product.description}
+          </p>
         ) : (
           <p className="text-muted-foreground italic">No description provided.</p>
         )}
@@ -97,59 +108,69 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
 
       <BuyButtons product={product} />
 
-      {/* Additional Info Cards */}
+      {/* Additional Info Cards with Modern Glass Effect */}
       <div className="grid gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <h3 className="font-semibold mb-2 flex items-center">
-              <ShoppingCart className="w-4 h-4 mr-2" />
+        <Card className="border-primary/10 bg-gradient-to-br from-background to-primary/5 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
+          <CardContent className="p-6">
+            <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <ShoppingCart className="w-5 h-5 text-primary" />
+              </div>
               How to Order
             </h3>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground leading-relaxed">
               Click on any purchase button above to be redirected to the seller's page. 
               Follow their ordering process to complete your purchase.
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4">
-            <h3 className="font-semibold mb-2">Delivery Time</h3>
-            <p className="text-sm text-muted-foreground">
+        <Card className="border-blue-500/10 bg-gradient-to-br from-background to-blue-500/5 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
+          <CardContent className="p-6">
+            <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-blue-500/10">
+                <ExternalLink className="w-5 h-5 text-blue-500" />
+              </div>
+              Delivery Time
+            </h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
               Delivery times vary by seller and location. Please check with the seller for specific delivery estimates.
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Action Buttons */}
-      <div className="flex flex-wrap gap-3">
-        <Button
-          variant="outline"
-          onClick={() => handleButtonClick(whatsappUrl)}
-          className="border-green-500 text-green-600 hover:bg-green-50"
-        >
-          <MessageCircle className="w-4 h-4 mr-2" />
-          WhatsApp
-        </Button>
+      {/* Action Buttons with Better Design */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Need Help?</h3>
+        <div className="flex flex-wrap gap-3">
+          <Button
+            variant="outline"
+            onClick={() => handleButtonClick(whatsappUrl)}
+            className="group border-green-500/50 text-green-600 hover:bg-green-500 hover:text-white transition-all duration-300 hover:scale-105"
+          >
+            <MessageCircle className="w-4 h-4 mr-2 group-hover:animate-pulse" />
+            WhatsApp
+          </Button>
 
-        <Button
-          variant="outline"
-          onClick={() => handleButtonClick(webContents?.chat_with_us_link)}
-          className="border-blue-500 text-blue-600 hover:bg-blue-50"
-        >
-          <MessageCircle className="w-4 h-4 mr-2" />
-          Chat with Us
-        </Button>
+          <Button
+            variant="outline"
+            onClick={() => handleButtonClick(webContents?.chat_with_us_link)}
+            className="group border-blue-500/50 text-blue-600 hover:bg-blue-500 hover:text-white transition-all duration-300 hover:scale-105"
+          >
+            <MessageCircle className="w-4 h-4 mr-2 group-hover:animate-pulse" />
+            Chat with Us
+          </Button>
 
-        <Button
-          variant="outline"
-          onClick={() => handleButtonClick(youtubeHowToBuyUrl)}
-          className="border-red-500 text-red-600 hover:bg-red-50"
-        >
-          <Youtube className="w-4 h-4 mr-2" />
-          How to Buy
-        </Button>
+          <Button
+            variant="outline"
+            onClick={() => handleButtonClick(youtubeHowToBuyUrl)}
+            className="group border-red-500/50 text-red-600 hover:bg-red-500 hover:text-white transition-all duration-300 hover:scale-105"
+          >
+            <Youtube className="w-4 h-4 mr-2 group-hover:animate-pulse" />
+            How to Buy
+          </Button>
+        </div>
       </div>
     </div>
   );
