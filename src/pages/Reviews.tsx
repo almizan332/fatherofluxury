@@ -42,7 +42,6 @@ const Reviews = () => {
         .from("reviews")
         .select("*")
         .eq("status", "approved")
-        .neq("user_name", "Admin")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
