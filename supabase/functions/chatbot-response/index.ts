@@ -11,6 +11,9 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const deepseekApiKey = Deno.env.get('DEEPSEEK_API_KEY');
 
+const MAX_MESSAGE_LENGTH = 2000;
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -20,6 +23,46 @@ serve(async (req) => {
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const { message, image, type } = await req.json();
+
+    // Input validation
+    if (type === 'text' && message) {
+      if (typeof message !== 'string') {
+        return new Response(
+          JSON.stringify({ error: 'Invalid message format', response: "Please provide a valid text message." }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      if (message.length > MAX_MESSAGE_LENGTH) {
+        return new Response(
+          JSON.stringify({ error: 'Message too long', response: "Please shorten your message (max 2000 characters)." }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
+    if (type === 'image' && image) {
+      // Validate image is a proper base64 or URL
+      if (typeof image !== 'string') {
+        return new Response(
+          JSON.stringify({ error: 'Invalid image format', response: "Please provide a valid image." }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Check if it's a data URL and validate size
+      if (image.startsWith('data:')) {
+        const base64Length = image.split(',')[1]?.length || 0;
+        const sizeInBytes = (base64Length * 3) / 4;
+        
+        if (sizeInBytes > MAX_IMAGE_SIZE) {
+          return new Response(
+            JSON.stringify({ error: 'Image too large', response: "Please upload a smaller image (max 10MB)." }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      }
+    }
 
     if (type === 'image' && image && deepseekApiKey) {
       // Handle image-based product search using DeepSeek
@@ -49,19 +92,14 @@ async function handleImageSearch(supabase: any, image: string, deepseekApiKey: s
   try {
     console.log('Starting image search with DeepSeek...');
     
-    // Use DeepSeek to analyze the image and extract product features
     const imageAnalysis = await analyzeImageWithDeepSeek(image, deepseekApiKey);
     console.log('DeepSeek analysis result:', imageAnalysis);
     
-    // Search for similar products based on the analysis
     const products = await searchSimilarProducts(supabase, imageAnalysis);
 
     if (products.length > 0) {
       const topMatch = products[0];
-      
-      // Format the response with product name, price estimate, and link (aliHiddenProduct.com domain)
       const productUrl = `https://alihiddenproduct.com/product/${topMatch.id}`;
-      
       const response = `**${topMatch.name}**\nPrice: Contact for pricing\nLink: ${productUrl}`;
 
       return new Response(
@@ -139,7 +177,7 @@ async function searchSimilarProducts(supabase: any, analysis: string) {
   try {
     console.log('Searching products with analysis:', analysis);
     
-    // Extract meaningful keywords from the analysis
+    // Sanitize and extract keywords
     const keywords = analysis.toLowerCase()
       .replace(/[^\w\s]/g, ' ')
       .split(/\s+/)
@@ -147,12 +185,11 @@ async function searchSimilarProducts(supabase: any, analysis: string) {
         word.length > 2 && 
         !['the', 'and', 'this', 'that', 'with', 'from', 'have', 'been', 'they', 'were', 'for', 'are', 'but', 'not', 'you', 'all', 'can', 'had', 'her', 'was', 'one', 'our', 'out', 'day', 'get', 'has', 'him', 'his', 'how', 'man', 'new', 'now', 'old', 'see', 'two', 'way', 'who', 'boy', 'did', 'its', 'let', 'put', 'say', 'she', 'too', 'use'].includes(word)
       )
-      .slice(0, 8); // Limit to most relevant keywords
+      .slice(0, 8);
 
     console.log('Extracted keywords:', keywords);
 
     if (keywords.length === 0) {
-      // Fallback to recent products
       const { data, error } = await supabase
         .from('products')
         .select('id, name, preview_image, description, created_at')
@@ -162,13 +199,12 @@ async function searchSimilarProducts(supabase: any, analysis: string) {
       return data || [];
     }
 
-    // Create search conditions for name and description
+    // Use parameterized queries (Supabase client handles this safely)
     const searchConditions = keywords.flatMap(keyword => [
       `name.ilike.%${keyword}%`,
       `description.ilike.%${keyword}%`
     ]);
 
-    // Search products using text similarity
     const { data, error } = await supabase
       .from('products')
       .select('id, name, preview_image, description, created_at, display_id')
@@ -179,7 +215,6 @@ async function searchSimilarProducts(supabase: any, analysis: string) {
     if (error) {
       console.error('Error searching products:', error);
       
-      // Fallback search without filtering
       const { data: fallbackData } = await supabase
         .from('products')
         .select('id, name, preview_image, description, created_at, display_id')
@@ -199,9 +234,9 @@ async function searchSimilarProducts(supabase: any, analysis: string) {
 
 async function handleTextQuery(supabase: any, message: string) {
   try {
-    const lowerMessage = message.toLowerCase();
+    const lowerMessage = message.toLowerCase().trim();
     
-    // Check for external references first - reject them
+    // Check for external references - reject them
     if (lowerMessage.includes('amazon') || lowerMessage.includes('ebay') || lowerMessage.includes('aliexpress') || lowerMessage.includes('temu')) {
       return new Response(
         JSON.stringify({ 
@@ -225,9 +260,7 @@ async function handleTextQuery(supabase: any, message: string) {
         ).join('\n\n');
 
         return new Response(
-          JSON.stringify({ 
-            response: productList 
-          }),
+          JSON.stringify({ response: productList }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       } else {
@@ -262,7 +295,7 @@ async function handleTextQuery(supabase: any, message: string) {
       }
     }
 
-    // Default responses for common queries (domain-specific)
+    // Default responses
     const responses = {
       greeting: "Hello! I can help you find products on aliHiddenProduct.com. Try searching, browsing categories, or upload an image!",
       help: "I can help you:\n• Find specific products from aliHiddenProduct.com\n• Browse categories\n• Search by uploading images\n\nWhat would you like to find?",

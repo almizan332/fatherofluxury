@@ -11,15 +11,29 @@ export function useAdminAuth() {
     const checkAdminStatus = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       
-      // Check if logged in via session or via custom credentials
-      const isLoggedIn = Boolean(session?.user) || sessionStorage.getItem('isAdminLoggedIn') === 'true';
-      const isAdminUser = session?.user?.email === 'almizancolab@gmail.com' || 
-                         sessionStorage.getItem('adminEmail') === 'almizancolab@gmail.com' || 
-                         isLoggedIn;
-      
-      setIsAdmin(isAdminUser);
+      if (!session?.user) {
+        setIsAdmin(false);
+        if (window.location.pathname.includes('/dashboard')) {
+          navigate('/almizan');
+        }
+        return;
+      }
 
-      if (!isAdminUser && window.location.pathname.includes('/dashboard')) {
+      // Check admin status from database using RLS
+      const { data, error } = await supabase.rpc('is_admin');
+      
+      if (error) {
+        console.error('Error checking admin status:', error);
+        setIsAdmin(false);
+        if (window.location.pathname.includes('/dashboard')) {
+          navigate('/almizan');
+        }
+        return;
+      }
+
+      setIsAdmin(data === true);
+
+      if (!data && window.location.pathname.includes('/dashboard')) {
         navigate('/almizan');
       }
     };
@@ -27,17 +41,28 @@ export function useAdminAuth() {
     checkAdminStatus();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session?.user?.email);
+      console.log('Auth state changed:', event);
       
-      // Check if logged in via session or via custom credentials
-      const isLoggedIn = Boolean(session?.user) || sessionStorage.getItem('isAdminLoggedIn') === 'true';
-      const isAdminUser = session?.user?.email === 'almizancolab@gmail.com' || 
-                         sessionStorage.getItem('adminEmail') === 'almizancolab@gmail.com' || 
-                         isLoggedIn;
+      if (!session?.user) {
+        setIsAdmin(false);
+        if (window.location.pathname.includes('/dashboard')) {
+          navigate('/almizan');
+        }
+        return;
+      }
+
+      // Check admin status from database using RLS
+      const { data, error } = await supabase.rpc('is_admin');
       
-      setIsAdmin(isAdminUser);
+      if (error) {
+        console.error('Error checking admin status:', error);
+        setIsAdmin(false);
+        return;
+      }
+
+      setIsAdmin(data === true);
       
-      if (!isAdminUser && window.location.pathname.includes('/dashboard')) {
+      if (!data && window.location.pathname.includes('/dashboard')) {
         navigate('/almizan');
       }
     });
@@ -49,20 +74,10 @@ export function useAdminAuth() {
 
   const logout = async () => {
     try {
-      // Clear session storage
-      sessionStorage.removeItem('isAdminLoggedIn');
-      sessionStorage.removeItem('adminEmail');
-      
-      // Sign out from Supabase
       await supabase.auth.signOut();
-      
-      // Navigate to login
       navigate('/almizan');
     } catch (error) {
       console.error('Logout error:', error);
-      // Even if Supabase logout fails, clear local state
-      sessionStorage.removeItem('isAdminLoggedIn');
-      sessionStorage.removeItem('adminEmail');
       navigate('/almizan');
     }
   };
