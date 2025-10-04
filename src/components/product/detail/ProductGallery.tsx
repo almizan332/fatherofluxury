@@ -28,12 +28,21 @@ const sanitizeImageUrl = (url: string): string => {
     cleanUrl = 'https://' + cleanUrl;
   }
   
-  // For DigitalOcean Spaces URLs, we need to handle spaces and special characters carefully
-  // The browser will automatically encode the URL when making the request
-  // We just need to make sure spaces are replaced with %20
+  // For DigitalOcean Spaces URLs, properly encode the path
   if (cleanUrl.includes('digitaloceanspaces.com')) {
-    // Simple approach: just replace spaces with %20, let the browser handle the rest
-    cleanUrl = cleanUrl.replace(/ /g, '%20');
+    try {
+      const urlObj = new URL(cleanUrl);
+      // Split path into segments and encode each one
+      const pathSegments = urlObj.pathname.split('/').map(segment => 
+        segment ? encodeURIComponent(decodeURIComponent(segment)) : segment
+      );
+      urlObj.pathname = pathSegments.join('/');
+      cleanUrl = urlObj.toString();
+    } catch (e) {
+      console.error('Error encoding URL:', e);
+      // Fallback: just replace spaces
+      cleanUrl = cleanUrl.replace(/ /g, '%20');
+    }
   }
   
   return cleanUrl;
