@@ -108,7 +108,7 @@ export function useProductDetail(id: string | undefined) {
               .select('*')
               .neq('id', productData.id)
               .eq('category', productData.category)
-              .limit(6);
+              .limit(12);
             relatedData = result.data;
             relatedError = result.error;
           } else {
@@ -117,7 +117,7 @@ export function useProductDetail(id: string | undefined) {
               .from('products')
               .select('*')
               .neq('id', productData.id)
-              .limit(6);
+              .limit(12);
             relatedData = result.data;
             relatedError = result.error;
             console.log('Random products query result:', relatedData, 'Error:', relatedError);
