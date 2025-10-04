@@ -98,17 +98,30 @@ export function useProductDetail(id: string | undefined) {
           
           // Fetch related products
           console.log('Fetching related products for category:', productData.category);
-          let relatedQuery = anonClient
-            .from('products')
-            .select('*')
-            .neq('id', productData.id);
-
-          // If category exists, filter by category, otherwise get random products
+          
+          // Build query based on category existence
+          let relatedData, relatedError;
           if (productData.category && productData.category !== null) {
-            relatedQuery = relatedQuery.eq('category', productData.category);
+            console.log('Fetching by category:', productData.category);
+            const result = await anonClient
+              .from('products')
+              .select('*')
+              .neq('id', productData.id)
+              .eq('category', productData.category)
+              .limit(6);
+            relatedData = result.data;
+            relatedError = result.error;
+          } else {
+            console.log('No category - fetching random products');
+            const result = await anonClient
+              .from('products')
+              .select('*')
+              .neq('id', productData.id)
+              .limit(6);
+            relatedData = result.data;
+            relatedError = result.error;
+            console.log('Random products query result:', relatedData, 'Error:', relatedError);
           }
-
-          const { data: relatedData, error: relatedError } = await relatedQuery.limit(6);
 
           if (relatedError) {
             console.error('Error fetching related products:', relatedError);
