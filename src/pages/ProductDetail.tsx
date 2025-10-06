@@ -55,12 +55,12 @@ const ProductDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 flex flex-col">
       <Navbar />
-      <main className="container py-8 flex-grow">
+      <main className="container px-4 md:px-6 py-4 md:py-8 flex-grow">
         <div className="max-w-7xl mx-auto">
-          {/* Breadcrumb with Modern Style */}
-          <nav className="mb-8 flex items-center gap-2 text-sm">
+          {/* Breadcrumb - Hidden on mobile for cleaner look */}
+          <nav className="mb-4 md:mb-8 hidden md:flex items-center gap-2 text-sm">
             <Link to="/" className="text-muted-foreground hover:text-primary transition-colors">
               Home
             </Link>
@@ -83,19 +83,19 @@ const ProductDetail = () => {
             <span className="text-foreground font-medium truncate">{product.name}</span>
           </nav>
 
-          {/* Product Content with Modern Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+          {/* Product Content - Mobile-First Modern Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-12 mb-12 md:mb-16">
             <div className="lg:sticky lg:top-8 h-fit">
               <ProductGallery product={product} />
             </div>
-            <div>
+            <div className="order-first lg:order-last">
               <ProductInfo product={product} />
             </div>
           </div>
 
           {/* Related Products Section */}
           {relatedProducts.length > 0 && (
-            <div className="mt-20">
+            <div className="mt-12 md:mt-20">
               <RelatedProducts products={relatedProducts} />
             </div>
           )}

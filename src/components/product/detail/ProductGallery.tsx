@@ -27,10 +27,10 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
   console.log('ProductGallery - Current media:', allMedia[selectedMediaIndex]);
 
   return (
-    <div className="space-y-8">
-      {/* Main Image Display - Made larger and more cinematic */}
+    <div className="space-y-4 md:space-y-6">
+      {/* Main Image Display - Mobile optimized with larger size */}
       <div 
-        className="aspect-[16/10] lg:aspect-[5/3] relative rounded-2xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 shadow-2xl cursor-pointer group"
+        className="aspect-square md:aspect-[4/3] lg:aspect-[5/3] relative rounded-xl md:rounded-2xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-gray-200 shadow-xl md:shadow-2xl cursor-pointer group"
         onClick={() => setIsGalleryOpen(true)}
       >
         {allMedia.length > 0 && allMedia[selectedMediaIndex] ? (
@@ -47,7 +47,7 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
               <img
                 src={allMedia[selectedMediaIndex].url}
                 alt={`${product.name} - View ${selectedMediaIndex + 1}`}
-                className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
+                className="w-full h-full object-cover md:object-contain transition-transform duration-500 group-hover:scale-105"
                 onError={(e) => {
                   console.error('Main gallery image failed to load:', allMedia[selectedMediaIndex].url);
                   // Show fallback instead of hiding
@@ -79,21 +79,21 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
         )}
       </div>
 
-      {/* Thumbnail Carousel for Mobile - Made bigger */}
-      <div className="block md:hidden">
-        <Carousel className="w-full">
-          <CarouselContent>
+      {/* Thumbnail Carousel for Mobile - Bigger and better */}
+      <div className="block md:hidden px-1">
+        <Carousel className="w-full" opts={{ align: "start", loop: false }}>
+          <CarouselContent className="-ml-2 md:-ml-4">
             {allMedia.slice(0, 100).map((media, index) => (
-                <CarouselItem key={index} className="basis-1/2.5">
+                <CarouselItem key={index} className="pl-2 md:pl-4 basis-1/3 sm:basis-1/4">
                  <div
                    onClick={() => {
                      console.log('Mobile thumbnail clicked:', index, media);
                      setSelectedMediaIndex(index);
                    }}
-                   className={`aspect-square relative rounded-xl overflow-hidden cursor-pointer shadow-lg transform transition-all duration-300 hover:scale-105 ${
+                   className={`aspect-square relative rounded-lg overflow-hidden cursor-pointer shadow-md transform transition-all duration-300 active:scale-95 ${
                      selectedMediaIndex === index 
-                       ? 'ring-4 ring-primary border-3 border-primary scale-105 shadow-xl' 
-                       : 'border-2 border-gray-200 hover:border-primary/50'
+                       ? 'ring-3 ring-primary border-2 border-primary scale-105 shadow-lg' 
+                       : 'border border-gray-300 hover:border-primary/50'
                    }`}
                  >
                   {media.type === 'video' ? (
@@ -124,8 +124,8 @@ export const ProductGallery = ({ product }: ProductGalleryProps) => {
         </Carousel>
       </div>
 
-      {/* Thumbnail Grid for Desktop - Made bigger and more stylish */}
-      <div className="hidden md:grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-6 max-h-[600px] overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 bg-gradient-to-br from-gray-50/50 to-white rounded-2xl border border-gray-100">
+      {/* Thumbnail Grid for Desktop - Stylish grid */}
+      <div className="hidden md:grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3 md:gap-4 max-h-[500px] overflow-y-auto p-4 md:p-6 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 bg-gradient-to-br from-gray-50/50 to-white rounded-xl md:rounded-2xl border border-gray-100">
         {allMedia.slice(0, 100).map((media, index) => (
           <div
             key={index}

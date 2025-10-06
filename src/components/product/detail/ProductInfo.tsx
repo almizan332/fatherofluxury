@@ -23,16 +23,16 @@ function BuyButtons({ product }: { product: Product }) {
   }
 
   return (
-    <div className="space-y-4">
-      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Purchase Options</h3>
-      <div className="flex flex-wrap gap-3">
+    <div className="space-y-3 md:space-y-4">
+      <h3 className="text-xs md:text-sm font-semibold text-muted-foreground uppercase tracking-wider">Purchase Options</h3>
+      <div className="flex flex-col sm:flex-row flex-wrap gap-2 md:gap-3">
         {product.flylink && (
           <Button
             onClick={() => handleButtonClick(product.flylink)}
             size="lg"
-            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+            className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg hover:shadow-xl active:scale-95 md:hover:scale-105 transition-all duration-300"
           >
-            <ShoppingCart className="w-5 h-5 mr-2" />
+            <ShoppingCart className="w-4 h-4 md:w-5 md:h-5 mr-2" />
             Buy via FlyLink
           </Button>
         )}
@@ -40,9 +40,9 @@ function BuyButtons({ product }: { product: Product }) {
           <Button
             onClick={() => handleButtonClick(product.alibaba_url)}
             size="lg"
-            className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+            className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 shadow-lg hover:shadow-xl active:scale-95 md:hover:scale-105 transition-all duration-300"
           >
-            <ShoppingCart className="w-5 h-5 mr-2" />
+            <ShoppingCart className="w-4 h-4 md:w-5 md:h-5 mr-2" />
             Buy via Alibaba
           </Button>
         )}
@@ -50,9 +50,9 @@ function BuyButtons({ product }: { product: Product }) {
           <Button
             onClick={() => handleButtonClick(product.dhgate_url)}
             size="lg"
-            className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+            className="w-full sm:w-auto bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 shadow-lg hover:shadow-xl active:scale-95 md:hover:scale-105 transition-all duration-300"
           >
-            <ShoppingCart className="w-5 h-5 mr-2" />
+            <ShoppingCart className="w-4 h-4 md:w-5 md:h-5 mr-2" />
             Buy via DHgate
           </Button>
         )}
@@ -82,27 +82,27 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 md:space-y-8">
       {/* Product Header with Glass Effect */}
-      <div className="space-y-4">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 backdrop-blur-sm border border-primary/20">
+      <div className="space-y-3 md:space-y-4">
+        <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-primary/10 backdrop-blur-sm border border-primary/20">
           {product.category ? (
-            <span className="text-sm font-medium text-primary">{product.category}</span>
+            <span className="text-xs md:text-sm font-medium text-primary">{product.category}</span>
           ) : (
-            <span className="text-sm font-medium text-muted-foreground">Uncategorized</span>
+            <span className="text-xs md:text-sm font-medium text-muted-foreground">Uncategorized</span>
           )}
         </div>
         
-        <h1 className="text-4xl lg:text-5xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+        <h1 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text leading-tight">
           {product.product_name}
         </h1>
         
         {product.description ? (
-          <p className="text-lg text-muted-foreground leading-relaxed whitespace-pre-wrap">
+          <p className="text-sm md:text-base lg:text-lg text-muted-foreground leading-relaxed whitespace-pre-wrap">
             {product.description}
           </p>
         ) : (
-          <p className="text-muted-foreground italic">No description provided.</p>
+          <p className="text-sm md:text-base text-muted-foreground italic">No description provided.</p>
         )}
       </div>
 
@@ -142,12 +142,12 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
 
       {/* Action Buttons with Better Design */}
       <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Need Help?</h3>
-        <div className="flex flex-wrap gap-3">
+        <h3 className="text-xs md:text-sm font-semibold text-muted-foreground uppercase tracking-wider">Need Help?</h3>
+        <div className="flex flex-col sm:flex-row flex-wrap gap-2 md:gap-3">
           <Button
             variant="outline"
             onClick={() => handleButtonClick(whatsappUrl)}
-            className="group border-green-500/50 text-green-600 hover:bg-green-500 hover:text-white transition-all duration-300 hover:scale-105"
+            className="w-full sm:w-auto group border-green-500/50 text-green-600 hover:bg-green-500 hover:text-white transition-all duration-300 active:scale-95 md:hover:scale-105"
           >
             <MessageCircle className="w-4 h-4 mr-2 group-hover:animate-pulse" />
             WhatsApp
@@ -156,7 +156,7 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
           <Button
             variant="outline"
             onClick={() => handleButtonClick(webContents?.chat_with_us_link)}
-            className="group border-blue-500/50 text-blue-600 hover:bg-blue-500 hover:text-white transition-all duration-300 hover:scale-105"
+            className="w-full sm:w-auto group border-blue-500/50 text-blue-600 hover:bg-blue-500 hover:text-white transition-all duration-300 active:scale-95 md:hover:scale-105"
           >
             <MessageCircle className="w-4 h-4 mr-2 group-hover:animate-pulse" />
             Chat with Us
@@ -165,7 +165,7 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
           <Button
             variant="outline"
             onClick={() => handleButtonClick(youtubeHowToBuyUrl)}
-            className="group border-red-500/50 text-red-600 hover:bg-red-500 hover:text-white transition-all duration-300 hover:scale-105"
+            className="w-full sm:w-auto group border-red-500/50 text-red-600 hover:bg-red-500 hover:text-white transition-all duration-300 active:scale-95 md:hover:scale-105"
           >
             <Youtube className="w-4 h-4 mr-2 group-hover:animate-pulse" />
             How to Buy
