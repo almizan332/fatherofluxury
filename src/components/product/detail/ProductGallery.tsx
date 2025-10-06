@@ -4,6 +4,7 @@ import { Product } from "@/types/product";
 import { MediaGalleryDialog } from "./MediaGalleryDialog";
 import { MediaType } from "@/types/product";
 import { ZoomIn } from "lucide-react";
+import { sanitizeImageUrl } from "@/utils/imageUrlHelper";
 import {
   Carousel,
   CarouselContent,
@@ -15,38 +16,6 @@ import {
 interface ProductGalleryProps {
   product: Product;
 }
-
-// Helper function to sanitize and handle DigitalOcean Spaces URLs
-const sanitizeImageUrl = (url: string): string => {
-  if (!url) return '';
-  
-  // Remove any quotes that might be in the URL
-  let cleanUrl = url.replace(/['"]/g, '').trim();
-  
-  // Ensure URL starts with https
-  if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
-    cleanUrl = 'https://' + cleanUrl;
-  }
-  
-  // For DigitalOcean Spaces URLs, properly encode the path
-  if (cleanUrl.includes('digitaloceanspaces.com')) {
-    try {
-      const urlObj = new URL(cleanUrl);
-      // Split path into segments and encode each one
-      const pathSegments = urlObj.pathname.split('/').map(segment => 
-        segment ? encodeURIComponent(decodeURIComponent(segment)) : segment
-      );
-      urlObj.pathname = pathSegments.join('/');
-      cleanUrl = urlObj.toString();
-    } catch (e) {
-      console.error('Error encoding URL:', e);
-      // Fallback: just replace spaces
-      cleanUrl = cleanUrl.replace(/ /g, '%20');
-    }
-  }
-  
-  return cleanUrl;
-};
 
 export const ProductGallery = ({ product }: ProductGalleryProps) => {
   const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);

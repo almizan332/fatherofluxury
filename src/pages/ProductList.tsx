@@ -18,6 +18,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { sanitizeImageUrl, FALLBACK_IMAGE_URL } from "@/utils/imageUrlHelper";
 import { Edit, Trash2, Upload } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -211,9 +212,12 @@ const ProductList = () => {
                         <TableCell>
                           {product.thumbnail && (
                             <img 
-                              src={product.thumbnail} 
+                              src={sanitizeImageUrl(product.thumbnail) || FALLBACK_IMAGE_URL} 
                               alt={product.title} 
                               className="w-16 h-16 object-cover rounded-lg border border-muted"
+                              onError={(e) => {
+                                e.currentTarget.src = FALLBACK_IMAGE_URL;
+                              }}
                             />
                           )}
                         </TableCell>

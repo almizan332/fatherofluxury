@@ -22,21 +22,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Product } from "@/types/product";
 import ChatbotWidget from "@/components/ChatbotWidget";
 import { getAnonymousClient } from "@/utils/supabaseAnonymous";
-
-// Simple function to clean image URLs - just return as-is since they're already properly encoded
-const sanitizeImageUrl = (url: string): string => {
-  if (!url) return '';
-  
-  // Remove any quotes and trim
-  let cleanUrl = url.replace(/['"]/g, '').trim();
-  
-  // Ensure HTTPS for security
-  if (cleanUrl.startsWith('http://')) {
-    cleanUrl = cleanUrl.replace('http://', 'https://');
-  }
-  
-  return cleanUrl;
-};
+import { sanitizeImageUrl, FALLBACK_IMAGE_URL } from "@/utils/imageUrlHelper";
 
 const ITEMS_PER_BATCH = 120;
 
@@ -246,52 +232,17 @@ const [products, setProducts] = useState<Product[]>([]);
                       <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer bg-gray-900/50 border-gray-800">
                         <CardContent className="p-0">
                            <div className="aspect-square relative">
-                              <img
-                               src={sanitizeImageUrl(product.first_image) || 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80'}
-                               alt={product.product_name || product.title}
-                               className="w-full h-full object-cover"
-                               loading="lazy"
-                               referrerPolicy="no-referrer"
-                               onError={(e) => {
-                                 // Comprehensive error logging for debugging
-                                 const errorDetails = {
-                                   originalSrc: e.currentTarget.src,
-                                   productName: product.product_name,
-                                   userAgent: navigator.userAgent,
-                                   hostname: window.location.hostname,
-                                   protocol: window.location.protocol,
-                                   origin: window.location.origin,
-                                   timestamp: new Date().toISOString(),
-                                   errorType: 'IMAGE_LOAD_FAILED',
-                                   // Check if it's likely a CORS issue
-                                   likelyCORS: e.currentTarget.src.includes('digitaloceanspaces.com'),
-                                   // Check if URL looks malformed
-                                   suspiciousChars: /[^\w\-._~:/?#[\]@!$&'()*+,;=%]/.test(e.currentTarget.src)
-                                 };
-                                 
-                                 console.error('🚨 Image Load Error - Cross-browser issue detected:', errorDetails);
-                                 
-                                 // Try alternative loading strategy first
-                                 if (!e.currentTarget.dataset.retried && product.first_image) {
-                                   e.currentTarget.dataset.retried = 'true';
-                                   // Try with different approach - construct a clean URL manually
-                                   const cleanUrl = product.first_image.split('/').map(part => 
-                                     encodeURIComponent(decodeURIComponent(part.replace(/['"]/g, '')))
-                                   ).join('/').replace(/%3A/g, ':').replace(/%2F/g, '/');
-                                   
-                                   console.log('🔄 Retrying with cleaned URL:', cleanUrl);
-                                   e.currentTarget.src = cleanUrl;
-                                   return;
-                                 }
-                                 
-                                 // Final fallback to placeholder
-                                 console.log('🎨 Using fallback placeholder image');
-                                 e.currentTarget.src = 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80';
-                               }}
-                              onLoad={() => {
-                                console.log('Homepage image loaded:', product.first_image);
-                              }}
-                            />
+                               <img
+                                src={sanitizeImageUrl(product.first_image) || FALLBACK_IMAGE_URL}
+                                alt={product.product_name || product.title}
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                                referrerPolicy="no-referrer"
+                                onError={(e) => {
+                                  console.error('Homepage image failed to load:', product.first_image);
+                                  e.currentTarget.src = FALLBACK_IMAGE_URL;
+                                }}
+                             />
                            </div>
                           <div className="p-3">
                              <h3 className="text-sm font-medium text-gray-200 line-clamp-2">{product.title}</h3>
