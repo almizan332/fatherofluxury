@@ -161,19 +161,6 @@ const ProductList = () => {
       </div>
 
       <Card className="p-4 bg-white/50 backdrop-blur-sm shadow-xl">
-        <div className="mb-4 flex flex-wrap gap-4 items-center justify-between">
-          <div className="flex gap-2 items-center">
-            <RangeSelector
-              totalProducts={filteredProducts.length}
-              onRangeSelect={handleRangeSelect}
-            />
-            <DeleteSelected
-              selectedProducts={selectedProducts}
-              onDeleteSelected={handleDeleteSelected}
-            />
-          </div>
-        </div>
-        
         <ProductFilters
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
@@ -183,6 +170,24 @@ const ProductList = () => {
           viewMode={viewMode}
           onViewModeChange={setViewMode}
         />
+        
+        <div className="mt-4 flex flex-wrap gap-4 items-center">
+          <RangeSelector
+            totalProducts={filteredProducts.length}
+            onRangeSelect={handleRangeSelect}
+          />
+          {selectedProducts.length > 0 && (
+            <DeleteSelected
+              selectedProducts={selectedProducts}
+              onDeleteSelected={handleDeleteSelected}
+            />
+          )}
+          {selectedProducts.length > 0 && (
+            <Badge variant="secondary" className="ml-auto">
+              {selectedProducts.length} selected
+            </Badge>
+          )}
+        </div>
 
         {products.length === 0 ? (
           <div className="text-center py-12">
