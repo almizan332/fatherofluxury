@@ -88,7 +88,7 @@ const ProductDetail = () => {
             <div className="lg:sticky lg:top-8 h-fit">
               <ProductGallery product={product} />
             </div>
-            <div className="order-first lg:order-last">
+            <div>
               <ProductInfo product={product} />
             </div>
           </div>
