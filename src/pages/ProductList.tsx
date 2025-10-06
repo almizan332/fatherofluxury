@@ -35,6 +35,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import RangeSelector from "@/components/product/actions/RangeSelector";
+import DeleteSelected from "@/components/product/actions/DeleteSelected";
 
 const ProductList = () => {
   const navigate = useNavigate();
@@ -69,6 +71,13 @@ const ProductList = () => {
     if (success) {
       setSelectedProducts([]);
     }
+  };
+
+  const handleRangeSelect = (indices: number[]) => {
+    const selectedIds = indices
+      .map(index => filteredProducts[index - 1]?.id)
+      .filter(Boolean);
+    setSelectedProducts(selectedIds);
   };
 
   const handleDeleteAllProducts = async () => {
@@ -152,6 +161,19 @@ const ProductList = () => {
       </div>
 
       <Card className="p-4 bg-white/50 backdrop-blur-sm shadow-xl">
+        <div className="mb-4 flex flex-wrap gap-4 items-center justify-between">
+          <div className="flex gap-2 items-center">
+            <RangeSelector
+              totalProducts={filteredProducts.length}
+              onRangeSelect={handleRangeSelect}
+            />
+            <DeleteSelected
+              selectedProducts={selectedProducts}
+              onDeleteSelected={handleDeleteSelected}
+            />
+          </div>
+        </div>
+        
         <ProductFilters
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
