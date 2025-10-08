@@ -43,7 +43,7 @@ function App() {
               <Route path="/categories" element={<Categories />} />
               <Route path="/category/:category" element={<SubCategory />} />
               <Route path="/blog" element={<Blog />} />
-              <Route path="/blog/:id" element={<BlogPost />} />
+              <Route path="/blog/:slug" element={<BlogPost />} />
               <Route path="/reviews" element={<Reviews />} />
               <Route path="/product/:id" element={<ProductDetail />} />
               

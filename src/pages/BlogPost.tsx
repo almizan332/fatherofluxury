@@ -16,6 +16,7 @@ interface BlogPostData {
   content: string;
   excerpt: string;
   image: string;
+  slug: string;
   seo_title: string;
   seo_description: string;
   seo_keywords: string;
@@ -23,7 +24,7 @@ interface BlogPostData {
 }
 
 const BlogPost = () => {
-  const { id } = useParams();
+  const { slug } = useParams();
   const [post, setPost] = useState<BlogPostData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -33,7 +34,7 @@ const BlogPost = () => {
         const { data, error } = await supabase
           .from('blog_posts')
           .select('*')
-          .eq('id', id)
+          .eq('slug', slug)
           .maybeSingle();
 
         if (error) throw error;
@@ -45,8 +46,8 @@ const BlogPost = () => {
       }
     };
 
-    if (id) fetchPost();
-  }, [id]);
+    if (slug) fetchPost();
+  }, [slug]);
 
   if (loading) {
     return (

@@ -69,7 +69,7 @@ const Blog = () => {
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                     </div>
-                    <Link to={`/blog/${post.id}`} className="flex-1 flex flex-col">
+                    <Link to={`/blog/${post.slug}`} className="flex-1 flex flex-col">
                       <div className="p-6 flex-1 flex flex-col">
                         <time className="text-xs text-muted-foreground/80 font-medium tracking-wide uppercase mb-3 block">
                           {new Date(post.created_at).toLocaleDateString('en-US', { 

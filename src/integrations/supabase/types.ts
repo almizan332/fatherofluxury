@@ -78,6 +78,7 @@ export type Database = {
           seo_description: string
           seo_keywords: string
           seo_title: string
+          slug: string | null
           title: string
           updated_at: string
         }
@@ -90,6 +91,7 @@ export type Database = {
           seo_description: string
           seo_keywords: string
           seo_title: string
+          slug?: string | null
           title: string
           updated_at?: string
         }
@@ -102,6 +104,7 @@ export type Database = {
           seo_description?: string
           seo_keywords?: string
           seo_title?: string
+          slug?: string | null
           title?: string
           updated_at?: string
         }

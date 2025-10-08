@@ -15,10 +15,20 @@ interface BlogPost {
   excerpt: string;
   content: string;
   image: string;
+  slug: string;
   seo_title: string;
   seo_description: string;
   seo_keywords: string;
 }
+
+const generateSlug = (title: string): string => {
+  return title
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .trim();
+};
 
 interface BlogPostFormProps {
   initialData: BlogPost | null;
@@ -34,6 +44,7 @@ const BlogPostForm = ({ initialData, onSave, onCancel }: BlogPostFormProps) => {
     excerpt: initialData?.excerpt || "",
     content: initialData?.content || "",
     image: initialData?.image || "",
+    slug: initialData?.slug || "",
     seo_title: initialData?.seo_title || "",
     seo_description: initialData?.seo_description || "",
     seo_keywords: initialData?.seo_keywords || ""
@@ -52,7 +63,8 @@ const BlogPostForm = ({ initialData, onSave, onCancel }: BlogPostFormProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    const slug = formData.slug || generateSlug(formData.title);
+    onSave({ ...formData, slug });
   };
 
   return (
