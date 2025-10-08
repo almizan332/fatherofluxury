@@ -3,16 +3,49 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import BlogPostForm from "@/components/blog/BlogPostForm";
 import { BlogPost } from "@/hooks/blog/useBlogPosts";
 import { useBlogPosts } from "@/hooks/blog/useBlogPosts";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const BlogPostFormPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const { toast } = useToast();
   const { handleSave } = useBlogPosts();
+  const [loading, setLoading] = useState(!!id);
+  const [postData, setPostData] = useState<BlogPost | null>(null);
+
+  useEffect(() => {
+    const fetchPost = async () => {
+      if (!id) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('blog_posts')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (error) throw error;
+        setPostData(data);
+      } catch (error) {
+        console.error('Error fetching blog post:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load blog post",
+          variant: "destructive",
+        });
+        navigate("/admin/blog-management");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPost();
+  }, [id, toast, navigate]);
 
   const onSave = async (postData: Omit<BlogPost, 'id' | 'created_at'>) => {
     const success = await handleSave(postData, id);
@@ -21,9 +54,17 @@ const BlogPostFormPage = () => {
         title: "Success",
         description: id ? "Blog post updated successfully" : "Blog post created successfully",
       });
-      navigate("/dashboard/blog-management");
+      navigate("/admin/blog-management");
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-[hsl(240_10%_5%)] to-background">
@@ -52,7 +93,7 @@ const BlogPostFormPage = () => {
         <Card className="border-border/50 bg-card/50 backdrop-blur-xl shadow-[var(--shadow-elegant)]">
           <div className="p-8 lg:p-12">
             <BlogPostForm
-              initialData={null}
+              initialData={postData}
               onSave={onSave}
               onCancel={() => navigate("/admin/blog-management")}
             />
