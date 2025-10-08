@@ -7,6 +7,7 @@ import { useState } from "react";
 import ImageUploadField from "@/components/product/form/ImageUploadField";
 import { useImageUpload } from "@/hooks/category/useImageUpload";
 import { useToast } from "@/hooks/use-toast";
+import { convertTextToHtml, convertHtmlToText } from "@/utils/textToHtml";
 
 interface BlogPost {
   id?: string;
@@ -31,7 +32,7 @@ const BlogPostForm = ({ initialData, onSave, onCancel }: BlogPostFormProps) => {
   const [formData, setFormData] = useState<Omit<BlogPost, 'id'>>({
     title: initialData?.title || "",
     excerpt: initialData?.excerpt || "",
-    content: initialData?.content || "",
+    content: initialData?.content ? convertHtmlToText(initialData.content) : "",
     image: initialData?.image || "",
     seo_title: initialData?.seo_title || "",
     seo_description: initialData?.seo_description || "",
@@ -51,7 +52,12 @@ const BlogPostForm = ({ initialData, onSave, onCancel }: BlogPostFormProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    // Convert plain text content to HTML before saving
+    const formattedData = {
+      ...formData,
+      content: convertTextToHtml(formData.content)
+    };
+    onSave(formattedData);
   };
 
   return (
@@ -102,15 +108,21 @@ const BlogPostForm = ({ initialData, onSave, onCancel }: BlogPostFormProps) => {
 
       {/* Content Section */}
       <div className="space-y-3 p-6 rounded-lg border border-border/50 bg-card/50 backdrop-blur-sm">
-        <Label htmlFor="content" className="text-lg font-semibold tracking-tight">Article Content</Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="content" className="text-lg font-semibold tracking-tight">Article Content</Label>
+          <span className="text-xs text-muted-foreground">Supports markdown-style formatting</span>
+        </div>
         <Textarea
           id="content"
           value={formData.content}
           onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-          placeholder="Share your story..."
-          className="min-h-[300px] border-border/50 focus:border-[hsl(var(--luxury-gold))] transition-colors resize-none"
+          placeholder="Write your content here... (Use line breaks for paragraphs, numbered lists: 1. 2. 3., bullets with -, bold with **text**, links with [text](url))"
+          className="min-h-[400px] font-mono text-sm border-border/50 focus:border-[hsl(var(--luxury-gold))] transition-colors resize-none"
           required
         />
+        <p className="text-xs text-muted-foreground">
+          💡 Tip: Content will be automatically formatted with proper headings, paragraphs, and lists when published.
+        </p>
       </div>
 
       {/* SEO Section */}
