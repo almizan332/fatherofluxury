@@ -19,23 +19,34 @@ export const useSubCategoryProducts = (category: string | undefined) => {
       setLoading(true);
       const categoryName = decodeURIComponent(category || '');
       
-      // Get total count for products in this category
-      const { count } = await supabase
+      // Build query based on category
+      let countQuery = supabase
         .from('products')
-        .select('*', { count: 'exact', head: true })
-        .eq('category', categoryName);
+        .select('*', { count: 'exact', head: true });
       
+      // If category is not "all", filter by category
+      if (categoryName !== 'all') {
+        countQuery = countQuery.eq('category', categoryName);
+      }
+      
+      const { count } = await countQuery;
       setTotalCount(count || 0);
 
       // Calculate pagination range
       const startRange = (page - 1) * ITEMS_PER_PAGE;
       const endRange = startRange + ITEMS_PER_PAGE - 1;
 
-      // Fetch products for current page filtered by category
-      const { data: productsData, error: productsError } = await supabase
+      // Build products query
+      let productsQuery = supabase
         .from('products')
-        .select('*')
-        .eq('category', categoryName)
+        .select('*');
+      
+      // If category is not "all", filter by category
+      if (categoryName !== 'all') {
+        productsQuery = productsQuery.eq('category', categoryName);
+      }
+      
+      const { data: productsData, error: productsError } = await productsQuery
         .order('created_at', { ascending: true })
         .range(startRange, endRange);
 
