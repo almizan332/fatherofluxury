@@ -58,22 +58,36 @@ const Blog = () => {
                 transition={{ duration: 0.3, delay: index * 0.1 }}
                 className="group"
               >
-                <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 bg-gray-900/50 border-gray-800">
-                  <CardContent className="p-0">
-                    <div className="relative aspect-video">
+                <Card className="overflow-hidden hover:shadow-[var(--shadow-elegant)] transition-all duration-300 bg-card/50 backdrop-blur-sm border-border/50 hover:border-[hsl(var(--luxury-gold))]/30 h-full flex flex-col">
+                  <CardContent className="p-0 flex flex-col h-full">
+                    <div className="relative aspect-video overflow-hidden">
                       <img
                         src={post.image}
                         alt={post.title}
-                        className="absolute inset-0 w-full h-full object-cover"
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                         loading="lazy"
                       />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                     </div>
-                    <Link to={`/blog/${post.id}`}>
-                      <div className="p-6">
-                        <h2 className="text-xl font-semibold mb-2">{post.title}</h2>
-                        <p className="text-gray-400 text-sm mb-4">{post.excerpt}</p>
-                        <div className="text-xs text-gray-500">
-                          {new Date(post.created_at).toLocaleDateString()}
+                    <Link to={`/blog/${post.id}`} className="flex-1 flex flex-col">
+                      <div className="p-6 flex-1 flex flex-col">
+                        <time className="text-xs text-muted-foreground/80 font-medium tracking-wide uppercase mb-3 block">
+                          {new Date(post.created_at).toLocaleDateString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric', 
+                            year: 'numeric' 
+                          })}
+                        </time>
+                        <h2 className="text-2xl font-bold mb-3 tracking-tight leading-tight line-clamp-2 group-hover:text-[hsl(var(--luxury-gold))] transition-colors">
+                          {post.title}
+                        </h2>
+                        <p className="text-muted-foreground text-base leading-relaxed line-clamp-3 flex-1 mb-4">
+                          {post.excerpt}
+                        </p>
+                        <div className="pt-3 border-t border-border/30">
+                          <span className="text-sm text-[hsl(var(--luxury-gold))] font-semibold tracking-wide uppercase">
+                            Read More →
+                          </span>
                         </div>
                       </div>
                     </Link>
@@ -83,8 +97,9 @@ const Blog = () => {
             ))}
             
             {filteredPosts.length === 0 && (
-              <div className="col-span-full text-center py-12">
-                <h3 className="text-xl text-gray-500">No blog posts found</h3>
+              <div className="col-span-full text-center py-16">
+                <h3 className="text-2xl text-muted-foreground font-medium">No blog posts found</h3>
+                <p className="text-muted-foreground/70 mt-2">Try adjusting your search terms</p>
               </div>
             )}
           </div>
