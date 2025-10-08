@@ -106,8 +106,9 @@ const ProductList = () => {
   };
 
   const filteredProducts = products.filter(product => {
-    const matchesSearch = product.title.toLowerCase().includes(searchTerm.toLowerCase());
-    // Remove category filtering for now since we changed the schema
+    const matchesSearch = searchTerm === "" || 
+      product.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.product_name?.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesSearch;
   });
 
