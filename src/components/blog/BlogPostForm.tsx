@@ -7,7 +7,7 @@ import { useState } from "react";
 import ImageUploadField from "@/components/product/form/ImageUploadField";
 import { useImageUpload } from "@/hooks/category/useImageUpload";
 import { useToast } from "@/hooks/use-toast";
-import { convertTextToHtml, convertHtmlToText } from "@/utils/textToHtml";
+import RichTextEditor from "./RichTextEditor";
 
 interface BlogPost {
   id?: string;
@@ -32,7 +32,7 @@ const BlogPostForm = ({ initialData, onSave, onCancel }: BlogPostFormProps) => {
   const [formData, setFormData] = useState<Omit<BlogPost, 'id'>>({
     title: initialData?.title || "",
     excerpt: initialData?.excerpt || "",
-    content: initialData?.content ? convertHtmlToText(initialData.content) : "",
+    content: initialData?.content || "",
     image: initialData?.image || "",
     seo_title: initialData?.seo_title || "",
     seo_description: initialData?.seo_description || "",
@@ -52,12 +52,7 @@ const BlogPostForm = ({ initialData, onSave, onCancel }: BlogPostFormProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Convert plain text content to HTML before saving
-    const formattedData = {
-      ...formData,
-      content: convertTextToHtml(formData.content)
-    };
-    onSave(formattedData);
+    onSave(formData);
   };
 
   return (
@@ -108,20 +103,17 @@ const BlogPostForm = ({ initialData, onSave, onCancel }: BlogPostFormProps) => {
 
       {/* Content Section */}
       <div className="space-y-3 p-6 rounded-lg border border-border/50 bg-card/50 backdrop-blur-sm">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="content" className="text-lg font-semibold tracking-tight">Article Content</Label>
-          <span className="text-xs text-muted-foreground">Supports markdown-style formatting</span>
+        <div className="flex items-center justify-between mb-2">
+          <Label className="text-lg font-semibold tracking-tight">Article Content</Label>
+          <span className="text-xs text-muted-foreground">Rich text editor - paste formatted content directly</span>
         </div>
-        <Textarea
-          id="content"
+        <RichTextEditor
           value={formData.content}
-          onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-          placeholder="Write your content here... (Use line breaks for paragraphs, numbered lists: 1. 2. 3., bullets with -, bold with **text**, links with [text](url))"
-          className="min-h-[400px] font-mono text-sm border-border/50 focus:border-[hsl(var(--luxury-gold))] transition-colors resize-none"
-          required
+          onChange={(value) => setFormData({ ...formData, content: value })}
+          placeholder="Write or paste your formatted content here..."
         />
         <p className="text-xs text-muted-foreground">
-          💡 Tip: Content will be automatically formatted with proper headings, paragraphs, and lists when published.
+          💡 Tip: You can copy-paste formatted text from Word, Google Docs, or any website and formatting will be preserved.
         </p>
       </div>
 
