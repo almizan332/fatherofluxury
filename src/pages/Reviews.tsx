@@ -26,13 +26,8 @@ const Reviews = () => {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
-    user_name: "",
-    user_email: "",
-    product_name: "",
-    product_link: "",
     review_text: "",
     screenshot_url: "",
-    rating: 5,
   });
 
   const { data: reviews, isLoading } = useQuery({
@@ -54,7 +49,9 @@ const Reviews = () => {
 
     const { error } = await supabase.from("reviews").insert([
       {
-        ...formData,
+        review_text: formData.review_text,
+        screenshot_url: formData.screenshot_url,
+        product_name: "Customer Review",
         status: "pending",
       },
     ]);
@@ -75,13 +72,8 @@ const Reviews = () => {
 
     setOpen(false);
     setFormData({
-      user_name: "",
-      user_email: "",
-      product_name: "",
-      product_link: "",
       review_text: "",
       screenshot_url: "",
-      rating: 5,
     });
   };
 
@@ -107,76 +99,25 @@ const Reviews = () => {
               <h2 className="text-2xl font-bold mb-4">Submit Your Review</h2>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium">Your Name</label>
-                  <Input
-                    value={formData.user_name}
-                    onChange={(e) => setFormData({ ...formData, user_name: e.target.value })}
-                    placeholder="Enter your name"
-                  />
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium">Email (optional)</label>
-                  <Input
-                    type="email"
-                    value={formData.user_email}
-                    onChange={(e) => setFormData({ ...formData, user_email: e.target.value })}
-                    placeholder="your@email.com"
-                  />
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium">Product Name *</label>
-                  <Input
-                    required
-                    value={formData.product_name}
-                    onChange={(e) => setFormData({ ...formData, product_name: e.target.value })}
-                    placeholder="Which product?"
-                  />
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium">Product Link (optional)</label>
-                  <Input
-                    value={formData.product_link}
-                    onChange={(e) => setFormData({ ...formData, product_link: e.target.value })}
-                    placeholder="https://..."
-                  />
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium">Review</label>
-                  <Textarea
-                    value={formData.review_text}
-                    onChange={(e) => setFormData({ ...formData, review_text: e.target.value })}
-                    placeholder="Share your experience..."
-                    rows={4}
-                  />
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium">Screenshot URL *</label>
+                  <label className="text-sm font-medium">Image URL *</label>
                   <Input
                     required
                     value={formData.screenshot_url}
                     onChange={(e) => setFormData({ ...formData, screenshot_url: e.target.value })}
-                    placeholder="https://..."
+                    placeholder="https://example.com/your-image.jpg"
+                    type="url"
                   />
                 </div>
                 
                 <div>
-                  <label className="text-sm font-medium">Rating</label>
-                  <div className="flex gap-2 mt-2">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star
-                        key={star}
-                        className={`h-8 w-8 cursor-pointer ${
-                          star <= formData.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
-                        }`}
-                        onClick={() => setFormData({ ...formData, rating: star })}
-                      />
-                    ))}
-                  </div>
+                  <label className="text-sm font-medium">Your Review *</label>
+                  <Textarea
+                    required
+                    value={formData.review_text}
+                    onChange={(e) => setFormData({ ...formData, review_text: e.target.value })}
+                    placeholder="Share your experience..."
+                    rows={6}
+                  />
                 </div>
                 
                 <Button type="submit" className="w-full">Submit Review</Button>
