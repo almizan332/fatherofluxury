@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Star, MessageSquare } from "lucide-react";
+import { Star, MessageSquare, Play } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -46,6 +46,10 @@ const Reviews = () => {
       return data as Review[];
     },
   });
+
+  const isVideoUrl = (url: string) => {
+    return /\.(mp4|webm|ogg|mov)$/i.test(url);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -184,36 +188,53 @@ const Reviews = () => {
           </div>
         ) : reviews && reviews.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {reviews.map((review) => (
-              <Card key={review.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                <CardContent className="p-0">
-                  <img
-                    src={review.screenshot_url}
-                    alt={review.product_name}
-                    className="w-full h-64 object-cover"
-                    onError={(e) => {
-                      e.currentTarget.src = "/placeholder.svg";
-                    }}
-                  />
-                  <div className="p-6">
-                    <div className="flex items-center gap-1 mb-2">
-                      {Array.from({ length: review.rating }).map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      ))}
-                    </div>
-                    <h3 className="font-semibold text-lg mb-2">{review.product_name}</h3>
-                    {review.review_text && (
-                      <p className="text-sm text-muted-foreground mb-3 line-clamp-3">
-                        {review.review_text}
-                      </p>
+            {reviews.map((review) => {
+              const isVideo = isVideoUrl(review.screenshot_url);
+              
+              return (
+                <Card key={review.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                  <CardContent className="p-0">
+                    {isVideo ? (
+                      <div className="relative w-full h-64 bg-black">
+                        <video
+                          src={review.screenshot_url}
+                          className="w-full h-full object-cover"
+                          controls
+                          preload="metadata"
+                        >
+                          Your browser does not support the video tag.
+                        </video>
+                      </div>
+                    ) : (
+                      <img
+                        src={review.screenshot_url}
+                        alt={review.product_name}
+                        className="w-full h-64 object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = "/placeholder.svg";
+                        }}
+                      />
                     )}
-                    <p className="text-xs text-muted-foreground">
-                      by {review.user_name || "Anonymous"}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    <div className="p-6">
+                      <div className="flex items-center gap-1 mb-2">
+                        {Array.from({ length: review.rating }).map((_, i) => (
+                          <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                        ))}
+                      </div>
+                      <h3 className="font-semibold text-lg mb-2">{review.product_name}</h3>
+                      {review.review_text && (
+                        <p className="text-sm text-muted-foreground mb-3 line-clamp-3">
+                          {review.review_text}
+                        </p>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        by {review.user_name || "Anonymous"}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         ) : (
           <div className="text-center py-12">
