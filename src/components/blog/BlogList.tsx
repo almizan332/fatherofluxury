@@ -118,7 +118,7 @@ const BlogList = ({ posts, onCreatePost, onEdit, onDelete }: BlogListProps) => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => navigate(`/blog/${post.id}`)}
+                      onClick={() => navigate(`/blog/${post.slug}`)}
                       className="gap-1"
                     >
                       <Eye className="h-3 w-3" />
