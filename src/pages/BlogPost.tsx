@@ -140,28 +140,95 @@ const BlogPost = () => {
               </p>
 
               {/* Content with proper HTML rendering from ReactQuill */}
+              <style>{`
+                .blog-content h1 {
+                  font-size: 2.25rem;
+                  font-weight: 700;
+                  margin-top: 4rem;
+                  margin-bottom: 2rem;
+                  line-height: 1.2;
+                  color: hsl(var(--foreground));
+                }
+                .blog-content h2 {
+                  font-size: 1.875rem;
+                  font-weight: 700;
+                  margin-top: 3rem;
+                  margin-bottom: 1.5rem;
+                  line-height: 1.3;
+                  color: hsl(var(--foreground));
+                }
+                .blog-content h3 {
+                  font-size: 1.5rem;
+                  font-weight: 700;
+                  margin-top: 2rem;
+                  margin-bottom: 1rem;
+                  line-height: 1.4;
+                  color: hsl(var(--foreground));
+                }
+                .blog-content h4 {
+                  font-size: 1.25rem;
+                  font-weight: 600;
+                  margin-top: 1.5rem;
+                  margin-bottom: 0.75rem;
+                  color: hsl(var(--foreground));
+                }
+                .blog-content p {
+                  font-size: 1.125rem;
+                  line-height: 1.8;
+                  margin-bottom: 1.5rem;
+                  color: hsl(var(--foreground) / 0.9);
+                }
+                .blog-content a {
+                  color: hsl(var(--luxury-gold));
+                  text-decoration: none;
+                  font-weight: 500;
+                }
+                .blog-content a:hover {
+                  text-decoration: underline;
+                }
+                .blog-content strong {
+                  font-weight: 600;
+                  color: hsl(var(--foreground));
+                }
+                .blog-content em {
+                  font-style: italic;
+                  color: hsl(var(--foreground) / 0.9);
+                }
+                .blog-content ul, .blog-content ol {
+                  margin: 1.5rem 0;
+                  padding-left: 1.5rem;
+                }
+                .blog-content ul {
+                  list-style-type: disc;
+                }
+                .blog-content ol {
+                  list-style-type: decimal;
+                }
+                .blog-content li {
+                  font-size: 1.125rem;
+                  line-height: 1.8;
+                  margin-bottom: 0.5rem;
+                  color: hsl(var(--foreground) / 0.9);
+                }
+                .blog-content blockquote {
+                  border-left: 4px solid hsl(var(--luxury-gold));
+                  padding-left: 1.5rem;
+                  padding-top: 0.25rem;
+                  padding-bottom: 0.25rem;
+                  font-style: italic;
+                  color: hsl(var(--foreground) / 0.8);
+                  margin: 1.5rem 0;
+                }
+                .blog-content img {
+                  border-radius: 0.5rem;
+                  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
+                  margin: 2rem 0;
+                  max-width: 100%;
+                  height: auto;
+                }
+              `}</style>
               <div 
-                className="blog-content prose prose-lg max-w-none
-                  prose-headings:font-bold prose-headings:tracking-tight prose-headings:text-foreground
-                  prose-h1:text-4xl prose-h1:mt-16 prose-h1:mb-8 prose-h1:leading-tight
-                  prose-h2:text-3xl prose-h2:mt-12 prose-h2:mb-6 prose-h2:leading-snug
-                  prose-h3:text-2xl prose-h3:mt-8 prose-h3:mb-4 prose-h3:leading-snug
-                  prose-h4:text-xl prose-h4:mt-6 prose-h4:mb-3
-                  prose-p:text-foreground/90 prose-p:leading-[1.8] prose-p:mb-6 prose-p:text-lg
-                  prose-a:text-[hsl(var(--luxury-gold))] prose-a:no-underline hover:prose-a:underline prose-a:transition-all prose-a:font-medium
-                  prose-strong:text-foreground prose-strong:font-bold
-                  prose-em:text-foreground/90 prose-em:italic
-                  prose-blockquote:border-l-4 prose-blockquote:border-[hsl(var(--luxury-gold))] prose-blockquote:italic prose-blockquote:pl-6 prose-blockquote:py-1 prose-blockquote:text-foreground/80
-                  prose-code:text-[hsl(var(--luxury-gold))] prose-code:bg-secondary/50 prose-code:px-2 prose-code:py-1 prose-code:rounded prose-code:text-base prose-code:font-mono
-                  prose-pre:bg-secondary/30 prose-pre:border prose-pre:border-border/30 prose-pre:rounded-lg prose-pre:p-4
-                  prose-ul:my-6 prose-ul:list-disc prose-ul:pl-6 prose-ul:space-y-2
-                  prose-ol:my-6 prose-ol:list-decimal prose-ol:pl-6 prose-ol:space-y-2
-                  prose-li:text-foreground/90 prose-li:leading-relaxed prose-li:text-lg
-                  prose-img:rounded-lg prose-img:shadow-lg prose-img:my-8
-                  prose-hr:border-border/30 prose-hr:my-12
-                  prose-table:border-collapse prose-table:w-full prose-table:my-8
-                  prose-th:border prose-th:border-border/30 prose-th:bg-secondary/30 prose-th:p-3 prose-th:text-left prose-th:font-semibold
-                  prose-td:border prose-td:border-border/30 prose-td:p-3"
+                className="blog-content"
                 dangerouslySetInnerHTML={{ __html: post.content }}
               />
             </div>
