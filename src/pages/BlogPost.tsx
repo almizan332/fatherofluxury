@@ -144,38 +144,38 @@ const BlogPost = () => {
                 .blog-content h1 {
                   font-size: 2.25rem;
                   font-weight: 700;
-                  margin-top: 4rem;
-                  margin-bottom: 2rem;
+                  margin-top: 2rem;
+                  margin-bottom: 1rem;
                   line-height: 1.2;
                   color: hsl(var(--foreground));
                 }
                 .blog-content h2 {
                   font-size: 1.875rem;
                   font-weight: 700;
-                  margin-top: 3rem;
-                  margin-bottom: 1.5rem;
+                  margin-top: 1.5rem;
+                  margin-bottom: 0.75rem;
                   line-height: 1.3;
                   color: hsl(var(--foreground));
                 }
                 .blog-content h3 {
                   font-size: 1.5rem;
                   font-weight: 700;
-                  margin-top: 2rem;
-                  margin-bottom: 1rem;
+                  margin-top: 1.25rem;
+                  margin-bottom: 0.5rem;
                   line-height: 1.4;
                   color: hsl(var(--foreground));
                 }
                 .blog-content h4 {
                   font-size: 1.25rem;
                   font-weight: 600;
-                  margin-top: 1.5rem;
-                  margin-bottom: 0.75rem;
+                  margin-top: 1rem;
+                  margin-bottom: 0.5rem;
                   color: hsl(var(--foreground));
                 }
                 .blog-content p {
                   font-size: 1.125rem;
-                  line-height: 1.8;
-                  margin-bottom: 1.5rem;
+                  line-height: 1.6;
+                  margin-bottom: 0.75rem;
                   color: hsl(var(--foreground) / 0.9);
                 }
                 .blog-content a {
@@ -195,7 +195,7 @@ const BlogPost = () => {
                   color: hsl(var(--foreground) / 0.9);
                 }
                 .blog-content ul, .blog-content ol {
-                  margin: 1.5rem 0;
+                  margin: 0.75rem 0;
                   padding-left: 1.5rem;
                 }
                 .blog-content ul {
@@ -206,8 +206,8 @@ const BlogPost = () => {
                 }
                 .blog-content li {
                   font-size: 1.125rem;
-                  line-height: 1.8;
-                  margin-bottom: 0.5rem;
+                  line-height: 1.6;
+                  margin-bottom: 0.25rem;
                   color: hsl(var(--foreground) / 0.9);
                 }
                 .blog-content blockquote {
@@ -217,7 +217,7 @@ const BlogPost = () => {
                   padding-bottom: 0.25rem;
                   font-style: italic;
                   color: hsl(var(--foreground) / 0.8);
-                  margin: 1.5rem 0;
+                  margin: 1rem 0;
                 }
                 .blog-content img {
                   border-radius: 0.5rem;
