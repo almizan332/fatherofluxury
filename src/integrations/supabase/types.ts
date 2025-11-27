@@ -623,34 +623,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      check_admin_access: {
-        Args: { user_email: string }
-        Returns: boolean
-      }
-      check_if_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      cleanup_expired_codes: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      ensure_admin_user: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      generate_unique_slug: {
-        Args: { product_name: string }
-        Returns: string
-      }
-      is_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      update_category_product_counts: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      check_admin_access: { Args: { user_email: string }; Returns: boolean }
+      check_if_admin: { Args: never; Returns: undefined }
+      cleanup_expired_codes: { Args: never; Returns: undefined }
+      ensure_admin_user: { Args: never; Returns: undefined }
+      generate_unique_slug: { Args: { product_name: string }; Returns: string }
+      is_admin: { Args: never; Returns: boolean }
+      update_category_product_counts: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"

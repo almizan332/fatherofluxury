@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { uploadFileToVPS } from "@/utils/vpsFileUpload";
+import { sanitizeImageUrl } from "@/utils/imageUrlHelper";
 
 interface Review {
   id: string;
@@ -136,7 +137,7 @@ const ReviewManagement = () => {
             {isVideo ? (
               <div className="relative w-32 h-32 rounded overflow-hidden bg-black">
                 <video
-                  src={review.screenshot_url}
+                  src={sanitizeImageUrl(review.screenshot_url)}
                   className="w-full h-full object-cover"
                   controls
                   preload="metadata"
@@ -146,7 +147,7 @@ const ReviewManagement = () => {
               </div>
             ) : (
               <img
-                src={review.screenshot_url}
+                src={sanitizeImageUrl(review.screenshot_url)}
                 alt={review.product_name}
                 className="w-32 h-32 object-cover rounded"
                 onError={(e) => {
