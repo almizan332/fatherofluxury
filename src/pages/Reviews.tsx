@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Star, MessageSquare, Play } from "lucide-react";
+import { Star, MessageSquare, Upload } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { sanitizeImageUrl } from "@/utils/imageUrlHelper";
+import { uploadFileToVPS } from "@/utils/vpsFileUpload";
 
 interface Review {
   id: string;
@@ -33,6 +34,8 @@ const Reviews = () => {
     screenshot_url: "",
     rating: 5,
   });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const { data: reviews, isLoading } = useQuery({
     queryKey: ["reviews"],
@@ -52,15 +55,53 @@ const Reviews = () => {
     return /\.(mp4|webm|ogg|mov)$/i.test(url);
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsUploading(true);
+
+    let uploadedUrl = formData.screenshot_url;
+
+    // Upload file if selected
+    if (selectedFile) {
+      try {
+        const result = await uploadFileToVPS(selectedFile);
+        if (result?.url) {
+          uploadedUrl = result.url;
+        }
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to upload image",
+          variant: "destructive",
+        });
+        setIsUploading(false);
+        return;
+      }
+    }
+
+    if (!uploadedUrl) {
+      toast({
+        title: "Error",
+        description: "Please upload an image or provide a URL",
+        variant: "destructive",
+      });
+      setIsUploading(false);
+      return;
+    }
 
     const { error } = await supabase.from("reviews").insert([
       {
         user_name: formData.user_name,
         user_email: formData.user_email || null,
         review_text: formData.review_text,
-        screenshot_url: formData.screenshot_url,
+        screenshot_url: uploadedUrl,
         rating: formData.rating,
         product_name: "Customer Review",
         status: "pending",
@@ -73,6 +114,7 @@ const Reviews = () => {
         description: "Failed to submit review",
         variant: "destructive",
       });
+      setIsUploading(false);
       return;
     }
 
@@ -89,6 +131,8 @@ const Reviews = () => {
       screenshot_url: "",
       rating: 5,
     });
+    setSelectedFile(null);
+    setIsUploading(false);
   };
 
   return (
@@ -133,9 +177,32 @@ const Reviews = () => {
                 </div>
                 
                 <div>
-                  <label className="text-sm font-medium">Image URL *</label>
+                  <label className="text-sm font-medium">Upload Photo/Video *</label>
                   <Input
-                    required
+                    type="file"
+                    accept="image/*,video/*"
+                    onChange={handleFileChange}
+                    className="cursor-pointer"
+                  />
+                  {selectedFile && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Selected: {selectedFile.name}
+                    </p>
+                  )}
+                </div>
+                
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">Or</span>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium">Image URL</label>
+                  <Input
                     value={formData.screenshot_url}
                     onChange={(e) => setFormData({ ...formData, screenshot_url: e.target.value })}
                     placeholder="https://example.com/your-image.jpg"
@@ -169,7 +236,16 @@ const Reviews = () => {
                   />
                 </div>
                 
-                <Button type="submit" className="w-full">Submit Review</Button>
+                <Button type="submit" className="w-full" disabled={isUploading}>
+                  {isUploading ? (
+                    <>
+                      <Upload className="mr-2 h-4 w-4 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    "Submit Review"
+                  )}
+                </Button>
               </form>
             </DialogContent>
           </Dialog>
