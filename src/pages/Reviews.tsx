@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { sanitizeImageUrl } from "@/utils/imageUrlHelper";
 
 interface Review {
   id: string;
@@ -197,7 +198,7 @@ const Reviews = () => {
                     {isVideo ? (
                       <div className="relative w-full h-64 bg-black">
                         <video
-                          src={review.screenshot_url}
+                          src={sanitizeImageUrl(review.screenshot_url)}
                           className="w-full h-full object-cover"
                           controls
                           preload="metadata"
@@ -207,7 +208,7 @@ const Reviews = () => {
                       </div>
                     ) : (
                       <img
-                        src={review.screenshot_url}
+                        src={sanitizeImageUrl(review.screenshot_url)}
                         alt={review.product_name}
                         className="w-full h-64 object-cover"
                         onError={(e) => {
