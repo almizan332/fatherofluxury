@@ -20,7 +20,8 @@ const ALLOWED_DOMAINS = [
   'photobucket.com',
   'imgur.com',
   'imagecdn.app',
-  'alihiddenproduct.com'
+  'alihiddenproduct.com',
+  'supabase.co'
 ];
 
 // Allowed file types

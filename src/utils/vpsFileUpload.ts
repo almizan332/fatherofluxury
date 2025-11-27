@@ -22,7 +22,7 @@ export const uploadFileToVPS = async (file: File | { url: string, type: string }
         throw error;
       }
       
-      return data.url;
+      return { url: data.url };
     } catch (err) {
       console.error('Error in URL upload to DO:', err);
       throw err;
@@ -77,7 +77,7 @@ export const uploadFileToVPS = async (file: File | { url: string, type: string }
       throw doError;
     }
     
-    return doData.url;
+    return { url: doData.url };
   } catch (err) {
     console.error('Error in file upload process:', err);
     throw err;
