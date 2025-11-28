@@ -46,6 +46,7 @@ const s3Client = new S3Client({
     accessKeyId: DO_SPACES_KEY || "",
     secretAccessKey: DO_SPACES_SECRET || "",
   },
+  forcePathStyle: false,
 });
 
 serve(async (req) => {
