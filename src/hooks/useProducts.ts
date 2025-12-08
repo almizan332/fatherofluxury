@@ -60,12 +60,22 @@ export function useProducts() {
 
   const deleteProducts = async (productIds: string[]) => {
     try {
-      const { error } = await supabase
-        .from('products')
-        .delete()
-        .in('id', productIds);
+      // Batch delete in chunks of 100 to avoid URL length limits
+      const BATCH_SIZE = 100;
+      const batches = [];
+      
+      for (let i = 0; i < productIds.length; i += BATCH_SIZE) {
+        batches.push(productIds.slice(i, i + BATCH_SIZE));
+      }
 
-      if (error) throw error;
+      for (const batch of batches) {
+        const { error } = await supabase
+          .from('products')
+          .delete()
+          .in('id', batch);
+
+        if (error) throw error;
+      }
 
       toast({
         title: "Products deleted",
