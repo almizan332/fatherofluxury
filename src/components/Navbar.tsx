@@ -78,7 +78,7 @@ const Navbar = () => {
               whileHover={{ scale: 1.05 }}
               className="text-sm xs:text-base sm:text-lg md:text-xl font-bold gradient-text whitespace-nowrap"
             >
-              Father of Luxury
+              Aliexpress Hidden Links
             </motion.div>
           </Link>
         </div>
