@@ -139,6 +139,19 @@ const [products, setProducts] = useState<Product[]>([]);
       <Navbar />
       <ScrollArea className="flex-grow">
         <main className="container mx-auto px-4 py-8 max-w-7xl">
+          {/* Alert Banner */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-lg p-4 mb-6"
+          >
+            <div className="text-center space-y-1">
+              <p className="text-amber-300 font-semibold">AliExpress hidden links are now on FlyLink.</p>
+              <p className="text-amber-200/80 text-sm">Daily new AAAA quality products with fast delivery.</p>
+              <p className="text-amber-200/80 text-sm">Bookmark our website for updates.</p>
+            </div>
+          </motion.div>
+
           <motion.h1 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
