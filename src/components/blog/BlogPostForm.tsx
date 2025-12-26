@@ -125,7 +125,7 @@ const BlogPostForm = ({ initialData, onSave, onCancel }: BlogPostFormProps) => {
           placeholder="Write or paste your formatted content here..."
         />
         <p className="text-xs text-muted-foreground">
-          💡 Tip: You can copy-paste formatted text from Word, Google Docs, or any website and formatting will be preserved.
+          💡 Tip: You can paste images directly from clipboard (Ctrl+V) or use the image button in toolbar. Copy-paste from ChatGPT with images will work!
         </p>
       </div>
 

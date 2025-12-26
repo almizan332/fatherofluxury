@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo, useCallback } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
@@ -11,28 +11,95 @@ interface RichTextEditorProps {
 const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) => {
   const quillRef = useRef<ReactQuill>(null);
 
-  const modules = {
-    toolbar: [
-      [{ 'header': [1, 2, 3, 4, false] }],
-      ['bold', 'italic', 'underline', 'strike'],
-      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-      [{ 'indent': '-1'}, { 'indent': '+1' }],
-      ['link', 'blockquote'],
-      [{ 'align': [] }],
-      ['clean']
-    ],
+  // Handle image upload - convert to base64 for inline embedding
+  const imageHandler = useCallback(() => {
+    const input = document.createElement('input');
+    input.setAttribute('type', 'file');
+    input.setAttribute('accept', 'image/*');
+    input.click();
+
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const quill = quillRef.current?.getEditor();
+          if (quill) {
+            const range = quill.getSelection(true);
+            quill.insertEmbed(range.index, 'image', reader.result);
+            quill.setSelection({ index: range.index + 1, length: 0 });
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+  }, []);
+
+  const modules = useMemo(() => ({
+    toolbar: {
+      container: [
+        [{ 'header': [1, 2, 3, 4, false] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+        [{ 'indent': '-1'}, { 'indent': '+1' }],
+        ['link', 'image', 'blockquote'],
+        [{ 'align': [] }],
+        ['clean']
+      ],
+      handlers: {
+        image: imageHandler
+      }
+    },
     clipboard: {
       matchVisual: false
     }
-  };
+  }), [imageHandler]);
 
   const formats = [
     'header',
     'bold', 'italic', 'underline', 'strike',
     'list', 'bullet', 'indent',
-    'link', 'blockquote',
+    'link', 'image', 'blockquote',
     'align'
   ];
+
+  // Handle paste events to support pasted images
+  useEffect(() => {
+    const quill = quillRef.current?.getEditor();
+    if (!quill) return;
+
+    const handlePaste = (e: ClipboardEvent) => {
+      const clipboardData = e.clipboardData;
+      if (!clipboardData) return;
+
+      // Check for image files in clipboard
+      const items = clipboardData.items;
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.type.indexOf('image') !== -1) {
+          e.preventDefault();
+          const file = item.getAsFile();
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = () => {
+              const range = quill.getSelection(true);
+              quill.insertEmbed(range.index, 'image', reader.result);
+              quill.setSelection({ index: range.index + 1, length: 0 });
+            };
+            reader.readAsDataURL(file);
+          }
+          return;
+        }
+      }
+    };
+
+    const editorElement = quill.root;
+    editorElement.addEventListener('paste', handlePaste);
+
+    return () => {
+      editorElement.removeEventListener('paste', handlePaste);
+    };
+  }, []);
 
   return (
     <div className="rich-text-editor">
@@ -107,6 +174,13 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
         
         .rich-text-editor .ql-editor strong {
           font-weight: 600;
+        }
+        
+        .rich-text-editor .ql-editor img {
+          max-width: 100%;
+          height: auto;
+          border-radius: 0.5rem;
+          margin: 1rem 0;
         }
       `}</style>
       <ReactQuill
