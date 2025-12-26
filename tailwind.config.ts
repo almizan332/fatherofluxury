@@ -82,10 +82,15 @@ export default {
             "background-position": "right center",
           },
         },
+        "marquee": {
+          "0%": { transform: "translateX(0%)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
       },
       animation: {
         "gradient-background": "gradient-background 15s ease infinite",
         "gradient-text": "gradient-text 5s ease infinite",
+        "marquee": "marquee 20s linear infinite",
       },
     },
   },
