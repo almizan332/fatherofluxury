@@ -23,6 +23,12 @@ import { Product } from "@/types/product";
 import ChatbotWidget from "@/components/ChatbotWidget";
 import { getAnonymousClient } from "@/utils/supabaseAnonymous";
 import { sanitizeImageUrl, FALLBACK_IMAGE_URL } from "@/utils/imageUrlHelper";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const ITEMS_PER_BATCH = 120;
 
@@ -33,6 +39,7 @@ const [products, setProducts] = useState<Product[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [todayPostsCount, setTodayPostsCount] = useState(0);
   const [statsLoading, setStatsLoading] = useState(true);
+  const [showBannerPopup, setShowBannerPopup] = useState(false);
   const { toast } = useToast();
   
   const totalPages = Math.ceil(totalCount / ITEMS_PER_BATCH);
@@ -139,18 +146,41 @@ const [products, setProducts] = useState<Product[]>([]);
       <Navbar />
       <ScrollArea className="flex-grow">
         <main className="container mx-auto px-4 py-8 max-w-7xl">
-          {/* Alert Banner */}
+          {/* Alert Banner with Marquee */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-lg p-4 mb-6"
+            onClick={() => setShowBannerPopup(true)}
+            className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-lg py-3 mb-6 overflow-hidden cursor-pointer hover:border-amber-500/50 transition-colors"
           >
-            <div className="text-center space-y-1">
-              <p className="text-amber-300 font-semibold">AliExpress hidden links are now on FlyLink.</p>
-              <p className="text-amber-200/80 text-sm">Daily new AAAA quality products with fast delivery.</p>
-              <p className="text-amber-200/80 text-sm">Bookmark our website for updates.</p>
+            <div className="animate-marquee whitespace-nowrap">
+              <span className="text-amber-300 font-semibold mx-4">AliExpress hidden links are now on FlyLink.</span>
+              <span className="text-amber-200/80 mx-4">•</span>
+              <span className="text-amber-200/80 mx-4">Daily new AAAA quality products with fast delivery.</span>
+              <span className="text-amber-200/80 mx-4">•</span>
+              <span className="text-amber-200/80 mx-4">Bookmark our website for updates.</span>
+              <span className="text-amber-200/80 mx-4">•</span>
+              <span className="text-amber-300 font-semibold mx-4">AliExpress hidden links are now on FlyLink.</span>
+              <span className="text-amber-200/80 mx-4">•</span>
+              <span className="text-amber-200/80 mx-4">Daily new AAAA quality products with fast delivery.</span>
+              <span className="text-amber-200/80 mx-4">•</span>
+              <span className="text-amber-200/80 mx-4">Bookmark our website for updates.</span>
             </div>
           </motion.div>
+
+          {/* Banner Popup Dialog */}
+          <Dialog open={showBannerPopup} onOpenChange={setShowBannerPopup}>
+            <DialogContent className="bg-gradient-to-br from-amber-900/90 to-orange-900/90 border-amber-500/30">
+              <DialogHeader>
+                <DialogTitle className="text-amber-300 text-xl">Important Notice</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 text-amber-100">
+                <p className="font-semibold text-lg">AliExpress hidden links are now on FlyLink.</p>
+                <p>Daily new AAAA quality products with fast delivery.</p>
+                <p>Bookmark our website for updates.</p>
+              </div>
+            </DialogContent>
+          </Dialog>
 
           <motion.h1 
             initial={{ opacity: 0, y: -20 }}
