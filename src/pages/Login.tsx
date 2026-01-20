@@ -152,9 +152,9 @@ const Login = () => {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Card className="w-full max-w-md p-6 space-y-6">
           <div className="text-center">
-            <h1 className="text-2xl font-bold gradient-text">Father of Luxury</h1>
+            <h1 className="text-2xl font-bold gradient-text">Aliexpress Hidden Links</h1>
             <p className="text-muted-foreground mt-2">
-              {show2FA ? "Two-Factor Authentication" : "Login to Dashboard"}
+              {show2FA ? "🔐 Two-Factor Authentication" : "Admin Login"}
             </p>
           </div>
           

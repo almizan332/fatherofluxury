@@ -27,6 +27,8 @@ const handler = async (req: Request): Promise<Response> => {
                      req.headers.get('x-forwarded-for') || 
                      'unknown';
 
+    console.log(`Verifying 2FA code for ${email}`);
+
     // Check if IP is blocked
     const { data: blockedAttempts } = await supabase
       .from('login_attempts')
@@ -47,15 +49,16 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Hash the provided code
+    const hashSalt = Deno.env.get('HASH_SALT') || 'default-salt-change-in-production';
     const codeHash = await crypto.subtle.digest(
       'SHA-256',
-      new TextEncoder().encode(code + Deno.env.get('HASH_SALT'))
+      new TextEncoder().encode(code + hashSalt)
     );
     const hashArray = Array.from(new Uint8Array(codeHash));
     const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
     // Find valid verification code
-    const { data: validCodes } = await supabase
+    const { data: validCodes, error: findError } = await supabase
       .from('verification_codes')
       .select('*')
       .eq('admin_email', email)
@@ -64,7 +67,13 @@ const handler = async (req: Request): Promise<Response> => {
       .gte('expires_at', new Date().toISOString())
       .limit(1);
 
+    if (findError) {
+      console.error('Error finding verification code:', findError);
+    }
+
     if (!validCodes || validCodes.length === 0) {
+      console.log('Invalid or expired code for:', email);
+      
       // Log failed attempt
       await supabase
         .from('login_attempts')
@@ -86,7 +95,7 @@ const handler = async (req: Request): Promise<Response> => {
         .eq('success', false)
         .gte('created_at', fifteenMinutesAgo.toISOString());
 
-      if (recentFailures && recentFailures.length >= 3) {
+      if (recentFailures && recentFailures.length >= 5) {
         // Block IP for 15 minutes
         const blockedUntil = new Date(Date.now() + 15 * 60 * 1000);
         await supabase
@@ -132,6 +141,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Clean up expired codes
     await supabase.rpc('cleanup_expired_codes');
+
+    console.log('2FA verification successful for:', email);
 
     return new Response(
       JSON.stringify({ success: true, verified: true }),
