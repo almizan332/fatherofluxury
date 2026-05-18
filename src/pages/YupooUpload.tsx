@@ -184,9 +184,12 @@ const YupooUpload = () => {
                 {isFetching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
                 {isFetching ? "Fetching..." : "Fetch Album"}
               </Button>
+              <Button type="button" variant="outline" onClick={openPasswordManually} disabled={isFetching}>
+                Enter Password
+              </Button>
             </div>
             <p className="text-xs text-muted-foreground mt-2">
-              Password-protected albums work too — you'll be asked once and it can be saved for next time.
+              Password-protected? Click "Enter Password" to provide it manually. Saved passwords are reused automatically.
             </p>
           </div>
         </form>
