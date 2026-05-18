@@ -106,7 +106,7 @@ const YupooUpload = () => {
       toast({ title: "Enter password", variant: "destructive" });
       return;
     }
-    await callImport(password.trim(), savePassword);
+    await callImport(password.trim(), savePassword, true);
   };
 
   const handlePublish = async () => {
