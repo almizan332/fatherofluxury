@@ -618,6 +618,30 @@ export type Database = {
           },
         ]
       }
+      yupoo_passwords: {
+        Row: {
+          album_url: string
+          created_at: string
+          id: string
+          password: string
+          updated_at: string
+        }
+        Insert: {
+          album_url: string
+          created_at?: string
+          id?: string
+          password: string
+          updated_at?: string
+        }
+        Update: {
+          album_url?: string
+          created_at?: string
+          id?: string
+          password?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
