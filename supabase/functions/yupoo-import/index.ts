@@ -1,28 +1,15 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { S3Client, PutObjectCommand } from "https://esm.sh/@aws-sdk/client-s3@3.445.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-
-const DO_SPACES_KEY = Deno.env.get("DO_SPACES_KEY") ?? "";
-const DO_SPACES_SECRET = Deno.env.get("DO_SPACES_SECRET") ?? "";
-const DO_SPACES_ENDPOINT = Deno.env.get("DO_SPACES_ENDPOINT") || "https://nyc3.digitaloceanspaces.com";
-const DO_SPACES_BUCKET = "shadow-copy-portal";
-const DO_SPACES_REGION = "nyc3";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const STORAGE_BUCKET = "product_media";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
-
-const s3 = new S3Client({
-  endpoint: DO_SPACES_ENDPOINT,
-  region: DO_SPACES_REGION,
-  credentials: { accessKeyId: DO_SPACES_KEY, secretAccessKey: DO_SPACES_SECRET },
-  forcePathStyle: false,
-});
 
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
@@ -34,7 +21,6 @@ function absUrl(u: string, base: string) {
   try { return new URL(u, base).toString(); } catch { return u; }
 }
 
-// upscale yupoo thumbnail -> big/original
 function toOriginal(u: string) {
   return u
     .replace(/\/small\.(jpg|jpeg|png|webp|gif)/i, "/big.$1")
@@ -43,7 +29,6 @@ function toOriginal(u: string) {
 }
 
 function parseSetCookie(headers: Headers): string {
-  // Deno fetch Headers: getSetCookie() returns string[]
   // @ts-ignore
   const list: string[] = typeof headers.getSetCookie === "function" ? headers.getSetCookie() : [];
   return list.map((c) => c.split(";")[0]).join("; ");
@@ -76,9 +61,23 @@ async function fetchAlbum(url: string, cookie = ""): Promise<{ html: string; coo
   return { html, cookie: newCookie, status: res.status };
 }
 
+// More lenient password detection
 function needsPassword(html: string): boolean {
-  return /password|密\s*码|输入密码|name=["']password["']/i.test(html) &&
-         /album.*password|showalbum__passwordform|输入密码/i.test(html);
+  const patterns = [
+    /showalbum__passwordform/i,
+    /album.*password/i,
+    /输入密码/,
+    /请输入密码/,
+    /密\s*码/,
+    /name=["']password["']/i,
+    /id=["']password["']/i,
+    /placeholder=["'][^"']*password[^"']*["']/i,
+  ];
+  let hits = 0;
+  for (const p of patterns) if (p.test(html)) hits++;
+  // also check there is NO actual gallery content present
+  const hasGallery = /showalbum__children|showalbum__gallery|data-origin-src/i.test(html);
+  return hits >= 1 && !hasGallery;
 }
 
 function extractAlbumId(html: string, url: string): string | null {
@@ -90,7 +89,6 @@ function extractAlbumId(html: string, url: string): string | null {
 }
 
 async function submitPassword(albumUrl: string, password: string, cookie: string): Promise<string> {
-  // find album base e.g. https://xxx.x.yupoo.com
   const u = new URL(albumUrl);
   const origin = `${u.protocol}//${u.host}`;
   const { html } = await fetchAlbum(albumUrl, cookie);
@@ -138,21 +136,19 @@ function extractMedia(html: string, baseUrl: string): { images: string[]; videos
   const images = new Set<string>();
   const videos = new Set<string>();
 
-  // image candidates from data-* attributes
   const imgRegex = /<img\b[^>]*?(?:data-origin-src|data-src|src)\s*=\s*["']([^"']+\.(?:jpe?g|png|webp|gif))(?:\?[^"']*)?["'][^>]*>/gi;
   let m: RegExpExecArray | null;
   while ((m = imgRegex.exec(html)) !== null) {
     const raw = m[1];
-    if (/avatar|logo|emoji|placeholder/i.test(raw)) continue;
+    if (/avatar|logo|emoji|placeholder|policeIcon|yupoo\.com\/website/i.test(raw)) continue;
     images.add(toOriginal(absUrl(raw, baseUrl)));
   }
-  // also catch data-origin-src not on <img>
   const orig = /data-origin-src\s*=\s*["']([^"']+)["']/gi;
   while ((m = orig.exec(html)) !== null) {
+    if (/avatar|logo|emoji|placeholder|policeIcon|yupoo\.com\/website/i.test(m[1])) continue;
     images.add(toOriginal(absUrl(m[1], baseUrl)));
   }
 
-  // videos
   const vidRegex = /(?:data-src|src)\s*=\s*["']([^"']+\.(?:mp4|webm|mov))(?:\?[^"']*)?["']/gi;
   while ((m = vidRegex.exec(html)) !== null) {
     videos.add(absUrl(m[1], baseUrl));
@@ -175,20 +171,13 @@ function safeSlug(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "product";
 }
 
-async function uploadToDO(buf: Uint8Array, ct: string, folder: string, url: string): Promise<string> {
-  const ext = extFromUrl(url, ct);
-  const key = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2, 10)}${ext}`;
-  await s3.send(new PutObjectCommand({
-    Bucket: DO_SPACES_BUCKET,
-    Key: key,
-    Body: buf,
-    ACL: "public-read",
-    ContentType: ct,
-  }));
-  return `${DO_SPACES_ENDPOINT}/${DO_SPACES_BUCKET}/${key}`;
-}
-
-async function downloadAndUpload(url: string, cookie: string, referer: string, folder: string): Promise<string | null> {
+async function downloadAndUpload(
+  supabase: any,
+  url: string,
+  cookie: string,
+  referer: string,
+  folder: string,
+): Promise<string | null> {
   try {
     const res = await fetch(url, {
       headers: {
@@ -198,14 +187,22 @@ async function downloadAndUpload(url: string, cookie: string, referer: string, f
       },
       redirect: "follow",
     });
-    if (!res.ok) {
-      // fallback: try without "big" upscale
-      return null;
-    }
+    if (!res.ok) return null;
     const ct = res.headers.get("content-type") || "application/octet-stream";
     const ab = await res.arrayBuffer();
-    if (ab.byteLength < 1024) return null; // too small, probably placeholder
-    return await uploadToDO(new Uint8Array(ab), ct, folder, url);
+    if (ab.byteLength < 1024) return null;
+
+    const ext = extFromUrl(url, ct);
+    const key = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2, 10)}${ext}`;
+    const { error } = await supabase.storage
+      .from(STORAGE_BUCKET)
+      .upload(key, new Uint8Array(ab), { contentType: ct, upsert: false });
+    if (error) {
+      console.error("storage upload error", url, error.message);
+      return null;
+    }
+    const { data: pub } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(key);
+    return pub.publicUrl;
   } catch (e) {
     console.error("downloadAndUpload failed", url, e);
     return null;
@@ -216,7 +213,6 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    // auth: require admin
     const authHeader = req.headers.get("Authorization") ?? "";
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const jwt = authHeader.replace("Bearer ", "");
@@ -242,6 +238,7 @@ serve(async (req) => {
     const url: string = body.url;
     let password: string | undefined = body.password;
     const savePassword: boolean = !!body.savePassword;
+    const forcePassword: boolean = !!body.forcePassword;
 
     if (!url || !/^https?:\/\/.+yupoo\.com/i.test(url)) {
       return new Response(JSON.stringify({ error: "Valid Yupoo URL required" }), {
@@ -249,7 +246,6 @@ serve(async (req) => {
       });
     }
 
-    // try saved password if none provided
     if (!password) {
       const { data: savedPw } = await supabase
         .from("yupoo_passwords")
@@ -261,12 +257,14 @@ serve(async (req) => {
 
     let { html, cookie } = await fetchAlbum(url);
 
-    if (needsPassword(html)) {
-      if (!password) {
-        return new Response(JSON.stringify({ passwordRequired: true }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
+    const detected = needsPassword(html);
+    if ((detected || forcePassword) && !password) {
+      return new Response(JSON.stringify({ passwordRequired: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if ((detected || forcePassword) && password) {
       cookie = await submitPassword(url, password, cookie);
       const second = await fetchAlbum(url, cookie);
       html = second.html;
@@ -285,14 +283,16 @@ serve(async (req) => {
     const { images, videos } = extractMedia(html, url);
 
     if (images.length === 0 && videos.length === 0) {
-      return new Response(JSON.stringify({ error: "No media found in album" }), {
+      return new Response(JSON.stringify({
+        error: "No media found. If this album is password-protected, click 'Enter Password' and try again.",
+        passwordRequired: false,
+      }), {
         status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const folder = `yupoo/${safeSlug(title)}-${Date.now()}`;
 
-    // upload in parallel with concurrency limit
     const limit = 5;
     async function runPool<T>(items: T[], fn: (i: T) => Promise<string | null>): Promise<string[]> {
       const out: string[] = [];
@@ -308,8 +308,14 @@ serve(async (req) => {
       return out;
     }
 
-    const uploadedImages = await runPool(images, (u) => downloadAndUpload(u, cookie, url, folder));
-    const uploadedVideos = await runPool(videos, (u) => downloadAndUpload(u, cookie, url, folder));
+    const uploadedImages = await runPool(images, (u) => downloadAndUpload(supabase, u, cookie, url, folder));
+    const uploadedVideos = await runPool(videos, (u) => downloadAndUpload(supabase, u, cookie, url, folder));
+
+    if (uploadedImages.length === 0 && uploadedVideos.length === 0) {
+      return new Response(JSON.stringify({
+        error: `Found ${images.length} images & ${videos.length} videos but all uploads failed. Check storage bucket '${STORAGE_BUCKET}' permissions.`,
+      }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
 
     return new Response(JSON.stringify({
       title,
