@@ -45,11 +45,11 @@ const YupooUpload = () => {
   const [password, setPassword] = useState("");
   const [savePassword, setSavePassword] = useState(true);
 
-  const callImport = async (pw?: string, save?: boolean) => {
+  const callImport = async (pw?: string, save?: boolean, force?: boolean) => {
     setIsFetching(true);
     try {
       const { data, error } = await supabase.functions.invoke("yupoo-import", {
-        body: { url: yupooUrl, password: pw, savePassword: save ?? false },
+        body: { url: yupooUrl, password: pw, savePassword: save ?? false, forcePassword: !!force },
       });
       if (error) throw error;
 
@@ -91,6 +91,14 @@ const YupooUpload = () => {
     }
     setResult(null);
     await callImport();
+  };
+
+  const openPasswordManually = () => {
+    if (!yupooUrl.trim()) {
+      toast({ title: "Enter a Yupoo URL first", variant: "destructive" });
+      return;
+    }
+    setPwDialogOpen(true);
   };
 
   const handlePasswordSubmit = async () => {
