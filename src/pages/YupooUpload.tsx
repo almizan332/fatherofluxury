@@ -112,9 +112,12 @@ const YupooUpload = () => {
       const allMedia = [...result.images, ...result.videos];
       const firstImage = result.images[0] || allMedia[0] || "";
 
+      const slug = `${productName.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80)}-${Date.now().toString(36)}`;
+
       const { error } = await supabase.from("products").insert({
         product_name: productName.trim(),
         title: productName.trim(),
+        slug,
         description: description.trim(),
         category: category || "Uncategorized",
         first_image: firstImage,
