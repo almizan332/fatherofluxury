@@ -45,11 +45,11 @@ const YupooUpload = () => {
   const [password, setPassword] = useState("");
   const [savePassword, setSavePassword] = useState(true);
 
-  const callImport = async (pw?: string, save?: boolean) => {
+  const callImport = async (pw?: string, save?: boolean, force?: boolean) => {
     setIsFetching(true);
     try {
       const { data, error } = await supabase.functions.invoke("yupoo-import", {
-        body: { url: yupooUrl, password: pw, savePassword: save ?? false },
+        body: { url: yupooUrl, password: pw, savePassword: save ?? false, forcePassword: !!force },
       });
       if (error) throw error;
 
@@ -93,12 +93,20 @@ const YupooUpload = () => {
     await callImport();
   };
 
+  const openPasswordManually = () => {
+    if (!yupooUrl.trim()) {
+      toast({ title: "Enter a Yupoo URL first", variant: "destructive" });
+      return;
+    }
+    setPwDialogOpen(true);
+  };
+
   const handlePasswordSubmit = async () => {
     if (!password.trim()) {
       toast({ title: "Enter password", variant: "destructive" });
       return;
     }
-    await callImport(password.trim(), savePassword);
+    await callImport(password.trim(), savePassword, true);
   };
 
   const handlePublish = async () => {
@@ -176,9 +184,12 @@ const YupooUpload = () => {
                 {isFetching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
                 {isFetching ? "Fetching..." : "Fetch Album"}
               </Button>
+              <Button type="button" variant="outline" onClick={openPasswordManually} disabled={isFetching}>
+                Enter Password
+              </Button>
             </div>
             <p className="text-xs text-muted-foreground mt-2">
-              Password-protected albums work too — you'll be asked once and it can be saved for next time.
+              Password-protected? Click "Enter Password" to provide it manually. Saved passwords are reused automatically.
             </p>
           </div>
         </form>
