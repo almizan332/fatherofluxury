@@ -23,6 +23,7 @@ interface FetchResult {
   flylink?: string;
   alibaba?: string;
   dhgate?: string;
+  coverImage?: string;
   images: string[];
   videos: string[];
   sourceUrl: string;
