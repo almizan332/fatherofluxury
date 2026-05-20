@@ -227,12 +227,23 @@ serve(async (req) => {
       });
     }
 
-    // Reuse stored password if user didn't pass one
+    // Reuse stored password if user didn't pass one — first by exact album_url, then by host
     if (!password) {
       const { data: savedPw } = await supabase
         .from("yupoo_passwords").select("password")
         .eq("album_url", url).maybeSingle();
       if (savedPw?.password) password = savedPw.password;
+    }
+    if (!password) {
+      const { data: hostPws } = await supabase
+        .from("yupoo_passwords").select("password,album_url")
+        .ilike("album_url", `%${parsed.host}%`)
+        .order("updated_at", { ascending: false })
+        .limit(5);
+      for (const row of hostPws ?? []) {
+        const probe = await fetchAlbumData(parsed.origin, parsed.albumId, row.password);
+        if (probe.ok) { password = row.password; break; }
+      }
     }
 
     // First try with whatever password we have (may be empty)
@@ -250,7 +261,8 @@ serve(async (req) => {
       }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    if (password && savePassword) {
+    // Always persist working password for this album (and by extension host) so future albums reuse it
+    if (password) {
       await supabase.from("yupoo_passwords").upsert(
         { album_url: url, password },
         { onConflict: "album_url" },
