@@ -213,6 +213,7 @@ async function downloadAndUpload(
     const { data: pub } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(key);
     return pub.publicUrl;
   } catch (e) {
+    errors.push(`exc: ${(e as Error).message}`);
     console.error("downloadAndUpload failed", url, e);
     return null;
   }
