@@ -242,7 +242,8 @@ serve(async (req) => {
       );
     }
 
-    const title = await fetchAlbumTitle(parsed.origin, parsed.albumId);
+    const meta = await fetchAlbumMeta(parsed.origin, parsed.albumId, password ?? "");
+    const title = meta.title;
     const folder = `yupoo/${safeSlug(title)}-${Date.now()}`;
     const referer = `${parsed.origin}/albums/${parsed.albumId}`;
 
@@ -272,8 +273,18 @@ serve(async (req) => {
       }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    const links = extractLinks(meta.description);
+
     return new Response(JSON.stringify({
-      title, images: uploadedImages, videos: uploadedVideos, sourceUrl: url,
+      title,
+      description: meta.description,
+      categoryName: meta.categoryName,
+      flylink: links.flylink || links.other || "",
+      alibaba: links.alibaba || "",
+      dhgate: links.dhgate || "",
+      images: uploadedImages,
+      videos: uploadedVideos,
+      sourceUrl: url,
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (err) {
     console.error("yupoo-import error", err);
