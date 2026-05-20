@@ -132,30 +132,42 @@ function extractTitle(html: string): string {
   return m[1].replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim().slice(0, 200);
 }
 
+function isJunkUrl(u: string): boolean {
+  return /\/public\/|\/icons?\/|\/static\/|avatar|logo|emoji|placeholder|policeIcon|yupoo\.com\/website|tick\.png|loading\.gif|blank\.|spacer\./i.test(u);
+}
+
+function isYupooPhoto(u: string): boolean {
+  // Real album photos live on photo.yupoo.com (or photo-cdn) with /small|medium|big|orig.ext
+  return /photo[^/]*\.yupoo\.com\/.+\/(small|medium|big|origin|orig)\.(jpe?g|png|webp|gif)/i.test(u);
+}
+
 function extractMedia(html: string, baseUrl: string): { images: string[]; videos: string[] } {
   const images = new Set<string>();
   const videos = new Set<string>();
 
+  const collect = (raw: string) => {
+    const abs = absUrl(raw, baseUrl);
+    if (isJunkUrl(abs)) return;
+    if (!isYupooPhoto(abs)) return;
+    images.add(toOriginal(abs));
+  };
+
   const imgRegex = /<img\b[^>]*?(?:data-origin-src|data-src|src)\s*=\s*["']([^"']+\.(?:jpe?g|png|webp|gif))(?:\?[^"']*)?["'][^>]*>/gi;
   let m: RegExpExecArray | null;
-  while ((m = imgRegex.exec(html)) !== null) {
-    const raw = m[1];
-    if (/avatar|logo|emoji|placeholder|policeIcon|yupoo\.com\/website/i.test(raw)) continue;
-    images.add(toOriginal(absUrl(raw, baseUrl)));
-  }
+  while ((m = imgRegex.exec(html)) !== null) collect(m[1]);
+
   const orig = /data-origin-src\s*=\s*["']([^"']+)["']/gi;
-  while ((m = orig.exec(html)) !== null) {
-    if (/avatar|logo|emoji|placeholder|policeIcon|yupoo\.com\/website/i.test(m[1])) continue;
-    images.add(toOriginal(absUrl(m[1], baseUrl)));
-  }
+  while ((m = orig.exec(html)) !== null) collect(m[1]);
 
   const vidRegex = /(?:data-src|src)\s*=\s*["']([^"']+\.(?:mp4|webm|mov))(?:\?[^"']*)?["']/gi;
   while ((m = vidRegex.exec(html)) !== null) {
-    videos.add(absUrl(m[1], baseUrl));
+    const abs = absUrl(m[1], baseUrl);
+    if (!isJunkUrl(abs)) videos.add(abs);
   }
 
   return { images: Array.from(images), videos: Array.from(videos) };
 }
+
 
 function extFromUrl(url: string, ct: string): string {
   const u = url.split(/[#?]/)[0].split(".").pop()?.toLowerCase() ?? "";
