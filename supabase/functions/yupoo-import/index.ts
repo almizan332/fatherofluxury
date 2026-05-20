@@ -278,7 +278,18 @@ serve(async (req) => {
     const videoItems = data.list.filter((it) => it?.type === "video");
 
     const errors: string[] = [];
+
+    // Download album cover first so it becomes the product thumbnail
+    let coverImage: string | null = null;
+    if (meta.coverPath) {
+      const ext = meta.coverExt || "jpg";
+      const dir = meta.coverPath.replace(/\/[^/]+$/, "");
+      const coverUrl = `https://photo.yupoo.com${dir}/big.${ext}`;
+      coverImage = await downloadAndUpload(supabase, coverUrl, referer, folder, ext, errors);
+    }
+
     const uploadedImages: string[] = [];
+    if (coverImage) uploadedImages.push(coverImage);
     for (const it of photoItems) {
       const p = bestPhotoUrl(it);
       if (!p) continue;
@@ -306,6 +317,7 @@ serve(async (req) => {
       title,
       description: meta.description,
       categoryName: meta.categoryName,
+      coverImage: coverImage || uploadedImages[0] || "",
       flylink: links.flylink || links.other || "",
       alibaba: links.alibaba || "",
       dhgate: links.dhgate || "",
