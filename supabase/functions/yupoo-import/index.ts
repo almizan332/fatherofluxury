@@ -38,7 +38,7 @@ function parseSetCookie(headers: Headers): string {
 
 async function fetchAlbumMeta(
   origin: string, albumId: string, password: string,
-): Promise<{ title: string; description: string; categoryName?: string }> {
+): Promise<{ title: string; description: string; categoryName?: string; coverPath?: string; coverExt?: string }> {
   try {
     const url = `${origin}/api/web/albums/${albumId}?uid=1&password=${encodeURIComponent(password ?? "")}`;
     const res = await fetch(url, {
@@ -51,10 +51,25 @@ async function fetchAlbumMeta(
     });
     const json = await res.json().catch(() => null);
     const d = json?.data ?? {};
+    // Cover may be at d.cover (string path) or d.cover.path
+    let coverPath: string | undefined;
+    let coverExt: string | undefined;
+    const cov = d.cover;
+    if (typeof cov === "string") coverPath = cov;
+    else if (cov && typeof cov === "object") {
+      coverPath = cov.path || cov.url;
+      coverExt = (cov.attribute?.type || "").toLowerCase();
+    }
+    if (coverPath && !coverExt) {
+      coverExt = (coverPath.split(".").pop() || "jpg").toLowerCase();
+    }
+    if (coverExt === "jpeg") coverExt = "jpg";
     return {
       title: (d.name || "Yupoo Product").toString().trim().slice(0, 200),
       description: (d.description || "").toString().trim(),
       categoryName: Array.isArray(d.category) && d.category[0]?.name ? d.category[0].name : undefined,
+      coverPath,
+      coverExt,
     };
   } catch {
     return { title: "Yupoo Product", description: "" };
@@ -212,12 +227,23 @@ serve(async (req) => {
       });
     }
 
-    // Reuse stored password if user didn't pass one
+    // Reuse stored password if user didn't pass one — first by exact album_url, then by host
     if (!password) {
       const { data: savedPw } = await supabase
         .from("yupoo_passwords").select("password")
         .eq("album_url", url).maybeSingle();
       if (savedPw?.password) password = savedPw.password;
+    }
+    if (!password) {
+      const { data: hostPws } = await supabase
+        .from("yupoo_passwords").select("password,album_url")
+        .ilike("album_url", `%${parsed.host}%`)
+        .order("updated_at", { ascending: false })
+        .limit(5);
+      for (const row of hostPws ?? []) {
+        const probe = await fetchAlbumData(parsed.origin, parsed.albumId, row.password);
+        if (probe.ok) { password = row.password; break; }
+      }
     }
 
     // First try with whatever password we have (may be empty)
@@ -235,7 +261,8 @@ serve(async (req) => {
       }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    if (password && savePassword) {
+    // Always persist working password for this album (and by extension host) so future albums reuse it
+    if (password) {
       await supabase.from("yupoo_passwords").upsert(
         { album_url: url, password },
         { onConflict: "album_url" },
@@ -251,7 +278,18 @@ serve(async (req) => {
     const videoItems = data.list.filter((it) => it?.type === "video");
 
     const errors: string[] = [];
+
+    // Download album cover first so it becomes the product thumbnail
+    let coverImage: string | null = null;
+    if (meta.coverPath) {
+      const ext = meta.coverExt || "jpg";
+      const dir = meta.coverPath.replace(/\/[^/]+$/, "");
+      const coverUrl = `https://photo.yupoo.com${dir}/big.${ext}`;
+      coverImage = await downloadAndUpload(supabase, coverUrl, referer, folder, ext, errors);
+    }
+
     const uploadedImages: string[] = [];
+    if (coverImage) uploadedImages.push(coverImage);
     for (const it of photoItems) {
       const p = bestPhotoUrl(it);
       if (!p) continue;
@@ -279,6 +317,7 @@ serve(async (req) => {
       title,
       description: meta.description,
       categoryName: meta.categoryName,
+      coverImage: coverImage || uploadedImages[0] || "",
       flylink: links.flylink || links.other || "",
       alibaba: links.alibaba || "",
       dhgate: links.dhgate || "",
