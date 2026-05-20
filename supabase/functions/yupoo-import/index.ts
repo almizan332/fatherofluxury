@@ -16,8 +16,15 @@ const UA =
 
 function parseAlbum(url: string): { origin: string; host: string; albumId: string } | null {
   try {
-    const u = new URL(url);
-    const m = u.pathname.match(/\/albums?\/(\d+)/);
+    const u = new URL(url.trim());
+    if (!/yupoo\.com$/i.test(u.host)) return null;
+    // Try path: /albums/123 or /album/123
+    let m = u.pathname.match(/\/albums?\/([A-Za-z0-9]+)/);
+    // Or query: ?albumid=123
+    if (!m) {
+      const q = u.searchParams.get("albumid") || u.searchParams.get("album_id") || u.searchParams.get("id");
+      if (q) m = ["", q] as any;
+    }
     if (!m) return null;
     return { origin: `${u.protocol}//${u.host}`, host: u.host, albumId: m[1] };
   } catch { return null; }
