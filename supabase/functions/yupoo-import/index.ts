@@ -318,12 +318,15 @@ serve(async (req) => {
       return out;
     }
 
-    const uploadedImages = await runPool(images, (u) => downloadAndUpload(supabase, u, cookie, url, folder));
-    const uploadedVideos = await runPool(videos, (u) => downloadAndUpload(supabase, u, cookie, url, folder));
+    const errors: string[] = [];
+    const uploadedImages = await runPool(images, (u) => downloadAndUpload(supabase, u, cookie, url, folder, errors));
+    const uploadedVideos = await runPool(videos, (u) => downloadAndUpload(supabase, u, cookie, url, folder, errors));
 
     if (uploadedImages.length === 0 && uploadedVideos.length === 0) {
       return new Response(JSON.stringify({
-        error: `Found ${images.length} images & ${videos.length} videos but all uploads failed. Check storage bucket '${STORAGE_BUCKET}' permissions.`,
+        error: `Found ${images.length} images & ${videos.length} videos but all uploads failed.`,
+        details: errors.slice(0, 10),
+        sampleSource: images[0] || videos[0],
       }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
