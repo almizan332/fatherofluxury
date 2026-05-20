@@ -18,6 +18,11 @@ import { useCategories } from "@/hooks/useCategories";
 
 interface FetchResult {
   title: string;
+  description?: string;
+  categoryName?: string;
+  flylink?: string;
+  alibaba?: string;
+  dhgate?: string;
   images: string[];
   videos: string[];
   sourceUrl: string;
