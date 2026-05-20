@@ -134,7 +134,7 @@ const YupooUpload = () => {
     setIsPublishing(true);
     try {
       const allMedia = [...result.images, ...result.videos];
-      const firstImage = result.images[0] || allMedia[0] || "";
+      const firstImage = result.coverImage || result.images[0] || allMedia[0] || "";
 
       const slug = `${productName.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80)}-${Date.now().toString(36)}`;
 
