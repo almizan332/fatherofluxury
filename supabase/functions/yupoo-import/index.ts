@@ -38,7 +38,7 @@ function parseSetCookie(headers: Headers): string {
 
 async function fetchAlbumMeta(
   origin: string, albumId: string, password: string,
-): Promise<{ title: string; description: string; categoryName?: string }> {
+): Promise<{ title: string; description: string; categoryName?: string; coverPath?: string; coverExt?: string }> {
   try {
     const url = `${origin}/api/web/albums/${albumId}?uid=1&password=${encodeURIComponent(password ?? "")}`;
     const res = await fetch(url, {
@@ -51,10 +51,25 @@ async function fetchAlbumMeta(
     });
     const json = await res.json().catch(() => null);
     const d = json?.data ?? {};
+    // Cover may be at d.cover (string path) or d.cover.path
+    let coverPath: string | undefined;
+    let coverExt: string | undefined;
+    const cov = d.cover;
+    if (typeof cov === "string") coverPath = cov;
+    else if (cov && typeof cov === "object") {
+      coverPath = cov.path || cov.url;
+      coverExt = (cov.attribute?.type || "").toLowerCase();
+    }
+    if (coverPath && !coverExt) {
+      coverExt = (coverPath.split(".").pop() || "jpg").toLowerCase();
+    }
+    if (coverExt === "jpeg") coverExt = "jpg";
     return {
       title: (d.name || "Yupoo Product").toString().trim().slice(0, 200),
       description: (d.description || "").toString().trim(),
       categoryName: Array.isArray(d.category) && d.category[0]?.name ? d.category[0].name : undefined,
+      coverPath,
+      coverExt,
     };
   } catch {
     return { title: "Yupoo Product", description: "" };
