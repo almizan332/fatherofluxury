@@ -227,7 +227,7 @@ const YupooUpload = () => {
               <img key={i} src={url} alt={`img-${i}`} className="aspect-square object-cover rounded border" loading="lazy" />
             ))}
             {result.videos.map((url, i) => (
-              <video key={`v-${i}`} src={url} className="aspect-square object-cover rounded border" muted />
+              <video key={`v-${i}`} src={url} className="aspect-square object-cover rounded border" controls playsInline preload="metadata" />
             ))}
           </div>
 
