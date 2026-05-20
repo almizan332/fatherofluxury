@@ -177,33 +177,43 @@ async function downloadAndUpload(
   cookie: string,
   referer: string,
   folder: string,
+  errors: string[],
 ): Promise<string | null> {
   try {
     const res = await fetch(url, {
       headers: {
         "User-Agent": UA,
         "Referer": referer,
+        "Accept": "image/*,video/*,*/*",
         ...(cookie ? { Cookie: cookie } : {}),
       },
       redirect: "follow",
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      errors.push(`fetch ${res.status}: ${url.slice(0, 100)}`);
+      return null;
+    }
     const ct = res.headers.get("content-type") || "application/octet-stream";
     const ab = await res.arrayBuffer();
-    if (ab.byteLength < 1024) return null;
+    if (ab.byteLength < 200) {
+      errors.push(`tiny ${ab.byteLength}b ct=${ct}: ${url.slice(0, 100)}`);
+      return null;
+    }
 
     const ext = extFromUrl(url, ct);
     const key = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2, 10)}${ext}`;
     const { error } = await supabase.storage
       .from(STORAGE_BUCKET)
-      .upload(key, new Uint8Array(ab), { contentType: ct, upsert: false });
+      .upload(key, new Uint8Array(ab), { contentType: ct, upsert: true });
     if (error) {
+      errors.push(`upload: ${error.message}`);
       console.error("storage upload error", url, error.message);
       return null;
     }
     const { data: pub } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(key);
     return pub.publicUrl;
   } catch (e) {
+    errors.push(`exc: ${(e as Error).message}`);
     console.error("downloadAndUpload failed", url, e);
     return null;
   }
@@ -308,12 +318,15 @@ serve(async (req) => {
       return out;
     }
 
-    const uploadedImages = await runPool(images, (u) => downloadAndUpload(supabase, u, cookie, url, folder));
-    const uploadedVideos = await runPool(videos, (u) => downloadAndUpload(supabase, u, cookie, url, folder));
+    const errors: string[] = [];
+    const uploadedImages = await runPool(images, (u) => downloadAndUpload(supabase, u, cookie, url, folder, errors));
+    const uploadedVideos = await runPool(videos, (u) => downloadAndUpload(supabase, u, cookie, url, folder, errors));
 
     if (uploadedImages.length === 0 && uploadedVideos.length === 0) {
       return new Response(JSON.stringify({
-        error: `Found ${images.length} images & ${videos.length} videos but all uploads failed. Check storage bucket '${STORAGE_BUCKET}' permissions.`,
+        error: `Found ${images.length} images & ${videos.length} videos but all uploads failed.`,
+        details: errors.slice(0, 10),
+        sampleSource: images[0] || videos[0],
       }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
