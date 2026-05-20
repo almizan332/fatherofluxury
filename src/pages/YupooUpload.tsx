@@ -70,6 +70,16 @@ const YupooUpload = () => {
 
       setResult(data as FetchResult);
       setProductName(data.title || "");
+      setDescription(data.description || "");
+      setFlylink(data.flylink || "");
+      setAlibabaUrl(data.alibaba || "");
+      setDhgateUrl(data.dhgate || "");
+      if (data.categoryName) {
+        const match = categories.find(
+          (c) => c.name.toLowerCase() === String(data.categoryName).toLowerCase(),
+        );
+        if (match) setCategory(match.name);
+      }
       setPwDialogOpen(false);
       setPassword("");
       toast({
