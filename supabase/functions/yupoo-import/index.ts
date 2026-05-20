@@ -36,18 +36,41 @@ function parseSetCookie(headers: Headers): string {
   return list.map((c) => c.split(";")[0]).join("; ");
 }
 
-async function fetchAlbumTitle(origin: string, albumId: string): Promise<string> {
+async function fetchAlbumMeta(
+  origin: string, albumId: string, password: string,
+): Promise<{ title: string; description: string; categoryName?: string }> {
   try {
-    const res = await fetch(`${origin}/albums/${albumId}?uid=1`, {
-      headers: { "User-Agent": UA },
+    const url = `${origin}/api/web/albums/${albumId}?uid=1&password=${encodeURIComponent(password ?? "")}`;
+    const res = await fetch(url, {
+      headers: {
+        "User-Agent": UA,
+        "Accept": "application/json",
+        "Referer": `${origin}/albums/${albumId}`,
+        "X-Requested-With": "XMLHttpRequest",
+      },
     });
-    const html = await res.text();
-    const m =
-      html.match(/<h3[^>]*showalbumheader__gallerytitle[^>]*>([\s\S]*?)<\/h3>/i) ||
-      html.match(/<title>([\s\S]*?)<\/title>/i);
-    if (!m) return "Yupoo Product";
-    return m[1].replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim().slice(0, 200) || "Yupoo Product";
-  } catch { return "Yupoo Product"; }
+    const json = await res.json().catch(() => null);
+    const d = json?.data ?? {};
+    return {
+      title: (d.name || "Yupoo Product").toString().trim().slice(0, 200),
+      description: (d.description || "").toString().trim(),
+      categoryName: Array.isArray(d.category) && d.category[0]?.name ? d.category[0].name : undefined,
+    };
+  } catch {
+    return { title: "Yupoo Product", description: "" };
+  }
+}
+
+function extractLinks(text: string): { flylink?: string; alibaba?: string; dhgate?: string; other?: string } {
+  const urls = text.match(/https?:\/\/[^\s"'<>)]+/gi) || [];
+  const out: { flylink?: string; alibaba?: string; dhgate?: string; other?: string } = {};
+  for (const u of urls) {
+    if (/flylink|flylinking/i.test(u) && !out.flylink) out.flylink = u;
+    else if (/alibaba\.com|1688\.com/i.test(u) && !out.alibaba) out.alibaba = u;
+    else if (/dhgate\.com/i.test(u) && !out.dhgate) out.dhgate = u;
+    else if (!out.other) out.other = u;
+  }
+  return out;
 }
 
 // Calls Yupoo's real JSON API used by showalbum.js:
@@ -219,7 +242,8 @@ serve(async (req) => {
       );
     }
 
-    const title = await fetchAlbumTitle(parsed.origin, parsed.albumId);
+    const meta = await fetchAlbumMeta(parsed.origin, parsed.albumId, password ?? "");
+    const title = meta.title;
     const folder = `yupoo/${safeSlug(title)}-${Date.now()}`;
     const referer = `${parsed.origin}/albums/${parsed.albumId}`;
 
@@ -249,8 +273,18 @@ serve(async (req) => {
       }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    const links = extractLinks(meta.description);
+
     return new Response(JSON.stringify({
-      title, images: uploadedImages, videos: uploadedVideos, sourceUrl: url,
+      title,
+      description: meta.description,
+      categoryName: meta.categoryName,
+      flylink: links.flylink || links.other || "",
+      alibaba: links.alibaba || "",
+      dhgate: links.dhgate || "",
+      images: uploadedImages,
+      videos: uploadedVideos,
+      sourceUrl: url,
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (err) {
     console.error("yupoo-import error", err);
