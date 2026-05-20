@@ -14,18 +14,13 @@ const corsHeaders = {
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
 
-function absUrl(u: string, base: string) {
-  if (!u) return u;
-  if (u.startsWith("//")) return "https:" + u;
-  if (u.startsWith("http")) return u;
-  try { return new URL(u, base).toString(); } catch { return u; }
-}
-
-function toOriginal(u: string) {
-  return u
-    .replace(/\/small\.(jpg|jpeg|png|webp|gif)/i, "/big.$1")
-    .replace(/\/medium\.(jpg|jpeg|png|webp|gif)/i, "/big.$1")
-    .replace(/\/square\.(jpg|jpeg|png|webp|gif)/i, "/big.$1");
+function parseAlbum(url: string): { origin: string; host: string; albumId: string } | null {
+  try {
+    const u = new URL(url);
+    const m = u.pathname.match(/\/albums?\/(\d+)/);
+    if (!m) return null;
+    return { origin: `${u.protocol}//${u.host}`, host: u.host, albumId: m[1] };
+  } catch { return null; }
 }
 
 function parseSetCookie(headers: Headers): string {
@@ -34,161 +29,78 @@ function parseSetCookie(headers: Headers): string {
   return list.map((c) => c.split(";")[0]).join("; ");
 }
 
-function mergeCookies(a: string, b: string) {
-  const map = new Map<string, string>();
-  for (const part of (a + "; " + b).split(";")) {
-    const p = part.trim();
-    if (!p) continue;
-    const i = p.indexOf("=");
-    if (i > 0) map.set(p.slice(0, i), p.slice(i + 1));
-  }
-  return Array.from(map.entries()).map(([k, v]) => `${k}=${v}`).join("; ");
+async function fetchAlbumTitle(origin: string, albumId: string): Promise<string> {
+  try {
+    const res = await fetch(`${origin}/albums/${albumId}?uid=1`, {
+      headers: { "User-Agent": UA },
+    });
+    const html = await res.text();
+    const m =
+      html.match(/<h3[^>]*showalbumheader__gallerytitle[^>]*>([\s\S]*?)<\/h3>/i) ||
+      html.match(/<title>([\s\S]*?)<\/title>/i);
+    if (!m) return "Yupoo Product";
+    return m[1].replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim().slice(0, 200) || "Yupoo Product";
+  } catch { return "Yupoo Product"; }
 }
 
-async function fetchAlbum(url: string, cookie = ""): Promise<{ html: string; cookie: string; status: number }> {
+// Calls Yupoo's real JSON API used by showalbum.js:
+//   GET {origin}/api/web/albums/{albumId}/show?uid=1&password=PW
+// Returns { code, message, data: { list: [...] } } on success.
+async function fetchAlbumData(origin: string, albumId: string, password: string): Promise<
+  { ok: true; list: any[]; cookie: string } |
+  { ok: false; passwordRequired: boolean; status: number; message: string }
+> {
+  const url = `${origin}/api/web/albums/${albumId}/show?uid=1&password=${encodeURIComponent(password ?? "")}`;
   const res = await fetch(url, {
     headers: {
       "User-Agent": UA,
-      "Accept": "text/html,application/xhtml+xml",
-      "Accept-Language": "en-US,en;q=0.9",
-      ...(cookie ? { Cookie: cookie } : {}),
+      "Accept": "application/json, text/plain, */*",
+      "Referer": `${origin}/albums/${albumId}`,
+      "X-Requested-With": "XMLHttpRequest",
     },
-    redirect: "follow",
   });
-  const setCookie = parseSetCookie(res.headers);
-  const newCookie = mergeCookies(cookie, setCookie);
-  const html = await res.text();
-  return { html, cookie: newCookie, status: res.status };
-}
+  const cookie = parseSetCookie(res.headers);
+  const text = await res.text();
+  let json: any = null;
+  try { json = JSON.parse(text); } catch { /* not JSON */ }
 
-// More lenient password detection
-function needsPassword(html: string): boolean {
-  const patterns = [
-    /showalbum__passwordform/i,
-    /album.*password/i,
-    /输入密码/,
-    /请输入密码/,
-    /密\s*码/,
-    /name=["']password["']/i,
-    /id=["']password["']/i,
-    /placeholder=["'][^"']*password[^"']*["']/i,
-  ];
-  let hits = 0;
-  for (const p of patterns) if (p.test(html)) hits++;
-  // also check there is NO actual gallery content present
-  const hasGallery = /showalbum__children|showalbum__gallery|data-origin-src/i.test(html);
-  return hits >= 1 && !hasGallery;
-}
-
-function extractAlbumId(html: string, url: string): string | null {
-  const m1 = html.match(/album[_-]?id["']?\s*[:=]\s*["']?(\d+)/i);
-  if (m1) return m1[1];
-  const m2 = url.match(/\/albums?\/(\d+)/i);
-  if (m2) return m2[1];
-  return null;
-}
-
-async function submitPassword(albumUrl: string, password: string, cookie: string): Promise<string> {
-  const u = new URL(albumUrl);
-  const origin = `${u.protocol}//${u.host}`;
-  const { html } = await fetchAlbum(albumUrl, cookie);
-  const albumId = extractAlbumId(html, albumUrl);
-  if (!albumId) throw new Error("Could not detect album id for password submission");
-
-  const form = new URLSearchParams();
-  form.set("password", password);
-  form.set("albumid", albumId);
-
-  const endpoints = [
-    `${origin}/album/password?albumid=${albumId}`,
-    `${origin}/manage/album/password`,
-  ];
-  let lastCookie = cookie;
-  for (const ep of endpoints) {
-    try {
-      const res = await fetch(ep, {
-        method: "POST",
-        headers: {
-          "User-Agent": UA,
-          "Content-Type": "application/x-www-form-urlencoded",
-          "Referer": albumUrl,
-          "X-Requested-With": "XMLHttpRequest",
-          ...(lastCookie ? { Cookie: lastCookie } : {}),
-        },
-        body: form.toString(),
-        redirect: "manual",
-      });
-      lastCookie = mergeCookies(lastCookie, parseSetCookie(res.headers));
-      if (res.status < 500) break;
-    } catch { /* try next */ }
+  if (res.ok && json?.data?.list && Array.isArray(json.data.list)) {
+    return { ok: true, list: json.data.list, cookie };
   }
-  return lastCookie;
+  const msg = (json?.message || text || "").toString();
+  // Heuristics for password-required responses
+  const passwordRequired =
+    res.status === 401 || res.status === 403 ||
+    /password|密码|lock/i.test(msg) ||
+    json?.code === 401 || json?.code === 403;
+  return { ok: false, passwordRequired, status: res.status, message: msg.slice(0, 200) };
 }
 
-function extractTitle(html: string): string {
-  const m = html.match(/<h3[^>]*showalbumheader__gallerytitle[^>]*>([\s\S]*?)<\/h3>/i)
-        || html.match(/<title>([\s\S]*?)<\/title>/i);
-  if (!m) return "Yupoo Product";
-  return m[1].replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim().slice(0, 200);
+function bestPhotoUrl(item: any): { url: string; ext: string } | null {
+  // item.path like "/cyborg77/65d7013b03/b8d6a5d2.png"
+  // item.attribute.type like "png" | "jpeg"
+  const path: string = item?.path || "";
+  const type: string = (item?.attribute?.type || "").toLowerCase();
+  if (!path) return null;
+  const ext = type === "jpeg" ? "jpg" : (type || path.split(".").pop() || "jpg").toLowerCase();
+  // Directory containing the file, then big.<ext>
+  const dir = path.replace(/\/[^/]+$/, "");
+  return { url: `https://photo.yupoo.com${dir}/big.${ext}`, ext };
 }
 
-function isJunkUrl(u: string): boolean {
-  return /\/public\/|\/icons?\/|\/static\/|avatar|logo|emoji|placeholder|policeIcon|yupoo\.com\/website|tick\.png|loading\.gif|blank\.|spacer\./i.test(u);
-}
-
-function isYupooPhoto(u: string): boolean {
-  // Real album photos live on photo.yupoo.com (or photo-cdn) with /small|medium|big|orig.ext
-  return /photo[^/]*\.yupoo\.com\/.+\/(small|medium|big|origin|orig)\.(jpe?g|png|webp|gif)/i.test(u);
-}
-
-function extractMedia(html: string, baseUrl: string): { images: string[]; videos: string[] } {
-  const images = new Set<string>();
-  const videos = new Set<string>();
-
-  const collect = (raw: string) => {
-    const abs = absUrl(raw, baseUrl);
-    if (isJunkUrl(abs)) return;
-    if (!isYupooPhoto(abs)) return;
-    images.add(toOriginal(abs));
-  };
-
-  const imgRegex = /<img\b[^>]*?(?:data-origin-src|data-src|src)\s*=\s*["']([^"']+\.(?:jpe?g|png|webp|gif))(?:\?[^"']*)?["'][^>]*>/gi;
-  let m: RegExpExecArray | null;
-  while ((m = imgRegex.exec(html)) !== null) collect(m[1]);
-
-  const orig = /data-origin-src\s*=\s*["']([^"']+)["']/gi;
-  while ((m = orig.exec(html)) !== null) collect(m[1]);
-
-  const vidRegex = /(?:data-src|src)\s*=\s*["']([^"']+\.(?:mp4|webm|mov))(?:\?[^"']*)?["']/gi;
-  while ((m = vidRegex.exec(html)) !== null) {
-    const abs = absUrl(m[1], baseUrl);
-    if (!isJunkUrl(abs)) videos.add(abs);
-  }
-
-  return { images: Array.from(images), videos: Array.from(videos) };
-}
-
-
-function extFromUrl(url: string, ct: string): string {
-  const u = url.split(/[#?]/)[0].split(".").pop()?.toLowerCase() ?? "";
-  if (u && u.length <= 5 && /^[a-z0-9]+$/.test(u)) return "." + u;
-  const map: Record<string, string> = {
-    "image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp",
-    "image/gif": ".gif", "video/mp4": ".mp4", "video/webm": ".webm",
-  };
-  return map[ct] ?? "";
-}
-
-function safeSlug(s: string) {
-  return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "product";
+function bestVideoUrl(item: any): { url: string; ext: string } | null {
+  const path: string = item?.path || item?.videoPath || "";
+  if (!path) return null;
+  const ext = (item?.attribute?.type || path.split(".").pop() || "mp4").toLowerCase();
+  return { url: `https://uvd.yupoo.com${path}`, ext };
 }
 
 async function downloadAndUpload(
   supabase: any,
   url: string,
-  cookie: string,
   referer: string,
   folder: string,
+  ext: string,
   errors: string[],
 ): Promise<string | null> {
   try {
@@ -197,38 +109,43 @@ async function downloadAndUpload(
         "User-Agent": UA,
         "Referer": referer,
         "Accept": "image/*,video/*,*/*",
-        ...(cookie ? { Cookie: cookie } : {}),
       },
       redirect: "follow",
     });
     if (!res.ok) {
+      // Fallback: try /orig.<ext> if /big failed
+      if (url.includes("/big.")) {
+        const alt = url.replace("/big.", "/orig.");
+        const r2 = await fetch(alt, { headers: { "User-Agent": UA, "Referer": referer } });
+        if (r2.ok) return await uploadBuf(supabase, await r2.arrayBuffer(), r2.headers.get("content-type") || "", folder, ext, errors);
+      }
       errors.push(`fetch ${res.status}: ${url.slice(0, 100)}`);
       return null;
     }
     const ct = res.headers.get("content-type") || "application/octet-stream";
     const ab = await res.arrayBuffer();
-    if (ab.byteLength < 200) {
-      errors.push(`tiny ${ab.byteLength}b ct=${ct}: ${url.slice(0, 100)}`);
-      return null;
-    }
-
-    const ext = extFromUrl(url, ct);
-    const key = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2, 10)}${ext}`;
-    const { error } = await supabase.storage
-      .from(STORAGE_BUCKET)
-      .upload(key, new Uint8Array(ab), { contentType: ct, upsert: true });
-    if (error) {
-      errors.push(`upload: ${error.message}`);
-      console.error("storage upload error", url, error.message);
-      return null;
-    }
-    const { data: pub } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(key);
-    return pub.publicUrl;
+    return await uploadBuf(supabase, ab, ct, folder, ext, errors);
   } catch (e) {
     errors.push(`exc: ${(e as Error).message}`);
-    console.error("downloadAndUpload failed", url, e);
     return null;
   }
+}
+
+async function uploadBuf(
+  supabase: any, ab: ArrayBuffer, ct: string, folder: string, ext: string, errors: string[],
+): Promise<string | null> {
+  if (ab.byteLength < 200) { errors.push(`tiny ${ab.byteLength}b`); return null; }
+  const key = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2, 10)}.${ext}`;
+  const { error } = await supabase.storage
+    .from(STORAGE_BUCKET)
+    .upload(key, new Uint8Array(ab), { contentType: ct, upsert: true });
+  if (error) { errors.push(`upload: ${error.message}`); return null; }
+  const { data: pub } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(key);
+  return pub.publicUrl;
+}
+
+function safeSlug(s: string) {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "product";
 }
 
 serve(async (req) => {
@@ -245,11 +162,8 @@ serve(async (req) => {
       });
     }
     const { data: roleRow } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userData.user.id)
-      .eq("role", "admin")
-      .maybeSingle();
+      .from("user_roles").select("role")
+      .eq("user_id", userData.user.id).eq("role", "admin").maybeSingle();
     if (!roleRow) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -260,93 +174,76 @@ serve(async (req) => {
     const url: string = body.url;
     let password: string | undefined = body.password;
     const savePassword: boolean = !!body.savePassword;
-    const forcePassword: boolean = !!body.forcePassword;
 
-    if (!url || !/^https?:\/\/.+yupoo\.com/i.test(url)) {
-      return new Response(JSON.stringify({ error: "Valid Yupoo URL required" }), {
+    const parsed = parseAlbum(url || "");
+    if (!parsed) {
+      return new Response(JSON.stringify({ error: "Provide a valid Yupoo album URL (e.g. https://xxx.x.yupoo.com/albums/12345)" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    // Reuse stored password if user didn't pass one
     if (!password) {
       const { data: savedPw } = await supabase
-        .from("yupoo_passwords")
-        .select("password")
-        .eq("album_url", url)
-        .maybeSingle();
+        .from("yupoo_passwords").select("password")
+        .eq("album_url", url).maybeSingle();
       if (savedPw?.password) password = savedPw.password;
     }
 
-    let { html, cookie } = await fetchAlbum(url);
+    // First try with whatever password we have (may be empty)
+    let data = await fetchAlbumData(parsed.origin, parsed.albumId, password ?? "");
 
-    const detected = needsPassword(html);
-    if ((detected || forcePassword) && !password) {
-      return new Response(JSON.stringify({ passwordRequired: true }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    if ((detected || forcePassword) && password) {
-      cookie = await submitPassword(url, password, cookie);
-      const second = await fetchAlbum(url, cookie);
-      html = second.html;
-      cookie = second.cookie;
-      if (needsPassword(html)) {
-        return new Response(JSON.stringify({ passwordRequired: true, error: "Wrong password" }), {
-          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+    if (!data.ok) {
+      if (data.passwordRequired || !password) {
+        return new Response(JSON.stringify({
+          passwordRequired: true,
+          error: password ? "Wrong password for this album." : "This album is password-protected.",
+        }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
-      if (savePassword) {
-        await supabase.from("yupoo_passwords").upsert({ album_url: url, password }, { onConflict: "album_url" });
-      }
-    }
-
-    const title = extractTitle(html);
-    const { images, videos } = extractMedia(html, url);
-
-    if (images.length === 0 && videos.length === 0) {
       return new Response(JSON.stringify({
-        error: "No media found. If this album is password-protected, click 'Enter Password' and try again.",
-        passwordRequired: false,
-      }), {
-        status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+        error: `Yupoo API returned ${data.status}: ${data.message}`,
+      }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    if (password && savePassword) {
+      await supabase.from("yupoo_passwords").upsert(
+        { album_url: url, password },
+        { onConflict: "album_url" },
+      );
+    }
+
+    const title = await fetchAlbumTitle(parsed.origin, parsed.albumId);
     const folder = `yupoo/${safeSlug(title)}-${Date.now()}`;
+    const referer = `${parsed.origin}/albums/${parsed.albumId}`;
 
-    const limit = 5;
-    async function runPool<T>(items: T[], fn: (i: T) => Promise<string | null>): Promise<string[]> {
-      const out: string[] = [];
-      let idx = 0;
-      const workers = Array(Math.min(limit, items.length)).fill(0).map(async () => {
-        while (idx < items.length) {
-          const i = idx++;
-          const r = await fn(items[i]);
-          if (r) out.push(r);
-        }
-      });
-      await Promise.all(workers);
-      return out;
-    }
+    const photoItems = data.list.filter((it) => it?.type !== "video");
+    const videoItems = data.list.filter((it) => it?.type === "video");
 
     const errors: string[] = [];
-    const uploadedImages = await runPool(images, (u) => downloadAndUpload(supabase, u, cookie, url, folder, errors));
-    const uploadedVideos = await runPool(videos, (u) => downloadAndUpload(supabase, u, cookie, url, folder, errors));
+    const uploadedImages: string[] = [];
+    for (const it of photoItems) {
+      const p = bestPhotoUrl(it);
+      if (!p) continue;
+      const u = await downloadAndUpload(supabase, p.url, referer, folder, p.ext, errors);
+      if (u) uploadedImages.push(u);
+    }
+    const uploadedVideos: string[] = [];
+    for (const it of videoItems) {
+      const v = bestVideoUrl(it);
+      if (!v) continue;
+      const u = await downloadAndUpload(supabase, v.url, referer, folder, v.ext, errors);
+      if (u) uploadedVideos.push(u);
+    }
 
     if (uploadedImages.length === 0 && uploadedVideos.length === 0) {
       return new Response(JSON.stringify({
-        error: `Found ${images.length} images & ${videos.length} videos but all uploads failed.`,
+        error: `Album returned ${data.list.length} items but all downloads failed.`,
         details: errors.slice(0, 10),
-        sampleSource: images[0] || videos[0],
       }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     return new Response(JSON.stringify({
-      title,
-      images: uploadedImages,
-      videos: uploadedVideos,
-      sourceUrl: url,
+      title, images: uploadedImages, videos: uploadedVideos, sourceUrl: url,
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (err) {
     console.error("yupoo-import error", err);
