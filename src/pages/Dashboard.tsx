@@ -37,6 +37,8 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/Header";
+import ImageHashBackfillCard from "@/components/ImageHashBackfillCard";
+
 
 const Dashboard = () => {
   const [timeRange, setTimeRange] = useState<'1d' | '1w' | '1m' | '1y'>('1w');
@@ -307,7 +309,9 @@ const Dashboard = () => {
                   <stat.icon className="h-8 w-8 text-muted-foreground" />
                 </div>
               </Card>
+            ))}
           </div>
+
 
           <ImageHashBackfillCard />
 
