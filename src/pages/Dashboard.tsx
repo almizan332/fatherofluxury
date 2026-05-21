@@ -307,10 +307,12 @@ const Dashboard = () => {
                   <stat.icon className="h-8 w-8 text-muted-foreground" />
                 </div>
               </Card>
-            ))}
           </div>
 
+          <ImageHashBackfillCard />
+
           <Card className="p-6 mb-8">
+
             <h2 className="text-xl font-semibold mb-4">Categories Overview</h2>
             <div className="space-y-4">
               {categories.map((category) => (
