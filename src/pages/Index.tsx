@@ -144,7 +144,7 @@ const [products, setProducts] = useState<Product[]>([]);
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
-      <ScrollArea className="flex-grow">
+      <div className="flex-grow">
         <main className="container mx-auto px-4 py-8 max-w-7xl">
           {/* Alert Banner with Marquee */}
           <motion.div
@@ -353,7 +353,7 @@ const [products, setProducts] = useState<Product[]>([]);
             </>
           )}
         </main>
-      </ScrollArea>
+      </div>
       <Footer />
       <ChatbotWidget />
     </div>
