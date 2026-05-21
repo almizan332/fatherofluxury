@@ -37,6 +37,8 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/Header";
+import ImageHashBackfillCard from "@/components/ImageHashBackfillCard";
+
 
 const Dashboard = () => {
   const [timeRange, setTimeRange] = useState<'1d' | '1w' | '1m' | '1y'>('1w');
@@ -310,7 +312,11 @@ const Dashboard = () => {
             ))}
           </div>
 
+
+          <ImageHashBackfillCard />
+
           <Card className="p-6 mb-8">
+
             <h2 className="text-xl font-semibold mb-4">Categories Overview</h2>
             <div className="space-y-4">
               {categories.map((category) => (

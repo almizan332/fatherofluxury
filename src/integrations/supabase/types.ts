@@ -366,6 +366,7 @@ export type Database = {
           first_image: string | null
           flylink: string | null
           id: string
+          image_phash: number | null
           media_links: string[] | null
           product_name: string | null
           seller: string | null
@@ -385,6 +386,7 @@ export type Database = {
           first_image?: string | null
           flylink?: string | null
           id?: string
+          image_phash?: number | null
           media_links?: string[] | null
           product_name?: string | null
           seller?: string | null
@@ -404,6 +406,7 @@ export type Database = {
           first_image?: string | null
           flylink?: string | null
           id?: string
+          image_phash?: number | null
           media_links?: string[] | null
           product_name?: string | null
           seller?: string | null

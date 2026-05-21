@@ -21,6 +21,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Product } from "@/types/product";
 import ChatbotWidget from "@/components/ChatbotWidget";
+import ImageSearchBar from "@/components/ImageSearchBar";
 import { getAnonymousClient } from "@/utils/supabaseAnonymous";
 import { sanitizeImageUrl, FALLBACK_IMAGE_URL } from "@/utils/imageUrlHelper";
 import {
@@ -146,6 +147,7 @@ const [products, setProducts] = useState<Product[]>([]);
       <Navbar />
       <div className="flex-grow">
         <main className="container mx-auto px-4 py-8 max-w-7xl">
+          <ImageSearchBar />
           {/* Alert Banner with Marquee */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
