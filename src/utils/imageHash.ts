@@ -44,3 +44,11 @@ export async function computeAHashFromDataUrl(dataUrl: string): Promise<string> 
   }
   return hash.toString();
 }
+
+// Convert an unsigned 64-bit BigInt string to a signed bigint string (Postgres bigint range).
+export function unsignedToSignedBigIntString(unsigned: string): string {
+  const u = BigInt(unsigned);
+  const MAX = 1n << 63n;
+  const signed = u >= MAX ? u - (1n << 64n) : u;
+  return signed.toString();
+}

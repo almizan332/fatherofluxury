@@ -37,15 +37,16 @@ const ImageSearchBar = () => {
       setLoading(true);
       setResults(null);
       try {
-        const { computeAHashFromDataUrl } = await import("@/utils/imageHash");
-        const queryHash = await computeAHashFromDataUrl(base64);
-        const { data, error } = await supabase.functions.invoke("image-search", {
-          body: { action: "search", queryHash },
+        const { computeAHashFromDataUrl, unsignedToSignedBigIntString } = await import("@/utils/imageHash");
+        const unsignedHash = await computeAHashFromDataUrl(base64);
+        const signedHash = unsignedToSignedBigIntString(unsignedHash);
+        const { data, error } = await supabase.rpc("search_products_by_image_hash", {
+          _query_hash: signedHash as any,
+          _limit: 12,
         });
         if (error) throw error;
-        if ((data as any)?.error) throw new Error((data as any).error);
-        setResults((data as any).results || []);
-        if (!(data as any).results?.length) {
+        setResults((data as any) || []);
+        if (!data || (data as any).length === 0) {
           toast.info("No matching product found. Try a clearer image.");
         }
       } catch (e: any) {
