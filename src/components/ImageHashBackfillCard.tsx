@@ -10,8 +10,14 @@ import { sanitizeImageUrl } from "@/utils/imageUrlHelper";
 // Client-side backfill: browser canvas does the decode/hash → zero edge CPU cost.
 const BATCH_SIZE = 50;
 
+// Route through weserv.nl: adds CORS headers + resizes to tiny 32px (fast download).
+function proxiedUrl(raw: string): string {
+  const clean = raw.replace(/^https?:\/\//, "");
+  return `https://images.weserv.nl/?url=${encodeURIComponent(clean)}&w=32&h=32&fit=cover&output=jpg`;
+}
+
 async function urlToDataUrl(url: string): Promise<string> {
-  const res = await fetch(url, { mode: "cors" });
+  const res = await fetch(proxiedUrl(url));
   if (!res.ok) throw new Error(`fetch ${res.status}`);
   const blob = await res.blob();
   return await new Promise((resolve, reject) => {
@@ -21,6 +27,7 @@ async function urlToDataUrl(url: string): Promise<string> {
     r.readAsDataURL(blob);
   });
 }
+
 
 const ImageHashBackfillCard = () => {
   const [running, setRunning] = useState(false);
