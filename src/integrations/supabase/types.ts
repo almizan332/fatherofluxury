@@ -655,7 +655,22 @@ export type Database = {
       cleanup_expired_codes: { Args: never; Returns: undefined }
       ensure_admin_user: { Args: never; Returns: undefined }
       generate_unique_slug: { Args: { product_name: string }; Returns: string }
+      hamming_distance_bigint: {
+        Args: { a: number; b: number }
+        Returns: number
+      }
       is_admin: { Args: never; Returns: boolean }
+      search_products_by_image_hash: {
+        Args: { _limit?: number; _query_hash: number }
+        Returns: {
+          distance: number
+          first_image: string
+          id: string
+          product_name: string
+          similarity: number
+          slug: string
+        }[]
+      }
       update_category_product_counts: { Args: never; Returns: undefined }
     }
     Enums: {
