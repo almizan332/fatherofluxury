@@ -13,7 +13,7 @@ const ImageHashBackfillCard = () => {
     setRunning(true);
     try {
       const { data, error } = await supabase.functions.invoke("image-search", {
-        body: { action: "backfill", limit: 200 },
+        body: { action: "backfill", limit: 25 },
       });
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
@@ -44,7 +44,7 @@ const ImageHashBackfillCard = () => {
           </div>
         </div>
         <Button onClick={runBatch} disabled={running}>
-          {running ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Hashing…</> : "Run Backfill (200)"}
+          {running ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Hashing…</> : "Run Backfill (25)"}
         </Button>
       </div>
     </Card>
