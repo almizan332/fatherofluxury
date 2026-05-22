@@ -1,5 +1,6 @@
 // Reverse image search via average-hash (aHash) Hamming distance.
-// Two actions: { action: "search", imageBase64 } and { action: "backfill" } (admin only).
+// search: client sends precomputed 64-bit hash string (no decode in Deno → no CPU limit)
+// backfill: admin-only, decodes product images in small batches
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { decode, Image } from "https://deno.land/x/imagescript@1.2.17/mod.ts";
@@ -13,7 +14,6 @@ const corsHeaders = {
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-// Convert 64-bit unsigned hash to signed bigint for Postgres
 function toSignedBigInt(u: bigint): bigint {
   const MAX = 1n << 63n;
   return u >= MAX ? u - (1n << 64n) : u;
@@ -21,7 +21,6 @@ function toSignedBigInt(u: bigint): bigint {
 function fromSignedBigInt(s: bigint): bigint {
   return s < 0n ? s + (1n << 64n) : s;
 }
-
 function hammingDistance(a: bigint, b: bigint): number {
   let x = a ^ b;
   let count = 0;
@@ -37,12 +36,11 @@ async function computeAHash(buffer: Uint8Array): Promise<bigint | null> {
     const img = await decode(buffer);
     if (!(img instanceof Image)) return null;
     const small = img.resize(8, 8);
-    // Grayscale average
     let total = 0;
     const grays: number[] = [];
     for (let y = 0; y < 8; y++) {
       for (let x = 0; x < 8; x++) {
-        const pixel = small.getPixelAt(x + 1, y + 1); // 1-indexed
+        const pixel = small.getPixelAt(x + 1, y + 1);
         const r = (pixel >> 24) & 0xff;
         const g = (pixel >> 16) & 0xff;
         const b = (pixel >> 8) & 0xff;
@@ -65,7 +63,10 @@ async function computeAHash(buffer: Uint8Array): Promise<bigint | null> {
 
 async function fetchImage(url: string): Promise<Uint8Array | null> {
   try {
-    const res = await fetch(url, { headers: { Referer: "" } });
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 8000);
+    const res = await fetch(url, { signal: ctrl.signal });
+    clearTimeout(t);
     if (!res.ok) return null;
     return new Uint8Array(await res.arrayBuffer());
   } catch {
@@ -82,24 +83,22 @@ Deno.serve(async (req) => {
     const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
     if (action === "search") {
-      const imageBase64: string = body.imageBase64;
-      if (!imageBase64) {
-        return new Response(JSON.stringify({ error: "imageBase64 required" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+      // Accept precomputed hash from client (preferred) or legacy base64 fallback.
+      let queryHash: bigint | null = null;
+      if (body.queryHash) {
+        try { queryHash = BigInt(body.queryHash); } catch { queryHash = null; }
+      } else if (body.imageBase64) {
+        const raw = body.imageBase64.includes(",") ? body.imageBase64.split(",")[1] : body.imageBase64;
+        const bytes = Uint8Array.from(atob(raw), (c) => c.charCodeAt(0));
+        queryHash = await computeAHash(bytes);
       }
-      const raw = imageBase64.includes(",") ? imageBase64.split(",")[1] : imageBase64;
-      const bytes = Uint8Array.from(atob(raw), (c) => c.charCodeAt(0));
-      const queryHash = await computeAHash(bytes);
       if (queryHash === null) {
-        return new Response(JSON.stringify({ error: "Could not decode uploaded image" }), {
+        return new Response(JSON.stringify({ error: "queryHash required" }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
-      // Fetch all hashed products (paginate to bypass 1000 limit)
       const all: { id: string; product_name: string | null; slug: string | null; first_image: string | null; image_phash: number | string }[] = [];
       let from = 0;
       const PAGE = 1000;
@@ -119,7 +118,7 @@ Deno.serve(async (req) => {
       const matches = all
         .map((p) => {
           const stored = fromSignedBigInt(BigInt(p.image_phash as any));
-          return { ...p, distance: hammingDistance(queryHash, stored) };
+          return { ...p, distance: hammingDistance(queryHash!, stored) };
         })
         .sort((a, b) => a.distance - b.distance)
         .slice(0, 12);
@@ -141,7 +140,6 @@ Deno.serve(async (req) => {
     }
 
     if (action === "backfill") {
-      // Admin only — verify via JWT
       const authHeader = req.headers.get("Authorization") || "";
       const token = authHeader.replace("Bearer ", "");
       const userClient = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY")!, {
@@ -161,7 +159,7 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ error: "Admin only" }), { status: 403, headers: corsHeaders });
       }
 
-      const limit = Math.min(Number(body.limit) || 200, 500);
+      const limit = Math.min(Number(body.limit) || 25, 50);
       const { data: rows, error } = await supabase
         .from("products")
         .select("id, first_image")

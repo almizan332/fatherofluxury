@@ -37,8 +37,10 @@ const ImageSearchBar = () => {
       setLoading(true);
       setResults(null);
       try {
+        const { computeAHashFromDataUrl } = await import("@/utils/imageHash");
+        const queryHash = await computeAHashFromDataUrl(base64);
         const { data, error } = await supabase.functions.invoke("image-search", {
-          body: { action: "search", imageBase64: base64 },
+          body: { action: "search", queryHash },
         });
         if (error) throw error;
         if ((data as any)?.error) throw new Error((data as any).error);
