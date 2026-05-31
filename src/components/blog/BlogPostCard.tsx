@@ -88,7 +88,7 @@ const BlogPostCard = ({ post, isSelected, onSelect, onEdit, onDelete, isAdmin }:
             </p>
             
             <div className="pt-4 border-t border-border/30">
-              <span className="text-xs text-[hsl(var(--luxury-gold))] font-semibold tracking-wider uppercase">
+              <span className="text-xs text-[hsl(var(--luxury-gold))] font-semibold tracking-wider uppercase" aria-label={`Read more: ${post.title}`}>
                 Read More →
               </span>
             </div>
