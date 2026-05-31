@@ -34,7 +34,7 @@ export const SubCategorySearch = ({
           onChange={onSearchChange}
           className="w-full bg-white/50 backdrop-blur-sm border border-purple-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-colors"
         />
-        <Button variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-3">
+        <Button variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-3" aria-label="Search products">
           <Search className="h-4 w-4 text-purple-500" />
         </Button>
       </div>
