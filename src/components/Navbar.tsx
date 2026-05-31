@@ -39,7 +39,7 @@ const Navbar = () => {
         <div className="flex items-center gap-4">
           {/* Mobile Menu */}
           <Drawer>
-            <DrawerTrigger className="block sm:hidden p-2 hover:bg-white/10 rounded-lg transition-colors">
+            <DrawerTrigger aria-label="Open menu" className="block sm:hidden p-2 hover:bg-white/10 rounded-lg transition-colors">
               <Menu className="h-5 w-5" />
             </DrawerTrigger>
             <DrawerContent className="bg-[#1A1F2C]">
