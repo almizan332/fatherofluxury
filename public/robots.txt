@@ -1,4 +1,7 @@
 User-agent: *
 Disallow: /dashboard
+Disallow: /admin
 Disallow: /api/admin
 Allow: /
+
+Sitemap: https://alihiddenproduct.com/sitemap.xml
