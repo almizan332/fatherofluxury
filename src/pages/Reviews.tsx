@@ -316,7 +316,7 @@ const Reviews = () => {
         ) : (
           <div className="text-center py-12">
             <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No reviews yet</h3>
+            <h2 className="text-lg font-semibold mb-2">No reviews yet</h2>
             <p className="text-muted-foreground">Be the first to submit a review!</p>
           </div>
         )}
