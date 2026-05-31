@@ -118,6 +118,7 @@ const Navbar = () => {
           />
           <button 
             type="submit"
+            aria-label="Submit search"
             className="absolute right-2 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors"
           >
             <Search className="h-4 w-4" />
