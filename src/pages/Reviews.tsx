@@ -298,7 +298,7 @@ const Reviews = () => {
                           <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                         ))}
                       </div>
-                      <h3 className="font-semibold text-lg mb-2">{review.product_name}</h3>
+                      <h2 className="font-semibold text-lg mb-2">{review.product_name}</h2>
                       {review.review_text && (
                         <p className="text-sm text-muted-foreground mb-3 line-clamp-3">
                           {review.review_text}
