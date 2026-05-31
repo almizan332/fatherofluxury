@@ -24,7 +24,7 @@ function BuyButtons({ product }: { product: Product }) {
 
   return (
     <div className="space-y-3 md:space-y-4">
-      <h3 className="text-xs md:text-sm font-semibold text-muted-foreground uppercase tracking-wider">Purchase Options</h3>
+      <h2 className="text-xs md:text-sm font-semibold text-muted-foreground uppercase tracking-wider">Purchase Options</h2>
       <div className="flex flex-col sm:flex-row flex-wrap gap-2 md:gap-3">
         {product.flylink && (
           <Button
@@ -112,12 +112,12 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
       <div className="grid gap-4">
         <Card className="border-primary/10 bg-gradient-to-br from-background to-primary/5 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
           <CardContent className="p-6">
-            <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+            <h2 className="font-semibold text-lg mb-3 flex items-center gap-2">
               <div className="p-2 rounded-lg bg-primary/10">
                 <ShoppingCart className="w-5 h-5 text-primary" />
               </div>
               How to Order
-            </h3>
+            </h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Click on any purchase button above to be redirected to the seller's page. 
               Follow their ordering process to complete your purchase.
@@ -127,12 +127,12 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
 
         <Card className="border-blue-500/10 bg-gradient-to-br from-background to-blue-500/5 backdrop-blur-sm hover:shadow-lg transition-all duration-300">
           <CardContent className="p-6">
-            <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+            <h2 className="font-semibold text-lg mb-3 flex items-center gap-2">
               <div className="p-2 rounded-lg bg-blue-500/10">
                 <ExternalLink className="w-5 h-5 text-blue-500" />
               </div>
               Delivery Time
-            </h3>
+            </h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Delivery times vary by seller and location. Please check with the seller for specific delivery estimates.
             </p>
@@ -142,7 +142,7 @@ const ProductInfo = ({ product }: ProductInfoProps) => {
 
       {/* Action Buttons with Better Design */}
       <div className="space-y-3">
-        <h3 className="text-xs md:text-sm font-semibold text-muted-foreground uppercase tracking-wider">Need Help?</h3>
+        <h2 className="text-xs md:text-sm font-semibold text-muted-foreground uppercase tracking-wider">Need Help?</h2>
         <div className="flex flex-col sm:flex-row flex-wrap gap-2 md:gap-3">
           <Button
             variant="outline"
