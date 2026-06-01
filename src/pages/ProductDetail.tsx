@@ -62,12 +62,12 @@ const ProductDetail = () => {
         description={(product.description || `Buy ${product.name} via trusted FlyLink hidden links and Yupoo sellers. Premium replica quality with photo proof and verified reviews.`).slice(0, 160)}
         canonical={`/product/${id}`}
         ogType="product"
-        ogImage={product.image_url || undefined}
+        ogImage={product.first_image || product.preview_image || undefined}
         jsonLd={{
           "@context": "https://schema.org",
           "@type": "Product",
           name: product.name,
-          image: product.image_url,
+          image: product.first_image || product.preview_image,
           description: product.description,
           category: product.categories?.name,
         }}
