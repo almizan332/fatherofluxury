@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useBlogPosts } from "@/hooks/blog/useBlogPosts";
+import SEO from "@/components/SEO";
 
 const Blog = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -22,6 +23,11 @@ const Blog = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO
+        title="Blog — FlyLink Hidden Links & Yupoo Guides"
+        description="Guides, hauls, and seller spotlights for FlyLink hidden links and Yupoo replicas. Tips to spot quality bags, watches, sneakers and apparel."
+        canonical="/blog"
+      />
       <Navbar />
       
       <ScrollArea className="flex-grow">

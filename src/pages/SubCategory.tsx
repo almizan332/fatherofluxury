@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { useSubCategoryProducts } from "@/hooks/useSubCategoryProducts";
 import { SubCategorySearch } from "@/components/subcategory/SubCategorySearch";
 import { SubCategoryPagination } from "@/components/subcategory/SubCategoryPagination";
+import SEO from "@/components/SEO";
 
 const SubCategory = () => {
   const { category } = useParams();
@@ -37,6 +38,11 @@ const SubCategory = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO
+        title={`${category ?? "Category"} — FlyLink Hidden Links & Yupoo`}
+        description={`Shop ${category ?? "replica"} products from trusted FlyLink and Yupoo sellers. ${totalCount || ""} curated finds updated daily.`}
+        canonical={`/category/${category ?? ""}`}
+      />
       <Navbar />
       <ScrollArea className="flex-grow">
         <main className="container mx-auto px-4 py-12">

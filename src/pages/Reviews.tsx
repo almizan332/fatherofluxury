@@ -12,6 +12,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { sanitizeImageUrl } from "@/utils/imageUrlHelper";
 import { uploadFileToVPS } from "@/utils/vpsFileUpload";
+import SEO from "@/components/SEO";
 
 interface Review {
   id: string;
@@ -137,6 +138,11 @@ const Reviews = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEO
+        title="Customer Reviews — FlyLink Hidden Links & Yupoo"
+        description="Real customer reviews of FlyLink hidden links and Yupoo replica purchases. See photos, ratings, and seller experiences from verified buyers."
+        canonical="/reviews"
+      />
       <Navbar />
       
       <main className="flex-1 container mx-auto px-4 py-8">
