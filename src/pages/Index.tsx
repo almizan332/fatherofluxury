@@ -30,6 +30,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import SEO from "@/components/SEO";
 
 const ITEMS_PER_BATCH = 120;
 
@@ -144,6 +145,11 @@ const [products, setProducts] = useState<Product[]>([]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <SEO
+        title="FlyLink Hidden Links & Yupoo — Trusted Replica Finds"
+        description="Browse curated FlyLink hidden links and Yupoo replica finds from vetted sellers. Bags, watches, sneakers and apparel updated daily."
+        canonical="/"
+      />
       <Navbar />
       <div className="flex-grow">
         <main className="container mx-auto px-4 py-8 max-w-7xl">

@@ -8,6 +8,7 @@ import { ProductGallery } from "@/components/product/detail/ProductGallery";
 import ProductInfo from "@/components/product/detail/ProductInfo";
 import { RelatedProducts } from "@/components/product/detail/RelatedProducts";
 import { useProductDetail } from "@/hooks/useProductDetail";
+import SEO from "@/components/SEO";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -56,6 +57,21 @@ const ProductDetail = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 flex flex-col">
+      <SEO
+        title={`${product.name} — FlyLink Hidden Links & Yupoo`}
+        description={(product.description || `Buy ${product.name} via trusted FlyLink hidden links and Yupoo sellers. Premium replica quality with photo proof and verified reviews.`).slice(0, 160)}
+        canonical={`/product/${id}`}
+        ogType="product"
+        ogImage={product.first_image || product.preview_image || undefined}
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: product.name,
+          image: product.first_image || product.preview_image,
+          description: product.description,
+          category: product.categories?.name,
+        }}
+      />
       <Navbar />
       <main className="container px-4 md:px-6 py-4 md:py-8 flex-grow">
         <div className="max-w-7xl mx-auto">
