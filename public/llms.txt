@@ -1,0 +1,16 @@
+# FlyLink Hidden Links
+
+> Curated AliExpress hidden links, Yupoo finds, and replica guides. Discover trusted sellers and product reviews.
+
+## Pages
+
+- [Home](/): Browse curated hidden links, Yupoo finds, and top-rated replica products.
+- [Categories](/categories): Explore products by category — bags, watches, shoes, jewelry, and more.
+- [Blog](/blog): Guides, hauls, and tips for navigating hidden links and Yupoo shopping.
+- [Reviews](/reviews): Real customer reviews and ratings with photos and videos.
+
+## Product Routes
+
+- [Product Detail](/product/:id): Detailed product page with images, pricing, and seller info.
+- [Category Browse](/category/:category): Filtered product listings by category name.
+- [Blog Post](/blog/:slug): Individual blog posts with guides and shopping tips.
