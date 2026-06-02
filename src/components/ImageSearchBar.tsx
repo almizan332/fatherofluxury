@@ -100,7 +100,7 @@ const ImageSearchBar = () => {
 
           {preview && (
             <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-              <img src={preview} alt="Query" className="w-20 h-20 object-cover rounded" />
+              <img src={preview} alt="Uploaded product image preview" className="w-20 h-20 object-cover rounded" />
               <p className="text-sm text-muted-foreground">Your uploaded image</p>
             </div>
           )}

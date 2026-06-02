@@ -88,7 +88,7 @@ const SubCategory = () => {
                             />
                           </div>
                           <div className="p-3">
-                            <h3 className="text-sm font-medium text-gray-200 line-clamp-2">{product.name}</h3>
+                            <h2 className="text-sm font-medium text-gray-200 line-clamp-2">{product.name}</h2>
                             <div className="flex justify-between items-center mt-2">
                               <p className="text-xs text-gray-400">
                                 {new Date(product.created_at).toLocaleDateString()}
