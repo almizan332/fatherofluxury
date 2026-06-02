@@ -83,13 +83,25 @@ const BlogPost = () => {
         <title>{post.seo_title}</title>
         <meta name="description" content={post.seo_description} />
         <meta name="keywords" content={post.seo_keywords} />
+        <link rel="canonical" href={`https://fatherofluxury.lovable.app/blog/${post.slug}`} />
         <meta property="og:title" content={post.seo_title} />
         <meta property="og:description" content={post.seo_description} />
         <meta property="og:image" content={post.image} />
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content={`https://fatherofluxury.lovable.app/blog/${post.slug}`} />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={post.seo_title} />
         <meta name="twitter:description" content={post.seo_description} />
         <meta name="twitter:image" content={post.image} />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Article",
+          headline: post.title,
+          image: [post.image],
+          datePublished: post.created_at,
+          description: post.excerpt,
+          mainEntityOfPage: `https://fatherofluxury.lovable.app/blog/${post.slug}`,
+        })}</script>
       </Helmet>
 
       <Navbar />

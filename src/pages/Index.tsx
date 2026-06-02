@@ -149,6 +149,26 @@ const [products, setProducts] = useState<Product[]>([]);
         title="FlyLink Hidden Links & Yupoo — Trusted Replica Finds"
         description="Browse curated FlyLink hidden links and Yupoo replica finds from vetted sellers. Bags, watches, sneakers and apparel updated daily."
         canonical="/"
+        jsonLd={[
+          {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            name: "FlyLink Hidden Links & Yupoo",
+            url: "https://fatherofluxury.lovable.app/",
+            potentialAction: {
+              "@type": "SearchAction",
+              target: "https://fatherofluxury.lovable.app/categories?search={search_term_string}",
+              "query-input": "required name=search_term_string",
+            },
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            name: "FlyLink Hidden Links",
+            url: "https://fatherofluxury.lovable.app/",
+            logo: "https://fatherofluxury.lovable.app/og-image.png",
+          },
+        ]}
       />
       <Navbar />
       <div className="flex-grow">
