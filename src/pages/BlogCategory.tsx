@@ -60,6 +60,11 @@ const BlogCategory = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO
+        title={`${category || "Blog"} Articles — FlyLink Hidden Links`}
+        description={`Read ${category || "blog"} articles, hauls, and shopping guides for FlyLink hidden links and Yupoo replica finds from trusted sellers.`}
+        canonical={`/blog/category/${encodeURIComponent(category || "")}`}
+      />
       <Navbar />
 
       <ScrollArea className="flex-grow">
