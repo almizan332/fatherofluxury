@@ -8,6 +8,7 @@ import { Link, useParams } from "react-router-dom";
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 import {
   Pagination,
   PaginationContent,
