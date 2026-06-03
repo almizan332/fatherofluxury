@@ -15,7 +15,7 @@ const PublicCategoryCard = ({ category }: PublicCategoryCardProps) => {
             <div className={`absolute inset-0 bg-gradient-to-br ${category.gradient} opacity-80`}></div>
             <img
               src={category.image_url || 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7?auto=format&fit=crop&w=400&q=80'}
-              alt={category.name}
+              alt={`Browse ${category.name} products`}
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
               referrerPolicy="no-referrer"
               crossOrigin="anonymous"
@@ -27,9 +27,9 @@ const PublicCategoryCard = ({ category }: PublicCategoryCardProps) => {
             <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300"></div>
           </div>
           <div className="p-4 bg-gradient-to-br from-white to-gray-50">
-            <h3 className="text-lg font-semibold text-gray-800 group-hover:text-purple-700 transition-colors duration-300 line-clamp-1">
+            <h2 className="text-lg font-semibold text-gray-800 group-hover:text-purple-700 transition-colors duration-300 line-clamp-1">
               {category.name}
-            </h3>
+            </h2>
             <p className="text-sm text-gray-600 mt-2">
               {category.product_count} {category.product_count === 1 ? 'product' : 'products'}
             </p>

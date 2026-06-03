@@ -222,6 +222,9 @@ const Reviews = () => {
                     {[1, 2, 3, 4, 5].map((star) => (
                       <Star
                         key={star}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`Rate ${star} ${star === 1 ? "star" : "stars"}`}
                         className={`h-8 w-8 cursor-pointer transition-colors ${
                           star <= formData.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
                         }`}

@@ -10,6 +10,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
+import SEO from "@/components/SEO";
 import {
   Pagination,
   PaginationContent,
@@ -73,6 +74,11 @@ const Shop = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Shop All Products — FlyLink Hidden Links"
+        description="Browse all FlyLink hidden links and Yupoo replica products — bags, watches, sneakers, jewelry, and apparel from trusted sellers."
+        canonical="/shop"
+      />
       <header className="sticky top-0 z-50 border-b border-gray-800 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 py-3">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <motion.div
