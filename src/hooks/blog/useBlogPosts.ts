@@ -27,7 +27,7 @@ export const useBlogPosts = () => {
     try {
       const { data, error } = await supabase
         .from('blog_posts')
-        .select('*')
+        .select('id,title,excerpt,image,slug,seo_title,seo_description,seo_keywords,created_at')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
