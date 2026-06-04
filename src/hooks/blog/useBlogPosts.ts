@@ -7,7 +7,7 @@ export interface BlogPost {
   id: string;
   title: string;
   excerpt: string;
-  content: string;
+  content?: string;
   image: string;
   slug: string;
   seo_title: string;
