@@ -77,13 +77,17 @@ async function main() {
       if (b.slug) entries.push({ path: `/blog/${b.slug}`, changefreq: "monthly", priority: "0.6" });
 
     const cats = await rest<{ name: string }>("categories", "select=name");
-    for (const c of cats)
-      if (c.name)
-        entries.push({
-          path: `/category/${encodeURIComponent(c.name)}`,
-          changefreq: "weekly",
-          priority: "0.7",
-        });
+    for (const c of cats) {
+      if (!c.name) continue;
+      // Skip malformed/legacy category names that contain slashes or excessive length —
+      // those produce broken URLs and 404s when crawled.
+      if (c.name.includes("/") || c.name.length > 80) continue;
+      entries.push({
+        path: `/category/${encodeURIComponent(c.name.trim())}`,
+        changefreq: "weekly",
+        priority: "0.7",
+      });
+    }
 
     const products = await fetchAll<{ id: string }>("products", "id");
     for (const p of products)
