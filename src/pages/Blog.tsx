@@ -14,7 +14,7 @@ import SEO from "@/components/SEO";
 
 const Blog = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const { blogPosts } = useBlogPosts();
+  const { blogPosts, isLoading } = useBlogPosts();
 
   const filteredPosts = blogPosts.filter(post => 
     post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
