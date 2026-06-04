@@ -18,6 +18,7 @@ export interface BlogPost {
 
 export const useBlogPosts = () => {
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedPosts, setSelectedPosts] = useState<string[]>([]);
   const { toast } = useToast();
 
