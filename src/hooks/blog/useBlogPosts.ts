@@ -23,6 +23,7 @@ export const useBlogPosts = () => {
   const { toast } = useToast();
 
   const fetchBlogPosts = async () => {
+    setIsLoading(true);
     try {
       const { data, error } = await supabase
         .from('blog_posts')
@@ -38,6 +39,8 @@ export const useBlogPosts = () => {
         description: "Failed to fetch blog posts",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
