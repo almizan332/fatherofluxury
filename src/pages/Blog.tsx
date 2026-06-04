@@ -14,7 +14,7 @@ import SEO from "@/components/SEO";
 
 const Blog = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const { blogPosts } = useBlogPosts();
+  const { blogPosts, isLoading } = useBlogPosts();
 
   const filteredPosts = blogPosts.filter(post => 
     post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -102,12 +102,24 @@ const Blog = () => {
               </motion.div>
             ))}
             
-            {filteredPosts.length === 0 && (
+            {isLoading ? (
+              Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="rounded-lg overflow-hidden border border-border/40 bg-card/40 animate-pulse">
+                  <div className="aspect-video bg-muted/40" />
+                  <div className="p-6 space-y-3">
+                    <div className="h-3 w-24 bg-muted/40 rounded" />
+                    <div className="h-6 w-3/4 bg-muted/40 rounded" />
+                    <div className="h-4 w-full bg-muted/30 rounded" />
+                    <div className="h-4 w-5/6 bg-muted/30 rounded" />
+                  </div>
+                </div>
+              ))
+            ) : filteredPosts.length === 0 ? (
               <div className="col-span-full text-center py-16">
                 <h3 className="text-2xl text-muted-foreground font-medium">No blog posts found</h3>
                 <p className="text-muted-foreground/70 mt-2">Try adjusting your search terms</p>
               </div>
-            )}
+            ) : null}
           </div>
         </main>
       </ScrollArea>

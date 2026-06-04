@@ -18,10 +18,12 @@ export interface BlogPost {
 
 export const useBlogPosts = () => {
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedPosts, setSelectedPosts] = useState<string[]>([]);
   const { toast } = useToast();
 
   const fetchBlogPosts = async () => {
+    setIsLoading(true);
     try {
       const { data, error } = await supabase
         .from('blog_posts')
@@ -37,6 +39,8 @@ export const useBlogPosts = () => {
         description: "Failed to fetch blog posts",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -140,6 +144,7 @@ export const useBlogPosts = () => {
 
   return {
     blogPosts,
+    isLoading,
     selectedPosts,
     setSelectedPosts,
     handleDelete,
