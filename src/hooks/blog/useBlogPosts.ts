@@ -144,6 +144,7 @@ export const useBlogPosts = () => {
 
   return {
     blogPosts,
+    isLoading,
     selectedPosts,
     setSelectedPosts,
     handleDelete,
