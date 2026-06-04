@@ -31,7 +31,7 @@ export const useBlogPosts = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setBlogPosts(data || []);
+      setBlogPosts(((data || []) as Partial<BlogPost>[]).map(p => ({ content: '', ...p })) as BlogPost[]);
     } catch (error: any) {
       console.error('Error fetching blog posts:', error);
       toast({
