@@ -1,9 +1,23 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { S3Client, PutObjectCommand } from "https://esm.sh/@aws-sdk/client-s3@3.445.0";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-const STORAGE_BUCKET = "product_media";
+
+// DigitalOcean Spaces — replaces Supabase Storage for all uploaded media.
+const DO_SPACES_KEY = Deno.env.get("DO_SPACES_KEY") ?? "";
+const DO_SPACES_SECRET = Deno.env.get("DO_SPACES_SECRET") ?? "";
+const DO_SPACES_ENDPOINT = Deno.env.get("DO_SPACES_ENDPOINT") || "https://nyc3.digitaloceanspaces.com";
+const DO_SPACES_BUCKET = "shadow-copy-portal";
+const DO_SPACES_REGION = "nyc3";
+
+const s3Client = new S3Client({
+  endpoint: DO_SPACES_ENDPOINT,
+  region: DO_SPACES_REGION,
+  credentials: { accessKeyId: DO_SPACES_KEY, secretAccessKey: DO_SPACES_SECRET },
+  forcePathStyle: false,
+});
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -141,7 +155,7 @@ function bestVideoUrl(item: any): { url: string; ext: string } | null {
 }
 
 async function downloadAndUpload(
-  supabase: any,
+  _supabase: any,
   url: string,
   referer: string,
   folder: string,
@@ -162,31 +176,39 @@ async function downloadAndUpload(
       if (url.includes("/big.")) {
         const alt = url.replace("/big.", "/orig.");
         const r2 = await fetch(alt, { headers: { "User-Agent": UA, "Referer": referer } });
-        if (r2.ok) return await uploadBuf(supabase, await r2.arrayBuffer(), r2.headers.get("content-type") || "", folder, ext, errors);
+        if (r2.ok) return await uploadBuf(await r2.arrayBuffer(), r2.headers.get("content-type") || "", folder, ext, errors);
       }
       errors.push(`fetch ${res.status}: ${url.slice(0, 100)}`);
       return null;
     }
     const ct = res.headers.get("content-type") || "application/octet-stream";
     const ab = await res.arrayBuffer();
-    return await uploadBuf(supabase, ab, ct, folder, ext, errors);
+    return await uploadBuf(ab, ct, folder, ext, errors);
   } catch (e) {
     errors.push(`exc: ${(e as Error).message}`);
     return null;
   }
 }
 
+// Upload directly to DigitalOcean Spaces (S3-compatible) — no Supabase Storage.
 async function uploadBuf(
-  supabase: any, ab: ArrayBuffer, ct: string, folder: string, ext: string, errors: string[],
+  ab: ArrayBuffer, ct: string, folder: string, ext: string, errors: string[],
 ): Promise<string | null> {
   if (ab.byteLength < 200) { errors.push(`tiny ${ab.byteLength}b`); return null; }
   const key = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2, 10)}.${ext}`;
-  const { error } = await supabase.storage
-    .from(STORAGE_BUCKET)
-    .upload(key, new Uint8Array(ab), { contentType: ct, upsert: true });
-  if (error) { errors.push(`upload: ${error.message}`); return null; }
-  const { data: pub } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(key);
-  return pub.publicUrl;
+  try {
+    await s3Client.send(new PutObjectCommand({
+      Bucket: DO_SPACES_BUCKET,
+      Key: key,
+      Body: new Uint8Array(ab),
+      ACL: "public-read",
+      ContentType: ct,
+    }));
+    return `${DO_SPACES_ENDPOINT}/${DO_SPACES_BUCKET}/${key}`;
+  } catch (e) {
+    errors.push(`do-upload: ${(e as Error).message}`);
+    return null;
+  }
 }
 
 function safeSlug(s: string) {
